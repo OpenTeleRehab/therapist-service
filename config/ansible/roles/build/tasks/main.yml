@@ -1,13 +1,7 @@
 ---
 
-- name: Create project directory
+- name: Create build file
   file:
-    path: '/var/tmp/{{ project_id }}'
-    state: directory
-    mode: 0755
-
-- name: Write build version to file
-  template:
-    src: ci-build-id.txt.j2
-    dest: '/var/tmp/{{ project_id }}/{{ project_name }}-build-id.txt'
+    path: '/var/tmp/{{ project_id }}/{{ project_name }}-build'
+    state: touch
     mode: 0755
