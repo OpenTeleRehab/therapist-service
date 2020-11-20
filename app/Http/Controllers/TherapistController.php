@@ -58,7 +58,7 @@ class TherapistController extends Controller
                 'limit_patient' => $limitPatient,
                 'clinic_id' => $clinic,
                 'language_id' => $language,
-                'profession' => $profession
+                'profession_id' => $profession
             ]);
 
             // Todo create function in model to generate this identity.
