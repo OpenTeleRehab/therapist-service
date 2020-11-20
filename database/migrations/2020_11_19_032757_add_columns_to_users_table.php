@@ -15,6 +15,7 @@ class AddColumnsToUsersTable extends Migration
     public function up()
     {
         Schema::table('users', function (Blueprint $table) {
+            $table->dropColumn('name');
             $table->string('email')->nullable()->change();
             $table->string('password')->nullable()->change();
             $table->string('first_name');
@@ -23,10 +24,9 @@ class AddColumnsToUsersTable extends Migration
             $table->integer('country_id');
             $table->integer('limit_patient');
             $table->integer('language_id')->nullable();
-            $table->integer('profession')->nullable();
-            $table->dropColumn('name');
+            $table->integer('profession_id')->nullable();
             $table->integer('identity')->unique()->nullable();
-
+            $table->boolean('enabled')->default(0);
         });
 
         DB::statement('ALTER TABLE users CHANGE identity identity INT(9) UNSIGNED ZEROFILL');
@@ -46,8 +46,9 @@ class AddColumnsToUsersTable extends Migration
             $table->dropColumn('clinic_id');
             $table->dropColumn('country_id');
             $table->dropColumn('language_id');
-            $table->dropColumn('profession');
-            $table->drop('limit_patient');
+            $table->dropColumn('profession_id');
+            $table->dropColumn('limit_patient');
+            $table->dropColumn('enabled');
         });
     }
 }
