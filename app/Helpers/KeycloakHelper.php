@@ -5,9 +5,9 @@ namespace App\Helpers;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 
-define("KEYCLOAK_TOKEN_URL", env('KEYCLOAK_URL') . '/auth/realms/therapist/protocol/openid-connect/token');
-define("KEYCLOAK_USER_URL", env('KEYCLOAK_URL') . '/auth/admin/realms/therapist/users');
-define("KEYCLOAK_GROUPS_URL", env('KEYCLOAK_URL') . '/auth/admin/realms/therapist/groups');
+define("KEYCLOAK_TOKEN_URL", env('KEYCLOAK_URL') . '/auth/realms/' . env('KEYCLOAK_REAMLS_NAME') . '/protocol/openid-connect/token');
+define("KEYCLOAK_USER_URL", env('KEYCLOAK_URL') . '/auth/admin/realms/' . env('KEYCLOAK_REAMLS_NAME') . '/users');
+define("KEYCLOAK_GROUPS_URL", env('KEYCLOAK_URL') . '/auth/admin/realms/' . env('KEYCLOAK_REAMLS_NAME') . '/groups');
 
 /**
  * Class KeycloakHelper
