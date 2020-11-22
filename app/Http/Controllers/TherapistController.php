@@ -21,9 +21,18 @@ class TherapistController extends Controller
      */
     public function index(Request $request)
     {
-        $users = User::all();
-
-        return ['success' => true, 'data' => UserResource::collection($users)];
+        $data = $request->all();
+        $users = User::where(function ($query) use ($data) {
+            $query->where('identity', 'like', '%' . $data['search_value'] . '%')
+                ->orWhere('first_name', 'like', '%' . $data['search_value'] . '%')
+                ->orWhere('last_name', 'like', '%' . $data['search_value'] . '%')
+                ->orWhere('email', 'like', '%' . $data['search_value'] . '%');
+        })->paginate($data['page_size']);
+        $info = [
+            'current_page' => $users->currentPage(),
+            'total_count' => $users->total(),
+        ];
+        return ['success' => true, 'data' => UserResource::collection($users), 'info' => $info];
     }
 
     /**
