@@ -83,6 +83,40 @@ class TherapistController extends Controller
     }
 
     /**
+     * @param \Illuminate\Http\Request $request
+     * @param int $id
+     *
+     * @return array
+     */
+    public function update(Request $request, $id)
+    {
+        try {
+            $user = User::findOrFail($id);
+            $data = $request->all();
+            $dataUpdate = [
+                'first_name' => $data['first_name'],
+                'last_name' => $data['last_name'],
+            ];
+
+            if (isset($data['language'])) {
+                $dataUpdate['language_id'] = $data['language'];
+            }
+            if (isset($data['profession'])) {
+                $dataUpdate['profession_id'] = $data['profession'];
+            }
+            if (isset($data['limit_patient'])) {
+                $dataUpdate['limit_patient'] = $data['limit_patient'];
+            }
+
+            $user->update($dataUpdate);
+        } catch (\Exception $e) {
+            return ['success' => false, 'message' => $e->getMessage()];
+        }
+
+        return ['success' => true, 'message' => 'success_message.user_update'];
+    }
+
+    /**
      * @param User $therapist
      * @param string $therapistGroup
      *
