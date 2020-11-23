@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\TherapistController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -15,3 +16,5 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::apiResource('therapist', TherapistController::class);
+Route::get('user/profile/{username}', [UserController::class, 'getUserProfile']);
+Route::put('user/update-password/{username}', [UserController::class, 'updatePassword']);

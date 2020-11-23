@@ -36,6 +36,45 @@ class KeycloakHelper
     }
 
     /**
+     * @param string $username
+     * @param string $password
+     *
+     * @return \Illuminate\Http\Client\Response
+     */
+    public static function getLoginUser($username, $password)
+    {
+        return Http::asForm()->post(KEYCLOAK_TOKEN_URL, [
+            'grant_type' => 'password',
+            'client_id' => env('KEYCLOAK_BACKEND_CLIENT'),
+            'client_secret' => env('KEYCLOAK_BACKEND_SECRET'),
+            'username' => $username,
+            'password' => $password,
+        ]);
+    }
+
+
+    /**
+     * @param string $token
+     * @param string $url
+     * @param string $password
+     * @param bool $isTemporary
+     *
+     * @return bool
+     */
+    public static function resetUserPassword($token, $url, $password, $isTemporary = true)
+    {
+        $response = Http::withToken($token)->put($url . '/reset-password', [
+            'value' => $password,
+            'type' => 'password',
+            'temporary' => $isTemporary
+        ]);
+        if ($response->successful()) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * @param string $role
      *
      * @return bool
