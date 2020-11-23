@@ -45,20 +45,21 @@ class TherapistController extends Controller
         DB::beginTransaction();
         $keycloakTherapistUuid = null;
 
-        try {
-            $firstName = $request->get('first_name');
-            $lastName = $request->get('last_name');
-            $email = $request->get('email');
-            $country = $request->get('country');
-            $limitPatient = $request->get('limit_patient');
-            $clinic = $request->get('clinic');
-            $language = $request->get('language');
-            $profession = $request->get('profession');
+        $firstName = $request->get('first_name');
+        $lastName = $request->get('last_name');
+        $email = $request->get('email');
+        $country = $request->get('country');
+        $limitPatient = $request->get('limit_patient');
+        $clinic = $request->get('clinic');
+        $language = $request->get('language');
+        $profession = $request->get('profession');
 
-            $availableEmail = User::where('email', $email)->count();
-            if ($availableEmail) {
-                return abort(409);
-            }
+        $availableEmail = User::where('email', $email)->count();
+        if ($availableEmail) {
+            // Todo: message will be replaced.
+            return abort(409, 'error_message.email_exists');
+        }
+        try {
             $therapist = User::create([
                 'email' => $email,
                 'first_name' => $firstName,
@@ -71,7 +72,8 @@ class TherapistController extends Controller
             ]);
 
             // Todo create function in model to generate this identity.
-            $identity = $therapist->country_id . $therapist->clinic_id . str_pad($therapist->id, 4, '0', STR_PAD_LEFT);
+            $identity = $therapist->country_id . $therapist->clinic_id . str_pad($therapist->id, 4, '0',
+                    STR_PAD_LEFT);
             $therapist->fill(['identity' => $identity]);
             $therapist->save();
 
@@ -84,7 +86,7 @@ class TherapistController extends Controller
             }
         } catch (\Exception $e) {
             DB::rollBack();
-            return ['error message' => $e->getMessage()];
+            return ['success' => false, 'message' => $e->getMessage()];
         }
 
         DB::commit();
