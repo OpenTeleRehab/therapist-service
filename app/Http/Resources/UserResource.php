@@ -24,6 +24,7 @@ class UserResource extends JsonResource
             'country_id' => $this->country_id,
             'limit_patient' => $this->limit_patient,
             'enabled' => $this->enabled,
+            'last_login' => $this->created_at,
         ];
     }
 }
