@@ -76,7 +76,7 @@ class TherapistController extends Controller
             $therapist->save();
 
             // Create keycloak therapist.
-            $keycloakTherapistUuid = self::createKeycloakTherapist($therapist, 'therapist');
+            $keycloakTherapistUuid = $this->createKeycloakTherapist($therapist, 'therapist');
 
             if (!$therapist || !$keycloakTherapistUuid) {
                 DB::rollBack();
@@ -131,7 +131,7 @@ class TherapistController extends Controller
      *
      * @return false|mixed|string
      */
-    private static function createKeycloakTherapist($therapist, $therapistGroup)
+    private function createKeycloakTherapist($therapist, $therapistGroup)
     {
         $token = KeycloakHelper::getKeycloakAccessToken();
         if ($token) {
