@@ -22,12 +22,39 @@ class TherapistController extends Controller
     public function index(Request $request)
     {
         $data = $request->all();
-        $users = User::where(function ($query) use ($data) {
+        $query = User::where(function ($query) use ($data) {
             $query->where('identity', 'like', '%' . $data['search_value'] . '%')
                 ->orWhere('first_name', 'like', '%' . $data['search_value'] . '%')
                 ->orWhere('last_name', 'like', '%' . $data['search_value'] . '%')
                 ->orWhere('email', 'like', '%' . $data['search_value'] . '%');
-        })->paginate($data['page_size']);
+        });
+
+        if (isset($data['filters'])) {
+            $filters = $request->get('filters');
+            $query->where(function ($query) use ($filters) {
+                foreach ($filters as $filter) {
+                    $filterObj = json_decode($filter);
+                    $excludedColumns = ['country', 'clinic', 'assigned_patients'];
+                    if (in_array($filterObj->columnName, $excludedColumns)) {
+                        continue;
+                    } elseif ($filterObj->columnName === 'status') {
+                        $query->where('enabled', $filterObj->value);
+                    } elseif ($filterObj->columnName === 'last_login') {
+                        $dates = explode(' - ', $filterObj->value);
+                        $startDate = date_create_from_format('d/m/Y', $dates[0]);
+                        $endDate = date_create_from_format('d/m/Y', $dates[1]);
+                        $startDate->format('Y-m-d');
+                        $endDate->format('Y-m-d');
+                        $query->where('created_at', '>=', $startDate)
+                            ->where('created_at', '<=', $endDate);
+                    } else {
+                        $query->where($filterObj->columnName, 'like', '%' .  $filterObj->value . '%');
+                    }
+                }
+            });
+        }
+
+        $users = $query->paginate($data['page_size']);
         $info = [
             'current_page' => $users->currentPage(),
             'total_count' => $users->total(),
@@ -72,8 +99,8 @@ class TherapistController extends Controller
             ]);
 
             // Todo create function in model to generate this identity.
-            $identity = $therapist->country_id . $therapist->clinic_id . str_pad($therapist->id, 4, '0',
-                    STR_PAD_LEFT);
+            $identity = $therapist->country_id . $therapist->clinic_id .
+                str_pad($therapist->id, 4, '0', STR_PAD_LEFT);
             $therapist->fill(['identity' => $identity]);
             $therapist->save();
 
