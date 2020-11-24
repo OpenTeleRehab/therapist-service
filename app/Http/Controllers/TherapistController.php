@@ -160,7 +160,7 @@ class TherapistController extends Controller
      *
      * @return false|mixed|string
      */
-    private function createKeycloakTherapist($therapist, $therapistGroup)
+    private function createKeycloakTherapist($therapist, $password, $isTemporaryPassword, $userGroup)
     {
         $token = KeycloakHelper::getKeycloakAccessToken();
         if ($token) {
@@ -177,6 +177,15 @@ class TherapistController extends Controller
                 $lintArray = explode('/', $createdTherapistUrl);
                 $therapistKeycloakUuid = end($lintArray);
                 $isCanSetPassword = true;
+                if ($password) {
+                    $isCanSetPassword = KeycloakHelper::resetUserPassword(
+                        $token,
+                        $createdTherapistUrl,
+                        $password,
+                        $isTemporaryPassword
+                    );
+                }
+
                 $isCanAssignTherapistToGroup = self::assignUserToGroup($token, $createdTherapistUrl, $therapistGroup);
                 if ($isCanSetPassword && $isCanAssignTherapistToGroup) {
                     return $therapistKeycloakUuid;
