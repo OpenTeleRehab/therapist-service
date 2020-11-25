@@ -105,7 +105,7 @@ class TherapistController extends Controller
             $therapist->save();
 
             // Create keycloak therapist.
-            $keycloakTherapistUuid = $this->createKeycloakTherapist($therapist, 'therapist');
+            $keycloakTherapistUuid = $this->createKeycloakTherapist($therapist, $email, true, 'therapist');
 
             if (!$therapist || !$keycloakTherapistUuid) {
                 DB::rollBack();
@@ -160,7 +160,7 @@ class TherapistController extends Controller
      *
      * @return false|mixed|string
      */
-    private function createKeycloakTherapist($therapist, $password, $isTemporaryPassword, $userGroup)
+    private static function createKeycloakTherapist($therapist, $password, $isTemporaryPassword, $userGroup)
     {
         $token = KeycloakHelper::getKeycloakAccessToken();
         if ($token) {
@@ -173,25 +173,26 @@ class TherapistController extends Controller
             ]);
 
             if ($response->successful()) {
-                $createdTherapistUrl = $response->header('Location');
-                $lintArray = explode('/', $createdTherapistUrl);
-                $therapistKeycloakUuid = end($lintArray);
+                $createdUserUrl = $response->header('Location');
+                $lintArray = explode('/', $createdUserUrl);
+                $userKeycloakUuid = end($lintArray);
                 $isCanSetPassword = true;
                 if ($password) {
                     $isCanSetPassword = KeycloakHelper::resetUserPassword(
                         $token,
-                        $createdTherapistUrl,
+                        $createdUserUrl,
                         $password,
                         $isTemporaryPassword
                     );
                 }
 
-                $isCanAssignTherapistToGroup = self::assignUserToGroup($token, $createdTherapistUrl, $therapistGroup);
-                if ($isCanSetPassword && $isCanAssignTherapistToGroup) {
-                    return $therapistKeycloakUuid;
+                $isCanAssignUserToGroup = self::assignUserToGroup($token, $createdUserUrl, $userGroup);
+                if ($isCanSetPassword && $isCanAssignUserToGroup) {
+                    return $userKeycloakUuid;
                 }
             }
         }
+
         return false;
     }
 
