@@ -86,31 +86,30 @@ class TherapistController extends Controller
             // Todo: message will be replaced.
             return abort(409, 'error_message.email_exists');
         }
-        try {
-            $therapist = User::create([
-                'email' => $email,
-                'first_name' => $firstName,
-                'last_name' => $lastName,
-                'country_id' => $country,
-                'limit_patient' => $limitPatient,
-                'clinic_id' => $clinic,
-                'language_id' => $language,
-                'profession_id' => $profession
-            ]);
 
+        $therapist = User::create([
+            'email' => $email,
+            'first_name' => $firstName,
+            'last_name' => $lastName,
+            'country_id' => $country,
+            'limit_patient' => $limitPatient,
+            'clinic_id' => $clinic,
+            'language_id' => $language,
+            'profession_id' => $profession
+        ]);
+
+        if (!$therapist) {
+            return ['success' => false, 'message' => 'error_message.user_add'];
+        }
+
+        try {
             // Todo create function in model to generate this identity.
             $identity = $therapist->country_id . $therapist->clinic_id .
                 str_pad($therapist->id, 4, '0', STR_PAD_LEFT);
             $therapist->fill(['identity' => $identity]);
             $therapist->save();
 
-            // Create keycloak therapist.
-            $keycloakTherapistUuid = $this->createKeycloakTherapist($therapist, $email, true, 'therapist');
-
-            if (!$therapist || !$keycloakTherapistUuid) {
-                DB::rollBack();
-                return abort(500);
-            }
+            $this->createKeycloakTherapist($therapist, $email, true, 'therapist');
         } catch (\Exception $e) {
             DB::rollBack();
             return ['success' => false, 'message' => $e->getMessage()];
@@ -156,44 +155,50 @@ class TherapistController extends Controller
 
     /**
      * @param User $therapist
-     * @param string $therapistGroup
+     * @param string $password
+     * @param boolean $isTemporaryPassword
+     * @param string $userGroup
      *
      * @return false|mixed|string
+     * @throws \Exception
      */
     private static function createKeycloakTherapist($therapist, $password, $isTemporaryPassword, $userGroup)
     {
         $token = KeycloakHelper::getKeycloakAccessToken();
         if ($token) {
-            $response = Http::withToken($token)->withHeaders([
-                'Content-Type' => 'application/json'
-            ])->post(KEYCLOAK_USERS, [
-                'username' => $therapist->email,
-                'email' => $therapist->email,
-                'enabled' => true,
-            ]);
+            try {
+                $response = Http::withToken($token)->withHeaders([
+                    'Content-Type' => 'application/json'
+                ])->post(KEYCLOAK_USERS, [
+                    'username' => $therapist->email,
+                    'email' => $therapist->email,
+                    'enabled' => true,
+                ]);
 
-            if ($response->successful()) {
-                $createdUserUrl = $response->header('Location');
-                $lintArray = explode('/', $createdUserUrl);
-                $userKeycloakUuid = end($lintArray);
-                $isCanSetPassword = true;
-                if ($password) {
-                    $isCanSetPassword = KeycloakHelper::resetUserPassword(
-                        $token,
-                        $createdUserUrl,
-                        $password,
-                        $isTemporaryPassword
-                    );
-                }
+                if ($response->successful()) {
+                    $createdUserUrl = $response->header('Location');
+                    $lintArray = explode('/', $createdUserUrl);
+                    $userKeycloakUuid = end($lintArray);
+                    $isCanSetPassword = true;
+                    if ($password) {
+                        $isCanSetPassword = KeycloakHelper::resetUserPassword(
+                            $token,
+                            $createdUserUrl,
+                            $password,
+                            $isTemporaryPassword
+                        );
+                    }
 
-                $isCanAssignUserToGroup = self::assignUserToGroup($token, $createdUserUrl, $userGroup);
-                if ($isCanSetPassword && $isCanAssignUserToGroup) {
-                    return $userKeycloakUuid;
+                    $isCanAssignUserToGroup = self::assignUserToGroup($token, $createdUserUrl, $userGroup);
+                    if ($isCanSetPassword && $isCanAssignUserToGroup) {
+                        return $userKeycloakUuid;
+                    }
                 }
+            } catch (\Exception $e) {
+                throw new \Exception($e->getMessage());
             }
         }
-
-        return false;
+        throw new \Exception('no_token');
     }
 
     /**
