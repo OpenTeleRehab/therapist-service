@@ -80,6 +80,8 @@ class TherapistController extends Controller
         $clinic = $request->get('clinic');
         $language = $request->get('language');
         $profession = $request->get('profession');
+        $countryIdentity = $request->get('country_identity');
+        $clinicIdentity = $request->get('clinic_identity');
 
         $availableEmail = User::where('email', $email)->count();
         if ($availableEmail) {
@@ -104,7 +106,7 @@ class TherapistController extends Controller
 
         try {
             // Todo create function in model to generate this identity.
-            $identity = $therapist->country_id . $therapist->clinic_id .
+            $identity = 'T' . $countryIdentity . $clinicIdentity .
                 str_pad($therapist->id, 4, '0', STR_PAD_LEFT);
             $therapist->fill(['identity' => $identity]);
             $therapist->save();
