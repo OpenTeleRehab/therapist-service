@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 
 class TreatmentPlan extends Model
 {
@@ -31,4 +32,21 @@ class TreatmentPlan extends Model
         'start_date' => 'datetime:d/m/Y',
         'end_date' => 'datetime:d/m/Y',
     ];
+
+    /**
+     * Bootstrap the model and its traits.
+     *
+     * @return void
+     */
+    protected static function boot()
+    {
+        parent::boot();
+        $orderValues = [self::STATUS_ON_GOING, self::STATUS_PLANNED, self::STATUS_FINISHED];
+
+        // Set default order.
+        static::addGlobalScope('order', function (Builder $builder) use ($orderValues) {
+            $builder->orderByRaw('FIELD(status, "' . implode('", "', $orderValues) . '")');
+            $builder->orderBy('name', 'asc');
+        });
+    }
 }
