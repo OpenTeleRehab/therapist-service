@@ -15,12 +15,46 @@ class TreatmentPlanController extends Controller
      */
     public function index(Request $request)
     {
+        $data = $request->all();
+        $info = [];
         if ($request->has('id')) {
             $treatmentPlans = TreatmentPlan::where('id', $request->get('id'))->get();
         } else {
-            $treatmentPlans = TreatmentPlan::all();
+            $query = TreatmentPlan::where('patient_id', $data['patient_id'])
+                ->where(function ($query) use ($data) {
+                    $query->where('name', 'like', '%' . $data['search_value'] . '%');
+                });
+
+            if (isset($data['filters'])) {
+                $filters = $request->get('filters');
+                $query->where(function ($query) use ($filters) {
+                    foreach ($filters as $filter) {
+                        $filterObj = json_decode($filter);
+                        if ($filterObj->columnName === 'treatment_status') {
+                            $query->where('status', trim($filterObj->value));
+                        } elseif ($filterObj->columnName === 'start_date' || $filterObj->columnName === 'end_date') {
+                            $dates = explode(' - ', $filterObj->value);
+                            $startDate = date_create_from_format('d/m/Y', $dates[0]);
+                            $endDate = date_create_from_format('d/m/Y', $dates[1]);
+                            $startDate->format('Y-m-d');
+                            $endDate->format('Y-m-d');
+                            $query->where($filterObj->columnName, '>=', $startDate)
+                                ->where($filterObj->columnName, '<=', $endDate);
+                        } else {
+                            $query->where($filterObj->columnName, 'like', '%' .  $filterObj->value . '%');
+                        }
+                    }
+                });
+            }
+
+            $treatmentPlans = $query->paginate($data['page_size']);
+            $info = [
+                'current_page' => $treatmentPlans->currentPage(),
+                'total_count' => $treatmentPlans->total(),
+            ];
         }
-        return ['success' => true, 'data' => TreatmentPlanResource::collection($treatmentPlans)];
+
+        return ['success' => true, 'data' => TreatmentPlanResource::collection($treatmentPlans), 'info' => $info];
     }
 
     /**
@@ -75,6 +109,7 @@ class TreatmentPlanController extends Controller
                 'patient_id' => $patientId,
                 'start_date' => $startDate,
                 'end_date' => $endDate,
+                'status' => TreatmentPlan::STATUS_PLANNED,
             ]);
 
             if (!$treatmentPlan) {

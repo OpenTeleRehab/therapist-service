@@ -8,6 +8,9 @@ class TreatmentPlan extends Model
 {
     const TYPE_PRESET = 'preset';
     const TYPE_NORMAL = 'normal';
+    const STATUS_PLANNED = 'planned';
+    const STATUS_ON_GOING = 'on-going';
+    const STATUS_FINISHED = 'finished';
 
     /**
      * The attributes that are mass assignable.
@@ -15,7 +18,7 @@ class TreatmentPlan extends Model
      * @var array
      */
     protected $fillable = [
-        'name', 'description', 'type', 'patient_id', 'start_date', 'end_date',
+        'name', 'description', 'type', 'patient_id', 'start_date', 'end_date', 'status',
     ];
 
     /**
