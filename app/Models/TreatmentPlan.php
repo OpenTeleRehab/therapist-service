@@ -32,7 +32,6 @@ class TreatmentPlan extends Model
         'start_date' => 'datetime:d/m/Y',
         'end_date' => 'datetime:d/m/Y',
     ];
-
     /**
      * Bootstrap the model and its traits.
      *
@@ -47,6 +46,7 @@ class TreatmentPlan extends Model
         static::addGlobalScope('order', function (Builder $builder) use ($orderValues) {
             $builder->orderByRaw('FIELD(status, "' . implode('", "', $orderValues) . '")');
             $builder->orderBy('name', 'asc');
+            $builder->orderBy('start_date', 'asc');
         });
     }
 }
