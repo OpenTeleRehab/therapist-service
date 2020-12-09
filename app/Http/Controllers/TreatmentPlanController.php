@@ -20,8 +20,13 @@ class TreatmentPlanController extends Controller
         if ($request->has('id')) {
             $treatmentPlans = TreatmentPlan::where('id', $request->get('id'))->get();
         } else {
-            $query = TreatmentPlan::where('patient_id', $data['patient_id'])
-                ->where(function ($query) use ($data) {
+            $query = TreatmentPlan::query();
+
+            if (isset($data['patient_id'])) {
+                $query = TreatmentPlan::where('patient_id', $data['patient_id']);
+            }
+
+            $query->where(function ($query) use ($data) {
                     $query->where('name', 'like', '%' . $data['search_value'] . '%');
                 });
 
