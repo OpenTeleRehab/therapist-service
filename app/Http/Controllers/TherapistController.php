@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 
 define("KEYCLOAK_USERS", env('KEYCLOAK_URL') . '/auth/admin/realms/' . env('KEYCLOAK_REAMLS_NAME') . '/users');
+define("KEYCLOAK_EXECUTE_EMAIL", '/execute-actions-email?client_id=' . env('KEYCLOAK_BACKEND_CLIENT') . '&redirect_uri=' . env('REACT_APP_BASE_URL'));
 
 class TherapistController extends Controller
 {
@@ -193,6 +194,7 @@ class TherapistController extends Controller
 
                     $isCanAssignUserToGroup = self::assignUserToGroup($token, $createdUserUrl, $userGroup);
                     if ($isCanSetPassword && $isCanAssignUserToGroup) {
+                        self::sendEmailToNewUser($userKeycloakUuid);
                         return $userKeycloakUuid;
                     }
                 }
@@ -225,5 +227,15 @@ class TherapistController extends Controller
         }
 
         return false;
+    }
+
+    public static function sendEmailToNewUser($userId)
+    {
+        $token = KeycloakHelper::getKeycloakAccessToken();
+
+        $url = KEYCLOAK_USER_URL . '/'. $userId . KEYCLOAK_EXECUTE_EMAIL;
+        $response = Http::withToken($token)->put($url, ['UPDATE_PASSWORD']);
+
+        return $response;
     }
 }
