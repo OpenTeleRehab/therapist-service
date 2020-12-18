@@ -229,6 +229,11 @@ class TherapistController extends Controller
         return false;
     }
 
+    /**
+     * @param int $userId
+     *
+     * @return \Illuminate\Http\Client\Response
+     */
     public static function sendEmailToNewUser($userId)
     {
         $token = KeycloakHelper::getKeycloakAccessToken();

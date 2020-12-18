@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TherapistController;
 use App\Http\Controllers\UserController;
 use \App\Http\Controllers\TreatmentPlanController;
@@ -20,3 +21,4 @@ Route::apiResource('therapist', TherapistController::class);
 Route::apiResource('treatment-plan', TreatmentPlanController::class);
 Route::get('user/profile/{username}', [UserController::class, 'getUserProfile']);
 Route::put('user/update-password/{username}', [UserController::class, 'updatePassword']);
+Route::put('user/update-information/{id}', [ProfileController::class, 'updateUserProfile']);
