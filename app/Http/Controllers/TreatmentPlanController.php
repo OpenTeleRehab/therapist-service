@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\TreatmentPlanResource;
+use App\Models\Activity;
 use App\Models\TreatmentPlan;
 use Illuminate\Http\Request;
 
@@ -93,6 +94,7 @@ class TreatmentPlanController extends Controller
                 return ['success' => false, 'message' => 'error_message.treatment_plan_add_as_preset'];
             }
 
+            $this->updateOrCreateActivities($treatmentPlan->id, $request->get('activities', []));
             return ['success' => true, 'message' => 'success_message.treatment_plan_add_as_preset'];
         } else {
             $startDate = date_create_from_format(config('settings.date_format'), $startDate)->format('Y-m-d');
@@ -123,6 +125,7 @@ class TreatmentPlanController extends Controller
                 return ['success' => false, 'message' => 'error_message.treatment_plan_assign_to_patient'];
             }
 
+            $this->updateOrCreateActivities($treatmentPlan->id, $request->get('activities', []));
             return ['success' => true, 'message' => 'success_message.treatment_plan_assign_to_patient', 'data' => $treatmentPlan];
         }
     }
@@ -135,17 +138,48 @@ class TreatmentPlanController extends Controller
      */
     public function update(Request $request, TreatmentPlan $treatmentPlan)
     {
-        $name = $request->get('name');
         $description = $request->get('description');
         $startDate = date_create_from_format(config('settings.date_format'), $request->get('start_date'))->format('Y-m-d');
         $endDate = date_create_from_format(config('settings.date_format'), $request->get('end_date'))->format('Y-m-d');
 
         $treatmentPlan->update([
-            'name' => $name,
+            'name' => $request->get('name'),
             'description' => $description,
             'start_date' => $startDate,
             'end_date' => $endDate,
         ]);
+
+        $this->updateOrCreateActivities($treatmentPlan->id, $request->get('activities', []));
         return ['success' => true, 'message' => 'success_message.treatment_plan_update'];
+    }
+
+    /**
+     * @param int $treatmentPlanId
+     * @param array $activities
+     *
+     * @return void
+     */
+    private function updateOrCreateActivities(int $treatmentPlanId, array $activities = [])
+    {
+        $activityIds = [];
+        foreach ($activities as $activity) {
+            $exercises = $activity['exercises'];
+            if (count($exercises) > 0) {
+                $activityObj = Activity::updateOrCreate(
+                    [
+                        'treatment_plan_id' => $treatmentPlanId,
+                        'week' => $activity['week'],
+                        'day' => $activity['day'],
+                    ],
+                    ['exercises' => $exercises],
+                );
+                $activityIds[] = $activityObj->id;
+            }
+        }
+
+        // Remove not selected activities.
+        Activity::where('treatment_plan_id', $treatmentPlanId)
+            ->whereNotIn('id', $activityIds)
+            ->delete();
     }
 }
