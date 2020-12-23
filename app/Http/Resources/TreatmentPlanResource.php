@@ -23,6 +23,7 @@ class TreatmentPlanResource extends JsonResource
             'start_date' => $this->start_date ? $this->start_date->format(config('settings.date_format')) : '',
             'end_date' => $this->end_date ? $this->end_date->format(config('settings.date_format')) : '',
             'status' => $this->status,
+            'activities' => ActivityResource::collection($this->activities()->get()),
         ];
     }
 }

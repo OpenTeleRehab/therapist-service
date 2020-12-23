@@ -49,4 +49,12 @@ class TreatmentPlan extends Model
             $builder->orderBy('start_date', 'asc');
         });
     }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function activities()
+    {
+        return $this->hasMany(Activity::class);
+    }
 }
