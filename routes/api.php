@@ -17,8 +17,10 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::apiResource('therapist', TherapistController::class);
-Route::apiResource('treatment-plan', TreatmentPlanController::class);
-Route::get('user/profile/{username}', [UserController::class, 'getUserProfile']);
-Route::put('user/update-password/{username}', [UserController::class, 'updatePassword']);
-Route::put('user/update-information/{id}', [ProfileController::class, 'updateUserProfile']);
+Route::group(['middleware' => 'auth:api'], function () {
+    Route::apiResource('therapist', TherapistController::class);
+    Route::apiResource('treatment-plan', TreatmentPlanController::class);
+    Route::get('user/profile', [ProfileController::class, 'getUserProfile']);
+    Route::put('user/update-password', [ProfileController::class, 'updatePassword']);
+    Route::put('user/update-information', [ProfileController::class, 'updateUserProfile']);
+});
