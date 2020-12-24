@@ -215,7 +215,7 @@ class TherapistController extends Controller
      */
     private static function assignUserToGroup($token, $userUrl, $userGroup, $isUnassigned = false)
     {
-        $userGroups = KeycloakHelper::getTherapistGroups($token);
+        $userGroups = KeycloakHelper::getUserGroup($token);
         $url = $userUrl . '/groups/' . $userGroups[$userGroup];
         if ($isUnassigned) {
             $response = Http::withToken($token)->delete($url);

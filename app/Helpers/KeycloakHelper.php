@@ -92,7 +92,7 @@ class KeycloakHelper
     /**
      * @return string
      */
-    public static function getTherapistUuid()
+    public static function getUserUuid()
     {
         $decodedToken = json_decode(Auth::token(), true);
         return $decodedToken['sub'];
@@ -103,7 +103,7 @@ class KeycloakHelper
      *
      * @return array
      */
-    public static function getTherapistGroups($token)
+    public static function getUserGroup($token)
     {
         $response = Http::withToken($token)->get(KEYCLOAK_GROUPS_URL);
         $userGroups = [];
