@@ -18,9 +18,11 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::group(['middleware' => 'auth:api'], function () {
-    Route::apiResource('therapist', TherapistController::class);
     Route::apiResource('treatment-plan', TreatmentPlanController::class);
     Route::get('user/profile', [ProfileController::class, 'getUserProfile']);
     Route::put('user/update-password', [ProfileController::class, 'updatePassword']);
     Route::put('user/update-information', [ProfileController::class, 'updateUserProfile']);
 });
+
+// Todo: apply for Admin, Therapist APPs
+Route::apiResource('therapist', TherapistController::class);
