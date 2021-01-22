@@ -18,7 +18,7 @@ class ActivityResource extends JsonResource
             'id' => $this->id,
             'week' => $this->week,
             'day' => $this->day,
-            'exercises' => $this->exercises,
+            'exercises' => array_map('intval', explode(',', $this->exercises)),
         ];
     }
 }

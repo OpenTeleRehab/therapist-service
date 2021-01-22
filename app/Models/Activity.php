@@ -21,12 +21,5 @@ class Activity extends Model
      *
      * @var array
      */
-    protected $fillable = ['treatment_plan_id', 'week', 'day', 'exercises'];
-
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array
-     */
-    protected $casts = ['exercises' => 'array'];
+    protected $fillable = ['treatment_plan_id', 'week', 'day', 'exercise_id'];
 }
