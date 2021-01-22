@@ -72,62 +72,22 @@ class TreatmentPlanController extends Controller
      */
     public function store(Request $request)
     {
-        $type = $request->get('type');
-        $name = $request->get('name');
-        $description = $request->get('description');
-        $patientId = $request->get('patient_id');
-        $startDate = $request->get('start_date');
-        $endDate = $request->get('end_date');
+        $treatmentPlan = TreatmentPlan::updateOrCreate(
+            [
+                'name' => $request->get('name'),
+                'type' => TreatmentPlan::TYPE_PRESET,
+            ],
+            [
+                'description' => $request->get('description'),
+            ]
+        );
 
-        if ($type === TreatmentPlan::TYPE_PRESET) {
-            $treatmentPlan = TreatmentPlan::updateOrCreate(
-                [
-                    'name' => $name,
-                    'type' => TreatmentPlan::TYPE_PRESET,
-                ],
-                [
-                    'description' => $description,
-                ]
-            );
-
-            if (!$treatmentPlan) {
-                return ['success' => false, 'message' => 'error_message.treatment_plan_add_as_preset'];
-            }
-
-            $this->updateOrCreateActivities($treatmentPlan->id, $request->get('activities', []));
-            return ['success' => true, 'message' => 'success_message.treatment_plan_add_as_preset'];
-        } else {
-            $startDate = date_create_from_format(config('settings.date_format'), $startDate)->format('Y-m-d');
-            $endDate = date_create_from_format(config('settings.date_format'), $endDate)->format('Y-m-d');
-
-            // Check if there is any overlap schedule.
-            $overlapRecords = TreatmentPlan::where('patient_id', $patientId)
-                ->where(function ($query) use ($startDate, $endDate) {
-                    $query->whereBetween('start_date', [$startDate, $endDate])
-                        ->orWhereBetween('end_date', [$startDate, $endDate]);
-                })->get();
-
-            if (count($overlapRecords)) {
-                return ['success' => false, 'message' => 'error_message.treatment_plan_assign_to_patient_overlap_schedule'];
-            }
-
-            $treatmentPlan = TreatmentPlan::create([
-                'name' => $name,
-                'description' => $description,
-                'type' => TreatmentPlan::TYPE_NORMAL,
-                'patient_id' => $patientId,
-                'start_date' => $startDate,
-                'end_date' => $endDate,
-                'status' => TreatmentPlan::STATUS_PLANNED,
-            ]);
-
-            if (!$treatmentPlan) {
-                return ['success' => false, 'message' => 'error_message.treatment_plan_assign_to_patient'];
-            }
-
-            $this->updateOrCreateActivities($treatmentPlan->id, $request->get('activities', []));
-            return ['success' => true, 'message' => 'success_message.treatment_plan_assign_to_patient', 'data' => $treatmentPlan];
+        if (!$treatmentPlan) {
+            return ['success' => false, 'message' => 'error_message.treatment_plan_add_as_preset'];
         }
+
+        $this->updateOrCreateActivities($treatmentPlan->id, $request->get('activities', []));
+        return ['success' => true, 'message' => 'success_message.treatment_plan_add_as_preset'];
     }
 
     /**
@@ -165,15 +125,17 @@ class TreatmentPlanController extends Controller
         foreach ($activities as $activity) {
             $exercises = $activity['exercises'];
             if (count($exercises) > 0) {
-                $activityObj = Activity::updateOrCreate(
-                    [
-                        'treatment_plan_id' => $treatmentPlanId,
-                        'week' => $activity['week'],
-                        'day' => $activity['day'],
-                    ],
-                    ['exercises' => $exercises],
-                );
-                $activityIds[] = $activityObj->id;
+                foreach ($exercises as $exercise) {
+                    $activityObj = Activity::firstOrCreate(
+                        [
+                            'treatment_plan_id' => $treatmentPlanId,
+                            'week' => $activity['week'],
+                            'day' => $activity['day'],
+                            'exercise_id' => $exercise,
+                        ],
+                    );
+                    $activityIds[] = $activityObj->id;
+                }
             }
         }
 
