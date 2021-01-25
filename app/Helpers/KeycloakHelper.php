@@ -116,4 +116,18 @@ class KeycloakHelper
 
         return $userGroups;
     }
+
+    /**
+     * @param string $token
+     * @param string $userUuid
+     * @return bool
+     */
+    public static function deleteUser($token, $userUuid)
+    {
+        $url = KEYCLOAK_USERS . '/' . $userUuid;
+        $response = Http::withToken($token)->delete($url);
+
+        return $response->successful();
+    }
+
 }
