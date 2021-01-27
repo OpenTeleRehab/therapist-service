@@ -157,6 +157,37 @@ class TherapistController extends Controller
     }
 
     /**
+     * @param integer $id
+     *
+     * @return false|mixed|string
+     * @throws \Exception
+     */
+    public function destroy($id)
+    {
+        try {
+            $user = User::findOrFail($id);
+            $token = KeycloakHelper::getKeycloakAccessToken();
+
+            $userUrl = KEYCLOAK_USERS . '?email=' . $user->email;
+            $response = Http::withToken($token)->get($userUrl);
+
+            if ($response->successful()) {
+                $keyCloakUsers = $response->json();
+
+                KeycloakHelper::deleteUser($token, $keyCloakUsers[0]['id']);
+                $user->delete();
+
+                return ['success' => true, 'message' => 'success_message.therapist_delete'];
+            }
+
+            return ['success' => false, 'message' => 'error_message.therapist_delete'];
+        } catch (\Exception $e) {
+            return ['success' => false, 'message' => $e->getMessage()];
+        }
+    }
+
+
+    /**
      * @param User $therapist
      * @param string $password
      * @param boolean $isTemporaryPassword
