@@ -156,6 +156,37 @@ class TherapistController extends Controller
         return ['success' => true, 'message' => 'success_message.user_update'];
     }
 
+
+
+    /**
+     * @param Request $request
+     * @param \App\Models\User $user
+     * @return array
+     */
+    public function updateStatus(Request $request, User $user)
+    {
+        try {
+            $enabled = $request->boolean('enabled');
+            $token = KeycloakHelper::getKeycloakAccessToken();
+            $userUrl = KEYCLOAK_USERS . '?email=' . $user->email;
+            $user->update(['enabled' => $enabled]);
+
+            $response = Http::withToken($token)->get($userUrl);
+            $keyCloakUsers = $response->json();
+            $url = KEYCLOAK_USERS . '/' . $keyCloakUsers[0]['id'];
+
+            $userUpdated = Http::withToken($token)
+                ->put($url, ['enabled' => $enabled]);
+
+            if ($userUpdated) {
+                return ['success' => true, 'message' => 'success_message.user_update'];
+            }
+            return ['success' => false, 'message' => 'error_message.user_update'];
+        } catch (\Exception $e) {
+            return ['success' => false, 'message' => $e->getMessage()];
+        }
+    }
+
     /**
      * @param integer $id
      *
