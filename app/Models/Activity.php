@@ -7,6 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class Activity extends Model
 {
+    const ACTIVITY_TYPE_EXERCISE = 'exercise';
+    const ACTIVITY_TYPE_MATERIAL = 'material';
+
     use HasFactory;
 
     /**
@@ -21,5 +24,5 @@ class Activity extends Model
      *
      * @var array
      */
-    protected $fillable = ['treatment_plan_id', 'week', 'day', 'exercise_id'];
+    protected $fillable = ['treatment_plan_id', 'week', 'day', 'activity_id', 'type'];
 }
