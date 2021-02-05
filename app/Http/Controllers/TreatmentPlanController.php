@@ -124,6 +124,7 @@ class TreatmentPlanController extends Controller
         $activityIds = [];
         foreach ($activities as $activity) {
             $exercises = $activity['exercises'];
+            $materials = $activity['materials'];
             if (count($exercises) > 0) {
                 foreach ($exercises as $exercise) {
                     $activityObj = Activity::firstOrCreate(
@@ -131,7 +132,23 @@ class TreatmentPlanController extends Controller
                             'treatment_plan_id' => $treatmentPlanId,
                             'week' => $activity['week'],
                             'day' => $activity['day'],
-                            'exercise_id' => $exercise,
+                            'activity_id' => $exercise,
+                            'type' => Activity::ACTIVITY_TYPE_EXERCISE,
+                        ],
+                    );
+                    $activityIds[] = $activityObj->id;
+                }
+            }
+
+            if (count($materials) > 0) {
+                foreach ($materials as $material) {
+                    $activityObj = Activity::firstOrCreate(
+                        [
+                            'treatment_plan_id' => $treatmentPlanId,
+                            'week' => $activity['week'],
+                            'day' => $activity['day'],
+                            'activity_id' => $material,
+                            'type' => Activity::ACTIVITY_TYPE_MATERIAL,
                         ],
                     );
                     $activityIds[] = $activityObj->id;
