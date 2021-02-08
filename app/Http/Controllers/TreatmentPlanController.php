@@ -40,14 +40,6 @@ class TreatmentPlanController extends Controller
                         $filterObj = json_decode($filter);
                         if ($filterObj->columnName === 'treatment_status') {
                             $query->where('status', trim($filterObj->value));
-                        } elseif ($filterObj->columnName === 'start_date' || $filterObj->columnName === 'end_date') {
-                            $dates = explode(' - ', $filterObj->value);
-                            $startDate = date_create_from_format('d/m/Y', $dates[0]);
-                            $endDate = date_create_from_format('d/m/Y', $dates[1]);
-                            $startDate->format('Y-m-d');
-                            $endDate->format('Y-m-d');
-                            $query->where($filterObj->columnName, '>=', $startDate)
-                                ->where($filterObj->columnName, '<=', $endDate);
                         } else {
                             $query->where($filterObj->columnName, 'like', '%' .  $filterObj->value . '%');
                         }
@@ -75,10 +67,10 @@ class TreatmentPlanController extends Controller
         $treatmentPlan = TreatmentPlan::updateOrCreate(
             [
                 'name' => $request->get('name'),
-                'type' => TreatmentPlan::TYPE_PRESET,
             ],
             [
                 'description' => $request->get('description'),
+                'total_of_weeks' => $request->get('total_of_weeks', 1),
             ]
         );
 
@@ -99,14 +91,10 @@ class TreatmentPlanController extends Controller
     public function update(Request $request, TreatmentPlan $treatmentPlan)
     {
         $description = $request->get('description');
-        $startDate = date_create_from_format(config('settings.date_format'), $request->get('start_date'))->format('Y-m-d');
-        $endDate = date_create_from_format(config('settings.date_format'), $request->get('end_date'))->format('Y-m-d');
-
         $treatmentPlan->update([
             'name' => $request->get('name'),
             'description' => $description,
-            'start_date' => $startDate,
-            'end_date' => $endDate,
+            'total_of_weeks' => $request->get('total_of_weeks', 1),
         ]);
 
         $this->updateOrCreateActivities($treatmentPlan->id, $request->get('activities', []));
