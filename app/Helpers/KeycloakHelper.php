@@ -129,5 +129,4 @@ class KeycloakHelper
 
         return $response->successful();
     }
-
 }
