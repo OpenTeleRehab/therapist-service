@@ -23,7 +23,13 @@ class TherapistController extends Controller
     public function index(Request $request)
     {
         $data = $request->all();
-        $query = User::where(function ($query) use ($data) {
+        $query = User::query();
+
+        if ($request->has('clinic_id')) {
+            $query->where('clinic_id', $request->get('clinic_id'));
+        }
+
+        $query->where(function ($query) use ($data) {
             $query->where('identity', 'like', '%' . $data['search_value'] . '%')
                 ->orWhere('first_name', 'like', '%' . $data['search_value'] . '%')
                 ->orWhere('last_name', 'like', '%' . $data['search_value'] . '%')
