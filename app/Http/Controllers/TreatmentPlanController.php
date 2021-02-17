@@ -6,6 +6,7 @@ use App\Http\Resources\TreatmentPlanResource;
 use App\Models\Activity;
 use App\Models\TreatmentPlan;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 
 class TreatmentPlanController extends Controller
 {
@@ -127,6 +128,10 @@ class TreatmentPlanController extends Controller
                     );
                     $activityIds[] = $activityObj->id;
                 }
+                // TODO: move to Queued Event Listeners.
+                Http::post(env('ADMIN_SERVICE_URL') . '/api/exercise/mark-as-used/by-ids', [
+                    'exercise_ids' => $exercises,
+                ]);
             }
 
             if (count($materials) > 0) {
@@ -142,6 +147,29 @@ class TreatmentPlanController extends Controller
                     );
                     $activityIds[] = $activityObj->id;
                 }
+                // TODO: move to Queued Event Listeners.
+                Http::post(env('ADMIN_SERVICE_URL') . '/api/education-material/mark-as-used/by-ids', [
+                    'material_ids' => $materials,
+                ]);
+            }
+
+            if (count($questionnaires) > 0) {
+                foreach ($questionnaires as $questionnaire) {
+                    $activityObj = Activity::firstOrCreate(
+                        [
+                            'treatment_plan_id' => $treatmentPlanId,
+                            'week' => $activity['week'],
+                            'day' => $activity['day'],
+                            'activity_id' => $questionnaire,
+                            'type' => Activity::ACTIVITY_TYPE_QUESTIONNAIRE,
+                        ],
+                    );
+                    $activityIds[] = $activityObj->id;
+                }
+                // TODO: move to Queued Event Listeners.
+                Http::post(env('ADMIN_SERVICE_URL') . '/api/questionnaire/mark-as-used/by-ids', [
+                    'questionnaire_ids' => $questionnaires,
+                ]);
             }
 
             if (count($questionnaires) > 0) {
