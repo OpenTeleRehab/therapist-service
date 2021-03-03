@@ -2,11 +2,12 @@
 
 namespace App\Models;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Helpers\RocketChatHelper;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Log;
 
 class User extends Authenticatable
 {
@@ -18,7 +19,8 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'first_name', 'last_name', 'email', 'country_id', 'clinic_id', 'limit_patient', 'language_id', 'profession_id', 'identity', 'enabled',
+        'first_name', 'last_name', 'email', 'country_id', 'clinic_id', 'limit_patient', 'language_id', 'profession_id',
+        'identity', 'enabled', 'chat_user_id', 'chat_password', 'chat_rooms'
     ];
 
     /**
@@ -37,6 +39,7 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'chat_rooms' => 'array',
     ];
 
     /**
@@ -53,6 +56,25 @@ class User extends Authenticatable
             $builder->orderBy('enabled', 'desc');
             $builder->orderBy('last_name');
             $builder->orderBy('first_name');
+        });
+
+        self::updated(function ($user) {
+            try {
+                RocketChatHelper::updateUser($user->chat_user_id, [
+                    'active' => boolval($user->enabled),
+                    'name' => $user->last_name . ' ' . $user->first_name
+                ]);
+            } catch (\Exception $e) {
+                Log::error($e->getMessage());
+            }
+        });
+
+        self::deleted(function ($user) {
+            try {
+                RocketChatHelper::updateUser($user->chat_user_id, ['active' => false]);
+            } catch (\Exception $e) {
+                Log::error($e->getMessage());
+            }
         });
     }
 }

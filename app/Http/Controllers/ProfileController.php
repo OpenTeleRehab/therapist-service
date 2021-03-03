@@ -74,4 +74,25 @@ class ProfileController extends Controller
 
         return ['success' => true, 'message' => 'success_message.user_update'];
     }
+
+    /**
+     * @param \Illuminate\Http\Request $request
+     *
+     * @return array
+     */
+    public function addNewChatRoom(Request $request)
+    {
+        try {
+            $user = Auth::user();
+            $newChatRoom = $request->get('chat_room_id');
+            $chatRooms = is_null($user->chat_rooms) ? [] : $user->chat_rooms;
+            array_push($chatRooms, $newChatRoom);
+            $user->chat_rooms = $chatRooms;
+            $user->save();
+        } catch (\Exception $e) {
+            return ['success' => false, 'message' => $e->getMessage()];
+        }
+
+        return ['success' => true, 'message' => 'success_message.user_add_chat_room'];
+    }
 }

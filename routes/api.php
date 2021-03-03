@@ -22,6 +22,7 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::get('user/profile', [ProfileController::class, 'getUserProfile']);
     Route::put('user/update-password', [ProfileController::class, 'updatePassword']);
     Route::put('user/update-information', [ProfileController::class, 'updateUserProfile']);
+    Route::put('user/add-new-chatroom', [ProfileController::class, 'addNewChatRoom']);
 });
 
 // Todo: apply for Admin, Therapist APPs
