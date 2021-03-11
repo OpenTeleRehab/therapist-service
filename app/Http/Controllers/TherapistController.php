@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Helpers\KeycloakHelper;
+use App\Helpers\RocketChatHelper;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -14,7 +15,6 @@ define("KEYCLOAK_EXECUTE_EMAIL", '/execute-actions-email?client_id=' . env('KEYC
 
 class TherapistController extends Controller
 {
-
     /**
      * @param \Illuminate\Http\Request $request
      *
@@ -64,7 +64,7 @@ class TherapistController extends Controller
         $users = $query->paginate($data['page_size']);
         $info = [
             'current_page' => $users->currentPage(),
-            'total_count' => $users->total(),
+            'total_count' => $users->total()
         ];
         return ['success' => true, 'data' => UserResource::collection($users), 'info' => $info];
     }
@@ -76,12 +76,18 @@ class TherapistController extends Controller
      */
     public function store(Request  $request)
     {
+        $email = $request->get('email');
+        $userExist = User::where('email', $email)->first();
+        if ($userExist) {
+            // Todo: message will be replaced.
+            return abort(409, 'error_message.email_exists');
+        }
+
         DB::beginTransaction();
         $keycloakTherapistUuid = null;
 
         $firstName = $request->get('first_name');
         $lastName = $request->get('last_name');
-        $email = $request->get('email');
         $country = $request->get('country');
         $limitPatient = $request->get('limit_patient');
         $clinic = $request->get('clinic');
@@ -89,12 +95,6 @@ class TherapistController extends Controller
         $profession = $request->get('profession');
         $countryIdentity = $request->get('country_identity');
         $clinicIdentity = $request->get('clinic_identity');
-
-        $availableEmail = User::where('email', $email)->count();
-        if ($availableEmail) {
-            // Todo: message will be replaced.
-            return abort(409, 'error_message.email_exists');
-        }
 
         $therapist = User::create([
             'email' => $email,
@@ -112,13 +112,18 @@ class TherapistController extends Controller
         }
 
         try {
-            // Todo create function in model to generate this identity.
+            $this->createKeycloakTherapist($therapist, $email, true, 'therapist');
+
+            // create unique identity
             $identity = 'T' . $countryIdentity . $clinicIdentity .
                 str_pad($therapist->id, 4, '0', STR_PAD_LEFT);
-            $therapist->fill(['identity' => $identity]);
-            $therapist->save();
 
-            $this->createKeycloakTherapist($therapist, $email, true, 'therapist');
+            // create chat user
+            $updateData = $this->createChatUser($identity, $email, $lastName . ' ' . $firstName);
+
+            $updateData['identity'] = $identity;
+            $therapist->fill($updateData);
+            $therapist->save();
         } catch (\Exception $e) {
             DB::rollBack();
             return ['success' => false, 'message' => $e->getMessage()];
@@ -161,8 +166,6 @@ class TherapistController extends Controller
 
         return ['success' => true, 'message' => 'success_message.user_update'];
     }
-
-
 
     /**
      * @param Request $request
@@ -222,7 +225,6 @@ class TherapistController extends Controller
             return ['success' => false, 'message' => $e->getMessage()];
         }
     }
-
 
     /**
      * @param User $therapist
@@ -295,6 +297,36 @@ class TherapistController extends Controller
         }
 
         return false;
+    }
+
+    /**
+     * @param string $username
+     * @param string $email
+     * @param string $name
+     *
+     * @return array
+     * @throws \Exception
+     */
+    private static function createChatUser($username, $email, $name)
+    {
+        $password = $username . 'PWD';
+        $chatUser = [
+            'name' => $name,
+            'email' => $email,
+            'username' => $username,
+            'password' => $password,
+            'joinDefaultChannels' => false,
+            'verified' => true,
+            'active' => false
+        ];
+        $chatUserId = RocketChatHelper::createUser($chatUser);
+        if (is_null($chatUserId)) {
+            throw new \Exception('error_message.create_chat_user');
+        }
+        return [
+            'chat_user_id' => $chatUserId,
+            'chat_password' => hash('sha256', $password)
+        ];
     }
 
     /**
