@@ -14,6 +14,9 @@ class RocketChatHelper
 {
     /**
      * @see https://docs.rocket.chat/api/rest-api/methods/authentication/login
+     * @param string $username
+     * @param string $password
+     *
      * @return array
      * @throws \Illuminate\Http\Client\RequestException
      */

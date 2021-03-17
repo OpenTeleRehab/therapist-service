@@ -24,6 +24,7 @@ class TreatmentPlan extends Model
         'end_date',
         'status',
         'total_of_weeks',
+        'created_by',
     ];
 
     /**

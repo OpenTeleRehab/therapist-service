@@ -114,11 +114,11 @@ class TherapistController extends Controller
         try {
             $this->createKeycloakTherapist($therapist, $email, true, 'therapist');
 
-            // create unique identity
+            // Create unique identity.
             $identity = 'T' . $countryIdentity . $clinicIdentity .
                 str_pad($therapist->id, 4, '0', STR_PAD_LEFT);
 
-            // create chat user
+            // Create chat user.
             $updateData = $this->createChatUser($identity, $email, $lastName . ' ' . $firstName);
 
             $updateData['identity'] = $identity;

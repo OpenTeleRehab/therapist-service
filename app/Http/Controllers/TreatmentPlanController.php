@@ -6,6 +6,7 @@ use App\Http\Resources\TreatmentPlanResource;
 use App\Models\Activity;
 use App\Models\TreatmentPlan;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 
 class TreatmentPlanController extends Controller
@@ -20,13 +21,11 @@ class TreatmentPlanController extends Controller
         $data = $request->all();
         $info = [];
         if ($request->has('id')) {
-            $treatmentPlans = TreatmentPlan::where('id', $request->get('id'))->get();
+            $treatmentPlans = TreatmentPlan::where('created_by', Auth::id())
+                ->where('id', $request->get('id'))
+                ->get();
         } else {
-            $query = TreatmentPlan::query();
-
-            if (isset($data['patient_id'])) {
-                $query = TreatmentPlan::where('patient_id', $data['patient_id']);
-            }
+            $query = TreatmentPlan::where('created_by', Auth::id());
 
             if (isset($data['search_value'])) {
                 $query->where(function ($query) use ($data) {
@@ -39,11 +38,7 @@ class TreatmentPlanController extends Controller
                 $query->where(function ($query) use ($filters) {
                     foreach ($filters as $filter) {
                         $filterObj = json_decode($filter);
-                        if ($filterObj->columnName === 'treatment_status') {
-                            $query->where('status', trim($filterObj->value));
-                        } else {
-                            $query->where($filterObj->columnName, 'like', '%' .  $filterObj->value . '%');
-                        }
+                        $query->where($filterObj->columnName, 'like', '%' .  $filterObj->value . '%');
                     }
                 });
             }
@@ -68,6 +63,7 @@ class TreatmentPlanController extends Controller
         $treatmentPlan = TreatmentPlan::updateOrCreate(
             [
                 'name' => $request->get('name'),
+                'created_by' => Auth::id(),
             ],
             [
                 'description' => $request->get('description'),
@@ -91,6 +87,10 @@ class TreatmentPlanController extends Controller
      */
     public function update(Request $request, TreatmentPlan $treatmentPlan)
     {
+        if ($treatmentPlan->created_by !== Auth::id()) {
+            return ['success' => false, 'message' => 'error_message.treatment_plan_update'];
+        }
+
         $description = $request->get('description');
         $treatmentPlan->update([
             'name' => $request->get('name'),
