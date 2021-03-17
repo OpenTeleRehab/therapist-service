@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\GoalResource;
 use App\Http\Resources\TreatmentPlanResource;
 use App\Models\Activity;
+use App\Models\Goal;
 use App\Models\TreatmentPlan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -75,6 +77,7 @@ class TreatmentPlanController extends Controller
             return ['success' => false, 'message' => 'error_message.treatment_plan_add_as_preset'];
         }
 
+        $this->updateOrCreateGoals($treatmentPlan->id, $request->get('goals', []));
         $this->updateOrCreateActivities($treatmentPlan->id, $request->get('activities', []));
         return ['success' => true, 'message' => 'success_message.treatment_plan_add_as_preset'];
     }
@@ -98,8 +101,38 @@ class TreatmentPlanController extends Controller
             'total_of_weeks' => $request->get('total_of_weeks', 1),
         ]);
 
+        $this->updateOrCreateGoals($treatmentPlan->id, $request->get('goals', []));
         $this->updateOrCreateActivities($treatmentPlan->id, $request->get('activities', []));
         return ['success' => true, 'message' => 'success_message.treatment_plan_update'];
+    }
+
+    /**
+     * @param int $treatmentPlanId
+     * @param array $goals
+     *
+     * @return void
+     */
+    private function updateOrCreateGoals(int $treatmentPlanId, array $goals = [])
+    {
+        $goalIds = [];
+        foreach ($goals as $goal) {
+            $goalObj = Goal::updateOrCreate(
+                [
+                    'id' => isset($goal['id']) ? $goal['id'] : null,
+                ],
+                [
+                    'treatment_plan_id' => $treatmentPlanId,
+                    'title' => $goal['title'],
+                    'frequency' => $goal['frequency'],
+                ]
+            );
+            $goalIds[] = $goalObj->id;
+        }
+
+        // Remove deleted goals.
+        Goal::where('treatment_plan_id', $treatmentPlanId)
+            ->whereNotIn('id', $goalIds)
+            ->delete();
     }
 
     /**
@@ -192,5 +225,73 @@ class TreatmentPlanController extends Controller
         Activity::where('treatment_plan_id', $treatmentPlanId)
             ->whereNotIn('id', $activityIds)
             ->delete();
+    }
+
+    /**
+     * @param \Illuminate\Http\Request $request
+     *
+     * @return array
+     */
+    public function getActivities(Request $request)
+    {
+        $result = [];
+        $treatmentPlan = TreatmentPlan::where('created_by', Auth::id())
+            ->where('id', $request->get('id'))
+            ->firstOrFail();
+        $activities = $treatmentPlan->activities->sortBy(function ($activity) {
+            return [$activity->week, $activity->day];
+        });
+
+        foreach ($activities as $key => $activity) {
+            $activityObj = [];
+            $response = null;
+
+            if ($activity->type === Activity::ACTIVITY_TYPE_EXERCISE) {
+                $response = Http::get(env('ADMIN_SERVICE_URL') . '/api/exercise/list/by-ids', [
+                    'exercise_ids' => [$activity->activity_id],
+                    'lang' => $request->get('lang')
+                ]);
+            } elseif ($activity->type === Activity::ACTIVITY_TYPE_MATERIAL) {
+                $response = Http::get(env('ADMIN_SERVICE_URL') . '/api/education-material/list/by-ids', [
+                    'material_ids' => [$activity->activity_id],
+                    'lang' => $request->get('lang')
+                ]);
+            } elseif ($activity->type === Activity::ACTIVITY_TYPE_QUESTIONNAIRE) {
+                $response = Http::get(env('ADMIN_SERVICE_URL') . '/api/questionnaire/list/by-ids', [
+                    'questionnaire_ids' => [$activity->activity_id],
+                    'lang' => $request->get('lang')
+                ]);
+            }
+
+            if (!empty($response) && $response->successful()) {
+                if ($response->json()['data']) {
+                    $activityObj = $response->json()['data'][0];
+                    $activityObj['id'] = $activity->id;
+                } else {
+                    continue;
+                }
+            }
+
+            $result[] = array_merge([
+                'activity_id' => $activity->activity_id,
+                'completed' => $activity->completed,
+                'pain_level' => $activity->pain_level,
+                'sets' => $activity->sets,
+                'reps' => $activity->reps,
+                'satisfaction' => $activity->satisfaction,
+                'type' => $activity->type,
+                'submitted_date' => $activity->submitted_date,
+                'answers' => [],
+                'week' => $activity->week,
+                'day' => $activity->day,
+            ], $activityObj);
+        }
+
+        $data = array_merge($treatmentPlan->toArray(), [
+            'goals' => GoalResource::collection($treatmentPlan->goals),
+            'activities' => $result
+        ]);
+
+        return ['success' => true, 'data' => $data];
     }
 }
