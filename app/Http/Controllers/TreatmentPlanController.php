@@ -294,4 +294,20 @@ class TreatmentPlanController extends Controller
 
         return ['success' => true, 'data' => $data];
     }
+
+    /**
+     * @param \App\Models\TreatmentPlan $treatmentPlan
+     *
+     * @return array
+     * @throws \Exception
+     */
+    public function destroy(TreatmentPlan $treatmentPlan)
+    {
+        if ($treatmentPlan->created_by !== Auth::id()) {
+            return ['success' => false, 'message' => 'error_message.treatment_plan_delete'];
+        }
+
+        $treatmentPlan->delete();
+        return ['success' => true, 'message' => 'success_message.treatment_plan_delete'];
+    }
 }
