@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::group(['middleware' => 'auth:api'], function () {
+    Route::get('treatment-plan/get-treatment-plan-detail', [TreatmentPlanController::class, 'getActivities']);
     Route::apiResource('treatment-plan', TreatmentPlanController::class);
     Route::get('user/profile', [ProfileController::class, 'getUserProfile']);
     Route::put('user/update-password', [ProfileController::class, 'updatePassword']);

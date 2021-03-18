@@ -24,6 +24,7 @@ class TreatmentPlan extends Model
         'end_date',
         'status',
         'total_of_weeks',
+        'created_by',
     ];
 
     /**
@@ -52,6 +53,15 @@ class TreatmentPlan extends Model
             $builder->orderBy('name', 'asc');
         });
     }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function goals()
+    {
+        return $this->hasMany(Goal::class);
+    }
+
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
