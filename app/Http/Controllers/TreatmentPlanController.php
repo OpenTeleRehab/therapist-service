@@ -58,10 +58,16 @@ class TreatmentPlanController extends Controller
     /**
      * @param \Illuminate\Http\Request $request
      *
-     * @return array|void
+     * @return array
      */
     public function store(Request $request)
     {
+        $ownContentCount = TreatmentPlan::where('created_by', Auth::id())->count();
+        // TODO: get limit setting from TRA-414.
+        if ($ownContentCount >= 5) {
+            return ['success' => false, 'message' => 'error_message.treatment_plan_add_as_preset.full_limit'];
+        }
+
         $treatmentPlan = TreatmentPlan::updateOrCreate(
             [
                 'name' => $request->get('name'),
@@ -94,10 +100,9 @@ class TreatmentPlanController extends Controller
             return ['success' => false, 'message' => 'error_message.treatment_plan_update'];
         }
 
-        $description = $request->get('description');
         $treatmentPlan->update([
             'name' => $request->get('name'),
-            'description' => $description,
+            'description' => $request->get('description'),
             'total_of_weeks' => $request->get('total_of_weeks', 1),
         ]);
 
