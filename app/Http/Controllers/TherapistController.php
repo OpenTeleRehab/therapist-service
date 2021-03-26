@@ -58,8 +58,8 @@ class TherapistController extends Controller
                             $endDate = date_create_from_format('d/m/Y', $dates[1]);
                             $startDate->format('Y-m-d');
                             $endDate->format('Y-m-d');
-                            $query->where('created_at', '>=', $startDate)
-                                ->where('created_at', '<=', $endDate);
+                            $query->whereDate('last_login', '>=', $startDate)
+                                ->whereDate('last_login', '<=', $endDate);
                         } else {
                             $query->where($filterObj->columnName, 'like', '%' .  $filterObj->value . '%');
                         }
