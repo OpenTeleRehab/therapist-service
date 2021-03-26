@@ -24,7 +24,7 @@ class UserResource extends JsonResource
             'country_id' => $this->country_id,
             'limit_patient' => $this->limit_patient,
             'enabled' => $this->enabled,
-            'last_login' => $this->created_at,
+            'last_login' => $this->last_login,
             'profession_id' => $this->profession_id,
             'language_id' => $this->language_id,
             'chat_user_id' => $this->chat_user_id,
