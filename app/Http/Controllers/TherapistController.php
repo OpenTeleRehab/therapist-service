@@ -47,7 +47,7 @@ class TherapistController extends Controller
                 $query->where(function ($query) use ($filters) {
                     foreach ($filters as $filter) {
                         $filterObj = json_decode($filter);
-                        $excludedColumns = ['country', 'clinic', 'assigned_patients'];
+                        $excludedColumns = ['assigned_patients'];
                         if (in_array($filterObj->columnName, $excludedColumns)) {
                             continue;
                         } elseif ($filterObj->columnName === 'status') {
@@ -60,6 +60,16 @@ class TherapistController extends Controller
                             $endDate->format('Y-m-d');
                             $query->whereDate('last_login', '>=', $startDate)
                                 ->whereDate('last_login', '<=', $endDate);
+                        } elseif ($filterObj->columnName === 'therapist_country') {
+                            if ($filterObj->value !== 'All') {
+                                $query->where('country_id', $filterObj->value);
+                            }
+                        } elseif ($filterObj->columnName === 'therapist_clinic') {
+                            if ($filterObj->value !== 'All') {
+                                $query->where('clinic_id', $filterObj->value);
+                            }
+                        } elseif ($filterObj->columnName === 'id') {
+                            $query->where('identity', $filterObj->value);
                         } else {
                             $query->where($filterObj->columnName, 'like', '%' .  $filterObj->value . '%');
                         }
