@@ -60,14 +60,10 @@ class TherapistController extends Controller
                             $endDate->format('Y-m-d');
                             $query->whereDate('last_login', '>=', $startDate)
                                 ->whereDate('last_login', '<=', $endDate);
-                        } elseif ($filterObj->columnName === 'therapist_country') {
-                            if ($filterObj->value !== 'All') {
-                                $query->where('country_id', $filterObj->value);
-                            }
-                        } elseif ($filterObj->columnName === 'therapist_clinic') {
-                            if ($filterObj->value !== 'All') {
-                                $query->where('clinic_id', $filterObj->value);
-                            }
+                        } elseif ($filterObj->columnName === 'therapist_country' && $filterObj->value !== '') {
+                            $query->where('country_id', $filterObj->value);
+                        } elseif ($filterObj->columnName === 'therapist_clinic' && $filterObj->value !== '') {
+                            $query->where('clinic_id', $filterObj->value);
                         } elseif ($filterObj->columnName === 'id') {
                             $query->where('identity', $filterObj->value);
                         } else {
