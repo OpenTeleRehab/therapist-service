@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TherapistController;
 use App\Http\Controllers\UserController;
 use \App\Http\Controllers\TreatmentPlanController;
+use App\Http\Controllers\ChartController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -17,6 +18,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 Route::get('therapist/by-ids', [TherapistController::class, 'getByIds']);
+Route::get('chart/get-data-for-global-admin', [ChartController::class, 'getDataForGlobalAdmin']);
 
 Route::group(['middleware' => 'auth:api'], function () {
     Route::get('treatment-plan/get-treatment-plan-detail', [TreatmentPlanController::class, 'getActivities']);
