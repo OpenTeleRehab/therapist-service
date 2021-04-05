@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\TreatmentPlan;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
@@ -49,6 +50,20 @@ class ChartController extends Controller
         return [
             'therapistTotal' => $therapistTotal,
             'therapistsByClinic' => $therapistsByClinic,
+        ];
+    }
+
+    /**
+     * @param \Illuminate\Http\Request $request
+     * @return array
+     */
+    public function getDataForClinicAdmin(Request $request)
+    {
+        $clinicId= $request->get('clinic_id');
+        $therapistTotal = User::where('clinic_id', $clinicId)->count();
+
+        return [
+            'therapistTotal' => $therapistTotal
         ];
     }
 }
