@@ -34,3 +34,4 @@ Route::group(['middleware' => 'auth:api'], function () {
 // Todo: apply for Admin, Therapist APPs
 Route::apiResource('therapist', TherapistController::class);
 Route::post('therapist/updateStatus/{user}', [TherapistController::class, 'updateStatus']);
+Route::get('therapist/list/by-clinic-id', [TherapistController::class, 'getByClinicId']);

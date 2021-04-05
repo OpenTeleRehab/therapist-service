@@ -21,10 +21,12 @@ class ChartController extends Controller
             '))->groupBy('country_id')
             ->get();
 
-        return [
+        $data = [
             'therapistTotal' => $therapistTotal,
             'therapistsByCountry' => $therapistsByCountry,
         ];
+
+        return ['success' => true, 'data' => $data];
     }
 
     /**
