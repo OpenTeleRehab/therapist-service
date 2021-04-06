@@ -62,9 +62,16 @@ class TreatmentPlanController extends Controller
      */
     public function store(Request $request)
     {
-        $ownContentCount = TreatmentPlan::where('created_by', Auth::id())->count();
-        // TODO: get limit setting from TRA-414.
-        if ($ownContentCount >= 5) {
+        $response = Http::get(env('ADMIN_SERVICE_URL') . '/api/library/count/by-therapist?therapist_id=' . Auth::id());
+        if (!empty($response) && $response->successful()) {
+            $ownContentCount = $response->json();
+        }
+
+        $response = Http::get(env('ADMIN_SERVICE_URL') . '/api/setting/library-limit?type=' . config('settings.libraries'));
+        if (!empty($response) && $response->successful()) {
+            $contentLimit = $response->json();
+        }
+        if ($ownContentCount && $ownContentCount['data'] >= $contentLimit) {
             return ['success' => false, 'message' => 'error_message.treatment_plan_add_as_preset.full_limit'];
         }
 
@@ -314,5 +321,17 @@ class TreatmentPlanController extends Controller
 
         $treatmentPlan->delete();
         return ['success' => true, 'message' => 'success_message.treatment_plan_delete'];
+    }
+
+    /**
+     * @param Request $request
+     * @return array
+     */
+    public function countTherapistTreatmentPlan(Request $request)
+    {
+        $therapistId = $request->get('therapist_id');
+        $totalTreatmentPlans = TreatmentPlan::where('created_by', $therapistId)->count();
+
+        return $totalTreatmentPlans;
     }
 }

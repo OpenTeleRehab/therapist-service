@@ -1,5 +1,6 @@
 <?php
 
 return [
-    'date_format' => 'd/m/Y'
+    'date_format' => 'd/m/Y',
+    'libraries' => 'libraries'
 ];
