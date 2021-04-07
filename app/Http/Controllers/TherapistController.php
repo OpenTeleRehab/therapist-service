@@ -85,8 +85,7 @@ class TherapistController extends Controller
                 'total_count' => $users->total()
             ];
         }
-        $resources = isset($data['patientApp']) ? TherapistResource::collection($users) : UserResource::collection($users);
-        return ['success' => true, 'data' => $resources, 'info' => $info];
+        return ['success' => true, 'data' => UserResource::collection($users), 'info' => $info];
     }
 
     /**
@@ -372,6 +371,6 @@ class TherapistController extends Controller
     public function getByIds(Request $request)
     {
         $users = User::whereIn('id', json_decode($request->get('ids', [])))->get();
-        return ['success' => true, 'data' => UserResource::collection($users)];
+        return ['success' => true, 'data' => TherapistResource::collection($users)];
     }
 }
