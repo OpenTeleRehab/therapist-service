@@ -2,5 +2,5 @@
 
 return [
     'date_format' => 'd/m/Y',
-    'libraries' => 'libraries'
+    'therapist_content_limit' => 'therapist_content_limit'
 ];
