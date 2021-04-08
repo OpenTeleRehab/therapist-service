@@ -67,7 +67,7 @@ class TreatmentPlanController extends Controller
             $ownContentCount = $response->json();
         }
 
-        $response = Http::get(env('ADMIN_SERVICE_URL') . '/api/setting/library-limit?type=' . config('settings.libraries'));
+        $response = Http::get(env('ADMIN_SERVICE_URL') . '/api/setting/library-limit?type=' . config('settings.therapist_content_limit'));
         if (!empty($response) && $response->successful()) {
             $contentLimit = $response->json();
         }
