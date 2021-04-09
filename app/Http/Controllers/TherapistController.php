@@ -373,4 +373,16 @@ class TherapistController extends Controller
         $users = User::whereIn('id', json_decode($request->get('ids', [])))->get();
         return ['success' => true, 'data' => TherapistResource::collection($users)];
     }
+
+    /**
+     * @param Request $request
+     * @return mixed
+     */
+    public function getUsedProfession(Request $request)
+    {
+        $professionId = $request->get('profession_id');
+        $therapists = User::where('profession_id', $professionId)->count();
+
+        return $therapists > 0 ? true : false;
+    }
 }
