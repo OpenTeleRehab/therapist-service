@@ -72,6 +72,8 @@ class TherapistController extends Controller
                             $query->where('clinic_id', $filterObj->value);
                         } elseif ($filterObj->columnName === 'id') {
                             $query->where('identity', 'like', '%' .  $filterObj->value . '%');
+                        } elseif ($filterObj->columnName === 'profession') {
+                            $query->where('profession_id', $filterObj->value);
                         } else {
                             $query->where($filterObj->columnName, 'like', '%' .  $filterObj->value . '%');
                         }
