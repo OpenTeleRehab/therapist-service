@@ -19,7 +19,8 @@ class UserResource extends JsonResource
             'id' => $this->id,
             'identity' => $this->identity,
             'clinic_id' => $this->clinic_id,
-            'country_id' => $this->country_id
+            'country_id' => $this->country_id,
+            'profession_id' => $this->profession_id,
         ];
 
         if ($request->get('user_type') !== User::ADMIN_GROUP_GLOBAL_ADMIN ) {
