@@ -18,7 +18,6 @@ class TreatmentPlan extends Model
      */
     protected $fillable = [
         'name',
-        'description',
         'patient_id',
         'start_date',
         'end_date',
@@ -28,16 +27,6 @@ class TreatmentPlan extends Model
     ];
 
     /**
-     * The attributes that should be cast to native types.
-     * This format will be used when the model is serialized to an array or JSON
-     *
-     * @var array
-     */
-    protected $casts = [
-        'start_date' => 'datetime:d/m/Y',
-        'end_date' => 'datetime:d/m/Y',
-    ];
-    /**
      * Bootstrap the model and its traits.
      *
      * @return void
@@ -45,23 +34,12 @@ class TreatmentPlan extends Model
     protected static function boot()
     {
         parent::boot();
-        $orderValues = [self::STATUS_ON_GOING, self::STATUS_PLANNED, self::STATUS_FINISHED];
 
         // Set default order.
-        static::addGlobalScope('order', function (Builder $builder) use ($orderValues) {
-            $builder->orderByRaw('FIELD(status, "' . implode('", "', $orderValues) . '")');
-            $builder->orderBy('name', 'asc');
+        static::addGlobalScope('order', function (Builder $builder) {
+            $builder->orderBy('name');
         });
     }
-
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
-    public function goals()
-    {
-        return $this->hasMany(Goal::class);
-    }
-
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasMany

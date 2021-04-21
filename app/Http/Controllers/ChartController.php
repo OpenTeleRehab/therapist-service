@@ -59,7 +59,7 @@ class ChartController extends Controller
      */
     public function getDataForClinicAdmin(Request $request)
     {
-        $clinicId= $request->get('clinic_id');
+        $clinicId = $request->get('clinic_id');
         $therapistTotal = User::where('clinic_id', $clinicId)->count();
 
         return [
