@@ -267,6 +267,8 @@ class TherapistController extends Controller
                     'username' => $therapist->email,
                     'email' => $therapist->email,
                     'enabled' => true,
+                    'firstName' => $therapist->first_name,
+                    'lastName' => $therapist->last_name,
                 ]);
 
                 if ($response->successful()) {
