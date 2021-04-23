@@ -17,7 +17,13 @@ class ProfileController extends Controller
      */
     public function getUserProfile()
     {
-        return new UserResource(Auth::user());
+        $user = Auth::user();
+        // Update enabled to true when first login.
+        if (!$user->last_login) {
+            $user->update(['enabled' => true]);
+        }
+
+        return new UserResource($user);
     }
 
     /**
