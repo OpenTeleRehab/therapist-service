@@ -5,6 +5,7 @@ use App\Http\Controllers\TherapistController;
 use App\Http\Controllers\UserController;
 use \App\Http\Controllers\TreatmentPlanController;
 use App\Http\Controllers\ChartController;
+use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -23,6 +24,7 @@ Route::get('chart/get-data-for-country-admin', [ChartController::class, 'getData
 Route::get('chart/get-data-for-clinic-admin', [ChartController::class, 'getDataForClinicAdmin']);
 Route::get('treatment-plan/count/by-therapist', [TreatmentPlanController::class, 'countTherapistTreatmentPlan']);
 Route::get('therapist/get-used-profession', [TherapistController::class, 'getUsedProfession']);
+Route::post('therapist/new-patient-notification', [NotificationController::class, 'newPatientNotification']);
 
 Route::group(['middleware' => 'auth:api'], function () {
     Route::get('treatment-plan/get-treatment-plan-detail', [TreatmentPlanController::class, 'getActivities']);
