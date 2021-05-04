@@ -379,6 +379,18 @@ class TherapistController extends Controller
     }
 
     /**
+     * @param \Illuminate\Http\Request $request
+     *
+     * @return array
+     */
+    public function getByClinicId(Request $request)
+    {
+        $users = User::where('clinic_id', $request->get('clinic_id'))->get();
+
+        return ['success' => true, 'data' => TherapistResource::collection($users)];
+    }
+
+    /**
      * @param Request $request
      * @return mixed
      */
