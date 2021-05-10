@@ -385,7 +385,7 @@ class TherapistController extends Controller
      */
     public function getByClinicId(Request $request)
     {
-        $users = User::where('clinic_id', $request->get('clinic_id'))->get();
+        $users = User::where('clinic_id', $request->get('clinic_id'))->where('enabled', 1)->get();
 
         return ['success' => true, 'data' => TherapistResource::collection($users)];
     }
@@ -400,5 +400,26 @@ class TherapistController extends Controller
         $therapists = User::where('profession_id', $professionId)->count();
 
         return $therapists > 0 ? true : false;
+    }
+
+    /**
+     * @param Request $request
+     * @return array
+     */
+    public function deleteChatRoomById(Request $request) {
+        $chatRoomId = $request->get('chat_room_id');
+        $therapistId = $request->get('therapist_id');
+
+        $therapist = User::where('id', $therapistId)->first();
+        $chatRooms = $therapist['chat_rooms'];
+        if (($key = array_search($chatRoomId, $chatRooms)) !== false) {
+            unset($chatRooms[$key]);
+        }
+
+        $updateData['chat_rooms'] = $chatRooms;
+        $therapist->fill($updateData);
+        $therapist->save();
+
+        return ['success' => true, 'message' => 'success_message.deleted_chat_rooms'];
     }
 }

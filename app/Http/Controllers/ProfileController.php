@@ -90,7 +90,7 @@ class ProfileController extends Controller
     public function addNewChatRoom(Request $request)
     {
         try {
-            $user = Auth::user();
+            $user = User::where('id', $request['therapist_id'])->first();
             $newChatRoom = $request->get('chat_room_id');
             $chatRooms = is_null($user->chat_rooms) ? [] : $user->chat_rooms;
             array_push($chatRooms, $newChatRoom);
