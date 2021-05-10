@@ -25,6 +25,7 @@ Route::get('chart/get-data-for-clinic-admin', [ChartController::class, 'getDataF
 Route::get('treatment-plan/count/by-therapist', [TreatmentPlanController::class, 'countTherapistTreatmentPlan']);
 Route::get('therapist/get-used-profession', [TherapistController::class, 'getUsedProfession']);
 Route::post('therapist/new-patient-notification', [NotificationController::class, 'newPatientNotification']);
+Route::post('therapist/delete-chat-room/by-id', [TherapistController::class, 'deleteChatRoomById']);
 
 Route::group(['middleware' => 'auth:api'], function () {
     Route::get('treatment-plan/get-treatment-plan-detail', [TreatmentPlanController::class, 'getActivities']);

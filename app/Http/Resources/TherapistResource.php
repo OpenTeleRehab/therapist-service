@@ -22,6 +22,7 @@ class TherapistResource extends JsonResource
             'enabled' => $this->enabled,
             'chat_user_id' => $this->chat_user_id,
             'profession_id' => $this->profession_id,
+            'chat_rooms' => $this->chat_rooms,
         ];
     }
 }
