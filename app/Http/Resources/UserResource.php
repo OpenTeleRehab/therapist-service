@@ -21,6 +21,7 @@ class UserResource extends JsonResource
             'clinic_id' => $this->clinic_id,
             'country_id' => $this->country_id,
             'profession_id' => $this->profession_id,
+            'limit_patient' => $this->limit_patient,
         ];
 
         if ($request->get('user_type') !== User::ADMIN_GROUP_GLOBAL_ADMIN ) {
@@ -28,7 +29,6 @@ class UserResource extends JsonResource
                 'first_name' => $this->first_name,
                 'last_name' => $this->last_name,
                 'email' => $this->email,
-                'limit_patient' => $this->limit_patient,
                 'enabled' => $this->enabled,
                 'last_login' => $this->last_login,
                 'profession_id' => $this->profession_id,
