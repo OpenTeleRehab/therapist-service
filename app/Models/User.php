@@ -24,7 +24,7 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'first_name', 'last_name', 'email', 'country_id', 'clinic_id', 'limit_patient', 'language_id', 'profession_id',
-        'identity', 'enabled', 'chat_user_id', 'chat_password', 'chat_rooms', 'last_login'
+        'identity', 'enabled', 'chat_user_id', 'chat_password', 'chat_rooms', 'last_login', 'show_guidance'
     ];
 
     /**

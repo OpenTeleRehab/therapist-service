@@ -22,6 +22,7 @@ class UserResource extends JsonResource
             'country_id' => $this->country_id,
             'profession_id' => $this->profession_id,
             'limit_patient' => $this->limit_patient,
+            'show_guidance' => $this->show_guidance,
         ];
 
         if ($request->get('user_type') !== User::ADMIN_GROUP_GLOBAL_ADMIN ) {
@@ -36,6 +37,7 @@ class UserResource extends JsonResource
                 'chat_user_id' => $this->chat_user_id,
                 'chat_password' => $this->chat_password,
                 'chat_rooms' => $this->chat_rooms ?: [],
+                'show_guidance' => $this->show_guidance,
             ]);
         }
         return $responseData;
