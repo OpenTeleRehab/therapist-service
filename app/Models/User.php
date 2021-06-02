@@ -75,7 +75,7 @@ class User extends Authenticatable
 
         self::deleted(function ($user) {
             try {
-                RocketChatHelper::updateUser($user->chat_user_id, ['active' => false]);
+                RocketChatHelper::deleteUser($user->chat_user_id);
             } catch (\Exception $e) {
                 Log::error($e->getMessage());
             }
