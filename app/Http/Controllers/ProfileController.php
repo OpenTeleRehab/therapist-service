@@ -20,7 +20,10 @@ class ProfileController extends Controller
         $user = Auth::user();
         // Update enabled to true when first login.
         if (!$user->last_login) {
-            $user->update(['enabled' => true]);
+            $user->update([
+                'last_login' => now(),
+                'enabled' => true,
+            ]);
         }
 
         return new UserResource($user);
