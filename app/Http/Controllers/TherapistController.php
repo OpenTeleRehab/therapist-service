@@ -368,6 +368,34 @@ class TherapistController extends Controller
     }
 
     /**
+     * @param User $user
+     *
+     * @return \Illuminate\Http\Client\Response
+     */
+    public function resendEmailToUser(User $user)
+    {
+        $token = KeycloakHelper::getKeycloakAccessToken();
+
+        $response = Http::withToken($token)->withHeaders([
+            'Content-Type' => 'application/json'
+        ])->get(KEYCLOAK_USERS, [
+            'username' => $user->email,
+        ]);
+
+        if ($response->successful()) {
+            $userUid = $response->json()[0]['id'];
+            $isCanSend = self::sendEmailToNewUser($userUid);
+
+            if ($isCanSend) {
+                return ['success' => true, 'message' => 'success_message.resend_email'];
+            }
+
+        }
+
+        return ['success' => false, 'message' => 'error_message.cannot_resend_email'];
+    }
+
+    /**
      * @param \Illuminate\Http\Request $request
      *
      * @return array
