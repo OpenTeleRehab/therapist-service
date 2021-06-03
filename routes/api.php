@@ -6,6 +6,7 @@ use App\Http\Controllers\UserController;
 use \App\Http\Controllers\TreatmentPlanController;
 use App\Http\Controllers\ChartController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\TermAndConditionController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -42,3 +43,4 @@ Route::apiResource('therapist', TherapistController::class);
 Route::post('therapist/updateStatus/{user}', [TherapistController::class, 'updateStatus']);
 Route::get('therapist/list/by-clinic-id', [TherapistController::class, 'getByClinicId']);
 Route::post('therapist/resend-email/{user}', [TherapistController::class, 'resendEmailToUser']);
+Route::get('term-condition/send-re-consent', [TermAndConditionController::class, 'addReConsentTermsOfServicesToUsers']);
