@@ -75,7 +75,8 @@ class ProfileController extends Controller
                 'first_name' => $data['first_name'],
                 'last_name' => $data['last_name'],
                 'language_id' => $data['language_id'],
-                'profession_id' => $data['profession_id']
+                'profession_id' => $data['profession_id'],
+                'show_guidance' => $data['show_guidance']
             ];
             $user->update($dataUpdate);
         } catch (\Exception $e) {
