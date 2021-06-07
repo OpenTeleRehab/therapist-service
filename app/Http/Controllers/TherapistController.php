@@ -248,6 +248,33 @@ class TherapistController extends Controller
     }
 
     /**
+     * @param Request $request
+     * @return array
+     */
+    public function deleteByClinicId(Request $request)
+    {
+        $clinicId = $request->get('clinic_id');
+        $users = User::where('clinic_id', $clinicId)->get();
+        if (count($users) > 0) {
+            foreach ($users as $user) {
+                $token = KeycloakHelper::getKeycloakAccessToken();
+
+                $userUrl = KEYCLOAK_USERS . '?email=' . $user->email;
+                $response = Http::withToken($token)->get($userUrl);
+
+                if ($response->successful()) {
+                    $keyCloakUsers = $response->json();
+
+                    KeycloakHelper::deleteUser($token, $keyCloakUsers[0]['id']);
+                    $user->delete();
+                }
+            }
+        }
+
+        return ['success' => true, 'message' => 'success_message.therapist_delete'];
+    }
+
+    /**
      * @param User $therapist
      * @param string $password
      * @param boolean $isTemporaryPassword
