@@ -112,10 +112,11 @@ class TherapistController extends Controller
         $country = $request->get('country');
         $limitPatient = $request->get('limit_patient');
         $clinic = $request->get('clinic');
-        $language = $request->get('language');
+        $language = $request->get('language_id');
         $profession = $request->get('profession');
         $countryIdentity = $request->get('country_identity');
         $clinicIdentity = $request->get('clinic_identity');
+        $languageCode = $request->get('language_code');
 
         $therapist = User::create([
             'email' => $email,
@@ -133,7 +134,7 @@ class TherapistController extends Controller
         }
 
         try {
-            $this->createKeycloakTherapist($therapist, $email, true, 'therapist');
+            $this->createKeycloakTherapist($therapist, $email, true, 'therapist', $languageCode);
 
             // Create unique identity.
             $identity = 'T' . $countryIdentity . $clinicIdentity .
@@ -170,14 +171,21 @@ class TherapistController extends Controller
                 'last_name' => $data['last_name'],
             ];
 
-            if (isset($data['language'])) {
-                $dataUpdate['language_id'] = $data['language'];
+            if (isset($data['language_id'])) {
+                $dataUpdate['language_id'] = $data['language_id'];
             }
             if (isset($data['profession'])) {
                 $dataUpdate['profession_id'] = $data['profession'];
             }
             if (isset($data['limit_patient'])) {
                 $dataUpdate['limit_patient'] = $data['limit_patient'];
+            }
+            if ($data['language_code']) {
+                try {
+                    $this->updateUserLocale($user->email, $data['language_code']);
+                } catch (\Exception $e) {
+                    return ['success' => false, 'message' => $e->getMessage()];
+                }
             }
 
             $user->update($dataUpdate);
@@ -256,7 +264,7 @@ class TherapistController extends Controller
      * @return false|mixed|string
      * @throws \Exception
      */
-    private static function createKeycloakTherapist($therapist, $password, $isTemporaryPassword, $userGroup)
+    private static function createKeycloakTherapist($therapist, $password, $isTemporaryPassword, $userGroup, $languageCode)
     {
         $token = KeycloakHelper::getKeycloakAccessToken();
         if ($token) {
@@ -269,6 +277,9 @@ class TherapistController extends Controller
                     'enabled' => true,
                     'firstName' => $therapist->first_name,
                     'lastName' => $therapist->last_name,
+                    'attributes' => [
+                        'locale' => [$languageCode ? $languageCode : '']
+                    ],
                 ]);
 
                 if ($response->successful()) {
@@ -449,5 +460,39 @@ class TherapistController extends Controller
         $therapist->save();
 
         return ['success' => true, 'message' => 'success_message.deleted_chat_rooms'];
+    }
+
+    /**
+     * @param string $email
+     * @param string $languageCode
+     *
+     * @return bool
+     * @throws \Exception
+     */
+    private function updateUserLocale($email, $languageCode)
+    {
+        $token = KeycloakHelper::getKeycloakAccessToken();
+
+        if ($token) {
+            try {
+                $userUrl = KEYCLOAK_USERS . '?email=' . $email;
+
+                $response = Http::withToken($token)->get($userUrl);
+                $keyCloakUsers = $response->json();
+                $url = KEYCLOAK_USERS . '/' . $keyCloakUsers[0]['id'];
+
+                $response = Http::withToken($token)->put($url, [
+                    'attributes' => [
+                        'locale' => [$languageCode]
+                    ]
+                ]);
+
+                return $response->successful();
+            } catch (\Exception $e) {
+                throw new \Exception($e->getMessage());
+            }
+        }
+
+        throw new \Exception('no_token');
     }
 }
