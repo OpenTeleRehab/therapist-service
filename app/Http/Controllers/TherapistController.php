@@ -6,6 +6,7 @@ use App\Helpers\KeycloakHelper;
 use App\Helpers\RocketChatHelper;
 use App\Http\Resources\TherapistResource;
 use App\Http\Resources\UserResource;
+use App\Models\TreatmentPlan;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -231,10 +232,25 @@ class TherapistController extends Controller
      * @return false|mixed|string
      * @throws \Exception
      */
-    public function destroy($id)
+    public function deleteByUserId(User $user, Request $request)
     {
         try {
-            $user = User::findOrFail($id);
+            $countryCode = $request->get('country_code');
+            // Remove patients of therapist
+            Http::withHeaders([
+                'headers' => $countryCode ? $countryCode : null
+            ])->post(env('PATIENT_SERVICE_URL') . '/api/patient/delete/by-therapist', [
+                'therapist_id' => $user->id,
+            ]);
+
+            // Remove own created libraries of therapist
+            Http::post(env('ADMIN_SERVICE_URL') . '/api/library/delete/by-therapist', [
+                'therapist_id' => $user->id,
+            ]);
+
+            // Remove own created treatment preset
+            TreatmentPlan::where('created_by', $user->id)->delete();
+
             $token = KeycloakHelper::getKeycloakAccessToken();
 
             $userUrl = KEYCLOAK_USERS . '?email=' . $user->email;

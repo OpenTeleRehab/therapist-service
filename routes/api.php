@@ -45,4 +45,5 @@ Route::get('therapist/list/by-clinic-id', [TherapistController::class, 'getByCli
 Route::post('therapist/resend-email/{user}', [TherapistController::class, 'resendEmailToUser']);
 Route::get('term-condition/send-re-consent', [TermAndConditionController::class, 'addReConsentTermsOfServicesToUsers']);
 Route::post('therapist/delete/by-clinic', [TherapistController::class, 'deleteByClinicId']);
+Route::post('therapist/delete/by-id/{user}', [TherapistController::class, 'deleteByUserId']);
 
