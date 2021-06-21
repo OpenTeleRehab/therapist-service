@@ -538,4 +538,13 @@ class TherapistController extends Controller
 
         throw new \Exception('no_token');
     }
+
+    /**
+     * @param Request $request
+     * @return int
+     */
+    public function getTherapistPatientLimit (Request $request) {
+        $therapist = User::find($request['therapist_id']);
+        return $therapist ? $therapist->limit_patient : 0;
+    }
 }
