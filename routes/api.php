@@ -27,6 +27,7 @@ Route::get('treatment-plan/count/by-therapist', [TreatmentPlanController::class,
 Route::get('therapist/get-used-profession', [TherapistController::class, 'getUsedProfession']);
 Route::post('therapist/new-patient-notification', [NotificationController::class, 'newPatientNotification']);
 Route::post('therapist/delete-chat-room/by-id', [TherapistController::class, 'deleteChatRoomById']);
+Route::get('therapist/get-patient-limit', [TherapistController::class, 'getTherapistPatientLimit']);
 
 Route::group(['middleware' => 'auth:api'], function () {
     Route::get('treatment-plan/get-treatment-plan-detail', [TreatmentPlanController::class, 'getActivities']);
