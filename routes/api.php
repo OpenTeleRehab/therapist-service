@@ -48,3 +48,4 @@ Route::get('term-condition/send-re-consent', [TermAndConditionController::class,
 Route::post('therapist/delete/by-clinic', [TherapistController::class, 'deleteByClinicId']);
 Route::post('therapist/delete/by-id/{user}', [TherapistController::class, 'deleteByUserId']);
 
+Route::get('patient/by-phone-number', [TherapistController::class, 'getPatientByPhoneNumber']);

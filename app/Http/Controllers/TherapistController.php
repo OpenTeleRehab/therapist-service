@@ -238,7 +238,7 @@ class TherapistController extends Controller
             $countryCode = $request->get('country_code');
             // Remove patients of therapist
             Http::withHeaders([
-                'headers' => $countryCode ? $countryCode : null
+                'country' => $countryCode ? $countryCode : null
             ])->post(env('PATIENT_SERVICE_URL') . '/api/patient/delete/by-therapist', [
                 'therapist_id' => $user->id,
             ]);
@@ -546,5 +546,36 @@ class TherapistController extends Controller
     public function getTherapistPatientLimit (Request $request) {
         $therapist = User::find($request['therapist_id']);
         return $therapist ? $therapist->limit_patient : 0;
+    }
+
+    /**
+     * @param Request $request
+     * @return bool
+     */
+    public function getPatientByPhoneNumber(Request $request)
+    {
+        $phone = $request->get('phone');
+        $existedPhoneOnGlobalDb = Http::get(env('PATIENT_SERVICE_URL') . '/api/patient/count/by-phone-number', [
+            'phone' => $phone,
+        ]);
+
+        $existedPhoneOnVN = Http::withHeaders([
+            'country' => config('settings.vn_country_iso')
+        ])->get(env('PATIENT_SERVICE_URL') . '/api/patient/count/by-phone-number', [
+            'phone' => $phone,
+        ]);
+
+        if (!empty($existedPhoneOnGlobalDb) && $existedPhoneOnGlobalDb->successful()) {
+            $patientData = $existedPhoneOnGlobalDb->json();
+        }
+        if (!empty($existedPhoneOnVN) && $existedPhoneOnVN->successful()) {
+            $patientDataVN = $existedPhoneOnVN->json();
+        }
+
+        if ($patientData > 0 || $patientDataVN > 0) {
+            return true;
+        }
+
+        return false;
     }
 }
