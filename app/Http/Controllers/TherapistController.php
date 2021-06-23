@@ -572,10 +572,11 @@ class TherapistController extends Controller
             $patientDataVN = $existedPhoneOnVN->json();
         }
 
+        $data = 0;
         if ($patientData > 0 || $patientDataVN > 0) {
-            return true;
+            $data = 1;
         }
 
-        return false;
+        return ['success' => true, 'data' => $data];
     }
 }
