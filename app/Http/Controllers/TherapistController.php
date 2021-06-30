@@ -559,12 +559,14 @@ class TherapistController extends Controller
         $phone = $request->get('phone');
         $existedPhoneOnGlobalDb = Http::get(env('PATIENT_SERVICE_URL') . '/api/patient/count/by-phone-number', [
             'phone' => $phone,
+            'patientId' => $request->get('patient_id')
         ]);
 
         $existedPhoneOnVN = Http::withHeaders([
             'country' => config('settings.vn_country_iso')
         ])->get(env('PATIENT_SERVICE_URL') . '/api/patient/count/by-phone-number', [
             'phone' => $phone,
+            'patientId' => $request->get('patient_id')
         ]);
 
         if (!empty($existedPhoneOnGlobalDb) && $existedPhoneOnGlobalDb->successful()) {
