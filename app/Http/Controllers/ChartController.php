@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\TreatmentPlan;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
@@ -14,12 +13,14 @@ class ChartController extends Controller
      */
     public function getDataForGlobalAdmin()
     {
-        $therapistTotal = User::all()->count();
+        $therapistTotal = User::where('enabled', '=', 1)->count();
         $therapistsByCountry = DB::table('users')
             ->select(DB::raw('
                 country_id,
                 COUNT(*) AS total
-            '))->groupBy('country_id')
+            '))
+            ->where('enabled', '=', 1)
+            ->groupBy('country_id')
             ->get();
 
         $data = [
@@ -37,13 +38,14 @@ class ChartController extends Controller
     public function getDataForCountryAdmin(Request $request)
     {
         $country_id = $request->get('country_id');
-        $therapistTotal = User::where('country_id', $country_id)->count();
+        $therapistTotal = User::where('country_id', $country_id)->where('enabled', '=', 1)->count();
         $therapistsByClinic = DB::table('users')
             ->select(DB::raw('
                 clinic_id,
                 COUNT(*) AS total
             '))
             ->where('country_id', $country_id)
+            ->where('enabled', '=', 1)
             ->groupBy('clinic_id')
             ->get();
 
@@ -60,7 +62,7 @@ class ChartController extends Controller
     public function getDataForClinicAdmin(Request $request)
     {
         $clinicId = $request->get('clinic_id');
-        $therapistTotal = User::where('clinic_id', $clinicId)->count();
+        $therapistTotal = User::where('clinic_id', $clinicId)->where('enabled', '=', 1)->count();
 
         return [
             'therapistTotal' => $therapistTotal
