@@ -18,6 +18,43 @@ define("KEYCLOAK_EXECUTE_EMAIL", '/execute-actions-email?client_id=' . env('KEYC
 class TherapistController extends Controller
 {
     /**
+     * @OA\Get(
+     *     path="/api/therapist",
+     *     tags={"Therapist"},
+     *     summary="Lists all therapists",
+     *     operationId="therapistList",
+     *     @OA\Parameter(
+     *         name="clinic_id",
+     *         in="query",
+     *         description="Clinic id",
+     *         required=false,
+     *         @OA\Schema(
+     *             type="integer"
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="page_size",
+     *         in="query",
+     *         description="Limit",
+     *         required=true,
+     *         @OA\Schema(
+     *             type="integer"
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response="200",
+     *         description="successful operation"
+     *     ),
+     *     @OA\Response(response=400, description="Bad request"),
+     *     @OA\Response(response=404, description="Resource Not Found"),
+     *     @OA\Response(response=401, description="Authentication is required"),
+     *     security={
+     *         {
+     *             "oauth2_security": {}
+     *         }
+     *     },
+     * )
+     *
      * @param \Illuminate\Http\Request $request
      *
      * @return array
@@ -41,12 +78,14 @@ class TherapistController extends Controller
                     $query->where('identity', 'like', '%' . $data['search_value'] . '%');
                 });
             } else {
-                $query->where(function ($query) use ($data) {
-                    $query->where('identity', 'like', '%' . $data['search_value'] . '%')
-                        ->orWhere('first_name', 'like', '%' . $data['search_value'] . '%')
-                        ->orWhere('last_name', 'like', '%' . $data['search_value'] . '%')
-                        ->orWhere('email', 'like', '%' . $data['search_value'] . '%');
-                });
+                if (isset($data['search_value'])) {
+                    $query->where(function ($query) use ($data) {
+                        $query->where('identity', 'like', '%' . $data['search_value'] . '%')
+                            ->orWhere('first_name', 'like', '%' . $data['search_value'] . '%')
+                            ->orWhere('last_name', 'like', '%' . $data['search_value'] . '%')
+                            ->orWhere('email', 'like', '%' . $data['search_value'] . '%');
+                    });
+                }
             }
 
             if (isset($data['filters'])) {
@@ -94,6 +133,97 @@ class TherapistController extends Controller
     }
 
     /**
+     * @OA\Post(
+     *     path="/api/therapist",
+     *     tags={"Therapist"},
+     *     summary="Create therapist",
+     *     operationId="createTherapist",
+     *     @OA\Parameter(
+     *         name="email",
+     *         in="query",
+     *         description="Email",
+     *         required=true,
+     *         @OA\Schema(
+     *             type="string"
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="first_name",
+     *         in="query",
+     *         description="First name",
+     *         required=true,
+     *         @OA\Schema(
+     *             type="string"
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="last_name",
+     *         in="query",
+     *         description="Last name",
+     *         required=true,
+     *         @OA\Schema(
+     *             type="string"
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="country",
+     *         in="query",
+     *         description="Country_id",
+     *         required=true,
+     *         @OA\Schema(
+     *             type="string"
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="limit_patient",
+     *         in="query",
+     *         description="Limit patient",
+     *         required=true,
+     *         @OA\Schema(
+     *             type="integer"
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="clinic",
+     *         in="query",
+     *         description="clinic_id",
+     *         required=true,
+     *         @OA\Schema(
+     *             type="integer"
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="language_id",
+     *         in="query",
+     *         description="Language id",
+     *         required=false,
+     *         @OA\Schema(
+     *             type="integer"
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="profession",
+     *         in="query",
+     *         description="Profession id",
+     *         required=false,
+     *         @OA\Schema(
+     *             type="integer"
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response="200",
+     *         description="successful operation"
+     *     ),
+     *     @OA\Response(response=400, description="Bad request"),
+     *     @OA\Response(response=404, description="Resource Not Found"),
+     *     @OA\Response(response=401, description="Authentication is required"),
+     *     security={
+     *         {
+     *             "oauth2_security": {}
+     *         }
+     *     },
+     * )
+     *
      * @param \Illuminate\Http\Request $request
      *
      * @return array|void
@@ -159,6 +289,88 @@ class TherapistController extends Controller
     }
 
     /**
+     * @OA\Put(
+     *     path="/api/therapist/{id}",
+     *     tags={"Therapist"},
+     *     summary="Update therapist",
+     *     operationId="updateTherapist",
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="Id",
+     *         required=true,
+     *         @OA\Schema(
+     *             type="integer"
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="language_code",
+     *         in="query",
+     *         description="Language code",
+     *         required=false,
+     *         @OA\Schema(
+     *             type="string"
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="first_name",
+     *         in="query",
+     *         description="First name",
+     *         required=true,
+     *         @OA\Schema(
+     *             type="string"
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="last_name",
+     *         in="query",
+     *         description="Last name",
+     *         required=true,
+     *         @OA\Schema(
+     *             type="string"
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="limit_patient",
+     *         in="query",
+     *         description="Limit patient",
+     *         required=true,
+     *         @OA\Schema(
+     *             type="integer"
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="language_id",
+     *         in="query",
+     *         description="Language id",
+     *         required=false,
+     *         @OA\Schema(
+     *             type="integer"
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="profession",
+     *         in="query",
+     *         description="Profession id",
+     *         required=false,
+     *         @OA\Schema(
+     *             type="integer"
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response="200",
+     *         description="successful operation"
+     *     ),
+     *     @OA\Response(response=400, description="Bad request"),
+     *     @OA\Response(response=404, description="Resource Not Found"),
+     *     @OA\Response(response=401, description="Authentication is required"),
+     *     security={
+     *         {
+     *             "oauth2_security": {}
+     *         }
+     *     },
+     * )
+     *
      * @param \Illuminate\Http\Request $request
      * @param int $id
      *
@@ -183,7 +395,7 @@ class TherapistController extends Controller
             if (isset($data['limit_patient'])) {
                 $dataUpdate['limit_patient'] = $data['limit_patient'];
             }
-            if ($data['language_code']) {
+            if (isset($data['language_code'])) {
                 try {
                     $this->updateUserLocale($user->email, $data['language_code']);
                 } catch (\Exception $e) {
@@ -200,6 +412,43 @@ class TherapistController extends Controller
     }
 
     /**
+     * @OA\Post(
+     *     path="/api/therapist/updateStatus/{user}",
+     *     tags={"Therapist"},
+     *     summary="Update user status",
+     *     operationId="updateUserStatus",
+     *     @OA\Parameter(
+     *         name="user",
+     *         in="path",
+     *         description="User id",
+     *         required=true,
+     *         @OA\Schema(
+     *             type="integer"
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="enabled",
+     *         in="query",
+     *         description="Enabled",
+     *         required=true,
+     *         @OA\Schema(
+     *             type="boolean"
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response="200",
+     *         description="successful operation"
+     *     ),
+     *     @OA\Response(response=400, description="Bad request"),
+     *     @OA\Response(response=404, description="Resource Not Found"),
+     *     @OA\Response(response=401, description="Authentication is required"),
+     *     security={
+     *         {
+     *             "oauth2_security": {}
+     *         }
+     *     },
+     * )
+     *
      * @param Request $request
      * @param \App\Models\User $user
      * @return array
@@ -463,6 +712,34 @@ class TherapistController extends Controller
     }
 
     /**
+     * @OA\Get(
+     *     path="/api/therapist/list/by-clinic-id",
+     *     tags={"Therapist"},
+     *     summary="Lists all therapists by clinic",
+     *     operationId="therapistListByClinic",
+     *     @OA\Parameter(
+     *         name="clinic_id",
+     *         in="query",
+     *         description="Clinic id",
+     *         required=true,
+     *         @OA\Schema(
+     *             type="integer"
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response="200",
+     *         description="successful operation"
+     *     ),
+     *     @OA\Response(response=400, description="Bad request"),
+     *     @OA\Response(response=404, description="Resource Not Found"),
+     *     @OA\Response(response=401, description="Authentication is required"),
+     *     security={
+     *         {
+     *             "oauth2_security": {}
+     *         }
+     *     },
+     * )
+     *
      * @param \Illuminate\Http\Request $request
      *
      * @return array
