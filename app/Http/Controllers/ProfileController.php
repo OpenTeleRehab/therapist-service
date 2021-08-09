@@ -14,6 +14,25 @@ define("KEYCLOAK_USERS", env('KEYCLOAK_URL') . '/auth/admin/realms/' . env('KEYC
 class ProfileController extends Controller
 {
     /**
+     * @OA\Get(
+     *     path="/api/user/profile",
+     *     tags={"Profile"},
+     *     summary="User profile",
+     *     operationId="userProfile",
+     *     @OA\Response(
+     *         response="200",
+     *         description="successful operation"
+     *     ),
+     *     @OA\Response(response=400, description="Bad request"),
+     *     @OA\Response(response=404, description="Resource Not Found"),
+     *     @OA\Response(response=401, description="Authentication is required"),
+     *     security={
+     *         {
+     *             "oauth2_security": {}
+     *         }
+     *     },
+     * )
+     *
      * @return \App\Http\Resources\UserResource
      */
     public function getUserProfile()
@@ -31,6 +50,43 @@ class ProfileController extends Controller
     }
 
     /**
+     * @OA\Put(
+     *     path="/api/user/update-password",
+     *     tags={"Profile"},
+     *     summary="Update password",
+     *     operationId="updatePassword",
+     *     @OA\Parameter(
+     *         name="current_password",
+     *         in="query",
+     *         description="Current password",
+     *         required=true,
+     *          @OA\Schema(
+     *              type="string"
+     *          ),
+     *     ),
+     *     @OA\Parameter(
+     *         name="new_password",
+     *         in="query",
+     *         description="New password",
+     *         required=true,
+     *          @OA\Schema(
+     *              type="string"
+     *          ),
+     *     ),
+     *     @OA\Response(
+     *         response="200",
+     *         description="successful operation"
+     *     ),
+     *     @OA\Response(response=400, description="Bad request"),
+     *     @OA\Response(response=404, description="Resource Not Found"),
+     *     @OA\Response(response=401, description="Authentication is required"),
+     *     security={
+     *         {
+     *             "oauth2_security": {}
+     *         }
+     *     },
+     * )
+     *
      * @param \Illuminate\Http\Request $request
      *
      * @return array
@@ -63,6 +119,89 @@ class ProfileController extends Controller
     }
 
     /**
+     * @OA\Put(
+     *     path="/api/user/update-information",
+     *     tags={"Profile"},
+     *     summary="Update profile",
+     *     operationId="updateProfile",
+     *     @OA\Parameter(
+     *         name="first_name",
+     *         in="query",
+     *         description="First name",
+     *         required=true,
+     *          @OA\Schema(
+     *              type="string"
+     *          ),
+     *     ),
+     *     @OA\Parameter(
+     *         name="last_name",
+     *         in="query",
+     *         description="Last name",
+     *         required=true,
+     *          @OA\Schema(
+     *              type="string"
+     *          ),
+     *     ),
+     *     @OA\Parameter(
+     *         name="last_name",
+     *         in="query",
+     *         description="Last name",
+     *         required=true,
+     *          @OA\Schema(
+     *              type="string"
+     *          ),
+     *     ),
+     *     @OA\Parameter(
+     *         name="language_id",
+     *         in="query",
+     *         description="Language id",
+     *         required=true,
+     *          @OA\Schema(
+     *              type="string"
+     *          ),
+     *     ),
+     *     @OA\Parameter(
+     *         name="profession_id",
+     *         in="query",
+     *         description="Profession id",
+     *         required=true,
+     *          @OA\Schema(
+     *              type="string"
+     *          ),
+     *     ),
+     *     @OA\Parameter(
+     *         name="show_guidance",
+     *         in="query",
+     *         description="Show guidance",
+     *         required=true,
+     *          @OA\Schema(
+     *              type="integer",
+     *              enum={0,1}
+     *          ),
+     *     ),
+     *     @OA\Parameter(
+     *         name="language_code",
+     *         in="query",
+     *         description="Language code",
+     *         required=true,
+     *          @OA\Schema(
+     *              type="string"
+     *          ),
+     *     ),
+     *     @OA\Response(
+     *         response="200",
+     *         description="successful operation"
+     *     ),
+     *     @OA\Response(response=400, description="Bad request"),
+     *     @OA\Response(response=404, description="Resource Not Found"),
+     *     @OA\Response(response=401, description="Authentication is required"),
+     *     security={
+     *         {
+     *             "oauth2_security": {}
+     *         }
+     *     },
+     * )
+     *
      * @param \Illuminate\Http\Request $request
      *
      * @return array
