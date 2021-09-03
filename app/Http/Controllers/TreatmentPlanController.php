@@ -138,10 +138,6 @@ class TreatmentPlanController extends Controller
                     );
                     $activityIds[] = $activityObj->id;
                 }
-                // TODO: move to Queued Event Listeners.
-                Http::post(env('ADMIN_SERVICE_URL') . '/api/exercise/mark-as-used/by-ids', [
-                    'exercise_ids' => $exercises,
-                ]);
             }
 
             if (count($materials) > 0) {
@@ -157,10 +153,6 @@ class TreatmentPlanController extends Controller
                     );
                     $activityIds[] = $activityObj->id;
                 }
-                // TODO: move to Queued Event Listeners.
-                Http::post(env('ADMIN_SERVICE_URL') . '/api/education-material/mark-as-used/by-ids', [
-                    'material_ids' => $materials,
-                ]);
             }
 
             if (count($questionnaires) > 0) {
