@@ -267,7 +267,7 @@ class TherapistController extends Controller
         }
 
         try {
-            $this->createKeycloakTherapist($therapist, $email, true, 'therapist', $languageCode);
+            $this->createKeycloakTherapist($therapist,'therapist', $languageCode);
 
             // Create unique identity.
             $identity = 'T' . $countryIdentity . $clinicIdentity .
@@ -558,7 +558,7 @@ class TherapistController extends Controller
      * @return false|mixed|string
      * @throws \Exception
      */
-    private static function createKeycloakTherapist($therapist, $password, $isTemporaryPassword, $userGroup, $languageCode)
+    private static function createKeycloakTherapist($therapist, $userGroup, $languageCode)
     {
         $token = KeycloakHelper::getKeycloakAccessToken();
         if ($token) {
@@ -581,14 +581,6 @@ class TherapistController extends Controller
                     $lintArray = explode('/', $createdUserUrl);
                     $userKeycloakUuid = end($lintArray);
                     $isCanSetPassword = true;
-                    if ($password) {
-                        $isCanSetPassword = KeycloakHelper::resetUserPassword(
-                            $token,
-                            $createdUserUrl,
-                            $password,
-                            $isTemporaryPassword
-                        );
-                    }
 
                     $isCanAssignUserToGroup = self::assignUserToGroup($token, $createdUserUrl, $userGroup);
                     if ($isCanSetPassword && $isCanAssignUserToGroup) {
