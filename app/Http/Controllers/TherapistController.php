@@ -490,12 +490,12 @@ class TherapistController extends Controller
             // Remove patients of therapist
             Http::withHeaders([
                 'country' => $countryCode ? $countryCode : null
-            ])->post(env('PATIENT_SERVICE_URL') . '/api/patient/delete/by-therapist', [
+            ])->post(env('PATIENT_SERVICE_URL') . '/patient/delete/by-therapist', [
                 'therapist_id' => $user->id,
             ]);
 
             // Remove own created libraries of therapist
-            Http::post(env('ADMIN_SERVICE_URL') . '/api/library/delete/by-therapist', [
+            Http::post(env('ADMIN_SERVICE_URL') . '/library/delete/by-therapist', [
                 'therapist_id' => $user->id,
             ]);
 
@@ -826,14 +826,14 @@ class TherapistController extends Controller
     public function getPatientByPhoneNumber(Request $request)
     {
         $phone = $request->get('phone');
-        $existedPhoneOnGlobalDb = Http::get(env('PATIENT_SERVICE_URL') . '/api/patient/count/by-phone-number', [
+        $existedPhoneOnGlobalDb = Http::get(env('PATIENT_SERVICE_URL') . '/patient/count/by-phone-number', [
             'phone' => $phone,
             'patientId' => $request->get('patient_id')
         ]);
 
         $existedPhoneOnVN = Http::withHeaders([
             'country' => config('settings.vn_country_iso')
-        ])->get(env('PATIENT_SERVICE_URL') . '/api/patient/count/by-phone-number', [
+        ])->get(env('PATIENT_SERVICE_URL') . '/patient/count/by-phone-number', [
             'phone' => $phone,
             'patientId' => $request->get('patient_id')
         ]);
