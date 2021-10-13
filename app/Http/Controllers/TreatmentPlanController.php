@@ -60,12 +60,12 @@ class TreatmentPlanController extends Controller
      */
     public function store(Request $request)
     {
-        $response = Http::get(env('ADMIN_SERVICE_URL') . '/api/library/count/by-therapist?therapist_id=' . Auth::id());
+        $response = Http::get(env('ADMIN_SERVICE_URL') . '/library/count/by-therapist?therapist_id=' . Auth::id());
         if (!empty($response) && $response->successful()) {
             $ownContentCount = $response->json();
         }
 
-        $response = Http::get(env('ADMIN_SERVICE_URL') . '/api/setting/library-limit?type=' . config('settings.therapist_content_limit'));
+        $response = Http::get(env('ADMIN_SERVICE_URL') . '/setting/library-limit?type=' . config('settings.therapist_content_limit'));
         if (!empty($response) && $response->successful()) {
             $contentLimit = $response->json();
         }
@@ -169,7 +169,7 @@ class TreatmentPlanController extends Controller
                     $activityIds[] = $activityObj->id;
                 }
                 // TODO: move to Queued Event Listeners.
-                Http::post(env('ADMIN_SERVICE_URL') . '/api/questionnaire/mark-as-used/by-ids', [
+                Http::post(env('ADMIN_SERVICE_URL') . '/questionnaire/mark-as-used/by-ids', [
                     'questionnaire_ids' => $questionnaires,
                 ]);
             }
@@ -216,17 +216,17 @@ class TreatmentPlanController extends Controller
             $response = null;
 
             if ($activity->type === Activity::ACTIVITY_TYPE_EXERCISE) {
-                $response = Http::get(env('ADMIN_SERVICE_URL') . '/api/exercise/list/by-ids', [
+                $response = Http::get(env('ADMIN_SERVICE_URL') . '/exercise/list/by-ids', [
                     'exercise_ids' => [$activity->activity_id],
                     'lang' => $request->get('lang')
                 ]);
             } elseif ($activity->type === Activity::ACTIVITY_TYPE_MATERIAL) {
-                $response = Http::get(env('ADMIN_SERVICE_URL') . '/api/education-material/list/by-ids', [
+                $response = Http::get(env('ADMIN_SERVICE_URL') . '/education-material/list/by-ids', [
                     'material_ids' => [$activity->activity_id],
                     'lang' => $request->get('lang')
                 ]);
             } elseif ($activity->type === Activity::ACTIVITY_TYPE_QUESTIONNAIRE) {
-                $response = Http::get(env('ADMIN_SERVICE_URL') . '/api/questionnaire/list/by-ids', [
+                $response = Http::get(env('ADMIN_SERVICE_URL') . '/questionnaire/list/by-ids', [
                     'questionnaire_ids' => [$activity->activity_id],
                     'lang' => $request->get('lang')
                 ]);
