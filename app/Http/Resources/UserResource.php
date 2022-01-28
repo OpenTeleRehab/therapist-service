@@ -25,7 +25,7 @@ class UserResource extends JsonResource
             'show_guidance' => $this->show_guidance,
         ];
 
-        if ($request->get('user_type') !== User::ADMIN_GROUP_GLOBAL_ADMIN ) {
+        if ($request->get('user_type') !== User::ADMIN_GROUP_ORGANIZATION_ADMIN ) {
             $responseData = array_merge($responseData, [
                 'first_name' => $this->first_name,
                 'last_name' => $this->last_name,

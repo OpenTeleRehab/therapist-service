@@ -13,6 +13,7 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable;
 
+    const ADMIN_GROUP_ORGANIZATION_ADMIN = 'organization_admin';
     const ADMIN_GROUP_GLOBAL_ADMIN = 'global_admin';
     const ADMIN_GROUP_COUNTRY_ADMIN = 'country_admin';
     const ADMIN_GROUP_CLINIC_ADMIN = 'clinic_admin';
