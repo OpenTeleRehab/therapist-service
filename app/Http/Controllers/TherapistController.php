@@ -266,12 +266,20 @@ class TherapistController extends Controller
             return ['success' => false, 'message' => 'error_message.user_add'];
         }
 
+        $response = Http::get(env('ADMIN_SERVICE_URL') . '/get-org-by-name');
+        if($response->successful()) {
+            $organization = $response->json();
+        } else {
+            return ['success' => false, 'message' => 'error_message.organization_not_found'];
+        }
+
         try {
             $this->createKeycloakTherapist($therapist,'therapist', $languageCode);
 
             // Create unique identity.
-            $identity = 'T' . $countryIdentity . $clinicIdentity .
-                str_pad($therapist->id, 4, '0', STR_PAD_LEFT);
+            $orgIdentity = str_pad($organization['id'], 4, '0', STR_PAD_LEFT);
+            $identity = 'T' . $orgIdentity . $countryIdentity . $clinicIdentity .
+                str_pad($therapist->id, 5, '0', STR_PAD_LEFT);
 
             // Create chat user.
             $updateData = $this->createChatUser($identity, $email, $lastName . ' ' . $firstName);
