@@ -228,7 +228,7 @@ class TherapistController extends Controller
      *
      * @return array|void
      */
-    public function store(Request  $request)
+    public function store(Request $request)
     {
         $email = $request->get('email');
         $userExist = User::where('email', $email)->first();
@@ -267,7 +267,8 @@ class TherapistController extends Controller
         }
 
         $response = Http::get(env('ADMIN_SERVICE_URL') . '/get-org-by-name');
-        if($response->successful()) {
+
+        if ($response->successful()) {
             $organization = $response->json();
         } else {
             return ['success' => false, 'message' => 'error_message.organization_not_found'];
@@ -569,6 +570,7 @@ class TherapistController extends Controller
     private static function createKeycloakTherapist($therapist, $userGroup, $languageCode)
     {
         $token = KeycloakHelper::getKeycloakAccessToken();
+
         if ($token) {
             try {
                 $response = Http::withToken($token)->withHeaders([
