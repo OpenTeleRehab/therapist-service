@@ -266,7 +266,7 @@ class TherapistController extends Controller
             return ['success' => false, 'message' => 'error_message.user_add'];
         }
 
-        $response = Http::get(env('GADMIN_SERVICE_URL') . '/get-org-by-name', ['orgName' => env('APP_NAME')]);
+        $response = Http::get(env('GADMIN_SERVICE_URL') . '/get-organization', ['sub_domain' => env('APP_NAME')]);
 
         if ($response->successful()) {
             $organization = $response->json();
