@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TherapistController;
 use App\Http\Controllers\UserController;
@@ -28,6 +29,7 @@ Route::get('therapist/get-used-profession', [TherapistController::class, 'getUse
 Route::post('therapist/new-patient-notification', [NotificationController::class, 'newPatientNotification']);
 Route::post('therapist/delete-chat-room/by-id', [TherapistController::class, 'deleteChatRoomById']);
 Route::get('therapist/get-patient-limit', [TherapistController::class, 'getTherapistPatientLimit']);
+Route::get('activities/list/by-ids', [ActivityController::class, 'getByIds']);
 
 Route::group(['middleware' => 'auth:api'], function () {
     Route::get('treatment-plan/get-treatment-plan-detail', [TreatmentPlanController::class, 'getActivities']);

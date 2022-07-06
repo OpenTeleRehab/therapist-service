@@ -25,5 +25,5 @@ class Activity extends Model
      *
      * @var array
      */
-    protected $fillable = ['treatment_plan_id', 'week', 'day', 'activity_id', 'type'];
+    protected $fillable = ['treatment_plan_id', 'week', 'day', 'activity_id', 'type', 'sets', 'reps', 'additional_information'];
 }

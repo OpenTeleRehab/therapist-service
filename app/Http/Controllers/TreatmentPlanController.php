@@ -122,20 +122,31 @@ class TreatmentPlanController extends Controller
     {
         $activityIds = [];
         foreach ($activities as $activity) {
+            $customExercises = isset($activity['customExercises']) ? $activity['customExercises'] : [];
             $exercises = $activity['exercises'];
             $materials = $activity['materials'];
             $questionnaires = $activity['questionnaires'];
             if (count($exercises) > 0) {
                 foreach ($exercises as $exercise) {
-                    $activityObj = Activity::firstOrCreate(
-                        [
-                            'treatment_plan_id' => $treatmentPlanId,
-                            'week' => $activity['week'],
-                            'day' => $activity['day'],
-                            'activity_id' => $exercise,
-                            'type' => Activity::ACTIVITY_TYPE_EXERCISE,
-                        ],
-                    );
+                    $updateFields = [
+                        'treatment_plan_id' => $treatmentPlanId,
+                        'week' => $activity['week'],
+                        'day' => $activity['day'],
+                        'activity_id' => $exercise,
+                        'type' => Activity::ACTIVITY_TYPE_EXERCISE,
+                    ];
+
+                    $customExercise = current(array_filter($customExercises, function ($c) use ($exercise) {
+                        return $c['id'] === $exercise;
+                    }));
+
+                    if ($customExercise) {
+                        $updateFields['sets'] = $customExercise['sets'];
+                        $updateFields['reps'] = $customExercise['reps'];
+                        $updateFields['additional_information'] = $customExercise['additional_information'] ?? null;
+                    }
+
+                    $activityObj = Activity::firstOrCreate($updateFields);
                     $activityIds[] = $activityObj->id;
                 }
             }
@@ -236,6 +247,16 @@ class TreatmentPlanController extends Controller
                 if ($response->json()['data']) {
                     $activityObj = $response->json()['data'][0];
                     $activityObj['id'] = $activity->id;
+
+                    // Custom Sets/Reps in Treatment.
+                    if ($activity->sets !== null) {
+                        $activityObj['sets'] = $activity->sets;
+                        $activityObj['custom'] = true;
+                    }
+                    if ($activity->reps !== null) {
+                        $activityObj['reps'] = $activity->reps;
+                        $activityObj['custom'] = true;
+                    }
                 } else {
                     continue;
                 }
