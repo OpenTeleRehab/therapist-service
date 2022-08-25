@@ -60,19 +60,6 @@ class TreatmentPlanController extends Controller
      */
     public function store(Request $request)
     {
-        $response = Http::get(env('ADMIN_SERVICE_URL') . '/library/count/by-therapist?therapist_id=' . Auth::id());
-        if (!empty($response) && $response->successful()) {
-            $ownContentCount = $response->json();
-        }
-
-        $response = Http::get(env('ADMIN_SERVICE_URL') . '/setting/library-limit?type=' . config('settings.therapist_content_limit'));
-        if (!empty($response) && $response->successful()) {
-            $contentLimit = $response->json();
-        }
-        if ($ownContentCount && $ownContentCount['data'] >= $contentLimit) {
-            return ['success' => false, 'message' => 'error_message.treatment_plan_add_as_preset.full_limit'];
-        }
-
         $treatmentPlan = TreatmentPlan::updateOrCreate(
             [
                 'name' => $request->get('name'),
