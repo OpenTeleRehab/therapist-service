@@ -238,7 +238,6 @@ class TherapistController extends Controller
         }
 
         DB::beginTransaction();
-        $keycloakTherapistUuid = null;
 
         $firstName = $request->get('first_name');
         $lastName = $request->get('last_name');
@@ -275,7 +274,7 @@ class TherapistController extends Controller
         }
 
         try {
-            $this->createKeycloakTherapist($therapist,'therapist', $languageCode);
+            $this->createKeycloakTherapist($therapist, 'therapist', $languageCode);
 
             // Create unique identity.
             $orgIdentity = str_pad($organization['id'], 4, '0', STR_PAD_LEFT);
@@ -590,43 +589,16 @@ class TherapistController extends Controller
                     $createdUserUrl = $response->header('Location');
                     $lintArray = explode('/', $createdUserUrl);
                     $userKeycloakUuid = end($lintArray);
-                    $isCanSetPassword = true;
 
-                    $isCanAssignUserToGroup = self::assignUserToGroup($token, $createdUserUrl, $userGroup);
-                    if ($isCanSetPassword && $isCanAssignUserToGroup) {
-                        self::sendEmailToNewUser($userKeycloakUuid);
-                        return $userKeycloakUuid;
-                    }
+                    self::sendEmailToNewUser($userKeycloakUuid);
+                    return $userKeycloakUuid;
                 }
+                throw new \Exception('Failed to crate Keycloak user');
             } catch (\Exception $e) {
                 throw new \Exception($e->getMessage());
             }
         }
         throw new \Exception('no_token');
-    }
-
-    /**
-     * @param string $token
-     * @param string $userUrl
-     * @param string $userGroup
-     * @param false $isUnassigned
-     *
-     * @return bool
-     */
-    private static function assignUserToGroup($token, $userUrl, $userGroup, $isUnassigned = false)
-    {
-        $userGroups = KeycloakHelper::getUserGroup($token);
-        $url = $userUrl . '/groups/' . $userGroups[$userGroup];
-        if ($isUnassigned) {
-            $response = Http::withToken($token)->delete($url);
-        } else {
-            $response = Http::withToken($token)->put($url);
-        }
-        if ($response->successful()) {
-            return true;
-        }
-
-        return false;
     }
 
     /**
