@@ -30,7 +30,7 @@ class AlterTherapistIdentity extends Command
      */
     public function handle()
     {
-        $response = Http::get(env('GADMIN_SERVICE_URL') . '/get-organization', ['sub_domain' => env('APP_NAME')]);
+        $response = Http::withToken(Forwarder::getAccessToken(Forwarder::GADMIN_SERVICE))->get(env('GADMIN_SERVICE_URL') . '/get-organization', ['sub_domain' => env('APP_NAME')]);
 
         if ($response->successful()) {
             $organization = $response->json();

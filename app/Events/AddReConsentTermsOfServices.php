@@ -19,9 +19,8 @@ class AddReConsentTermsOfServices
 
     /**
      * Create a new event instance.
-     * @param array
      *
-     * @return void
+     * @param \App\Models\User $user
      */
     public function __construct($user)
     {

@@ -10,7 +10,9 @@ define("KEYCLOAK_USERS", env('KEYCLOAK_URL') . '/auth/admin/realms/' . env('KEYC
 
 class TermAndConditionController extends Controller
 {
-
+    /**
+     * @return mixed
+     */
     public function addReConsentTermsOfServicesToUsers()
     {
         try {

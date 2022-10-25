@@ -291,11 +291,7 @@ class ProfileController extends Controller
                 $keyCloakUsers = $response->json();
                 $url = KEYCLOAK_USERS . '/' . $keyCloakUsers[0]['id'];
 
-                $response = Http::withToken($token)->put($url, [
-                        'attributes' => [
-                            'locale' => [$languageCode]
-                        ]
-                    ]);
+                $response = Http::withToken($token)->put($url, ['attributes' => ['locale' => [$languageCode]]]);
 
                 return $response->successful();
             } catch (\Exception $e) {
