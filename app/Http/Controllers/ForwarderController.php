@@ -17,7 +17,7 @@ class ForwarderController extends Controller
     public function index(Request $request)
     {
         $service_name = $request->route()->getName();
-        $country = $request->header('country_code');
+        $country = $request->header('country');
         $endpoint = str_replace('api/', '/', $request->path());
 
         if ($service_name !== null && str_contains($service_name, Forwarder::GADMIN_SERVICE)) {
@@ -31,10 +31,9 @@ class ForwarderController extends Controller
         }
 
         if ($service_name !== null && str_contains($service_name, Forwarder::PATIENT_SERVICE)) {
-            $access_token = Forwarder::getAccessToken(Forwarder::PATIENT_SERVICE);
-            return Http::withHeaders([
-                'Authorization' => 'Bearer ' . $access_token,
-                'country' => $country,
+            $access_token = Forwarder::getAccessToken(Forwarder::PATIENT_SERVICE, $country);
+            return Http::withToken($access_token)->withHeaders([
+                'country' => $country
             ])->get(env('PATIENT_SERVICE_URL') . $endpoint, $request->all());
         }
     }
@@ -49,7 +48,7 @@ class ForwarderController extends Controller
     public function store(Request $request)
     {
         $service_name = $request->route()->getName();
-        $country = $request->header('country_code');
+        $country = $request->header('country');
         $endpoint = str_replace('api/', '/', $request->path());
 
         if ($service_name !== null && str_contains($service_name, Forwarder::GADMIN_SERVICE)) {
@@ -73,9 +72,8 @@ class ForwarderController extends Controller
         }
 
         if ($service_name !== null && str_contains($service_name, Forwarder::PATIENT_SERVICE)) {
-            $access_token = Forwarder::getAccessToken(Forwarder::PATIENT_SERVICE);
-            return Http::withHeaders([
-                'Authorization' => 'Bearer ' . $access_token,
+            $access_token = Forwarder::getAccessToken(Forwarder::PATIENT_SERVICE, $country);
+            return Http::withToken($access_token)->withHeaders([
                 'country' => $country,
             ])->post(env('PATIENT_SERVICE_URL') . $endpoint, $request->all());
         }
@@ -92,7 +90,7 @@ class ForwarderController extends Controller
     public function show(Request $request, $id)
     {
         $service_name = $request->route()->getName();
-        $country = $request->header('country_code');
+        $country = $request->header('country');
         $endpoint = str_replace('api/', '/', $request->path());
 
         if ($service_name !== null && str_contains($service_name, Forwarder::GADMIN_SERVICE)) {
@@ -106,9 +104,8 @@ class ForwarderController extends Controller
         }
 
         if ($service_name !== null && str_contains($service_name, Forwarder::PATIENT_SERVICE)) {
-            $access_token = Forwarder::getAccessToken(Forwarder::PATIENT_SERVICE);
-            return Http::withHeaders([
-                'Authorization' => 'Bearer ' . $access_token,
+            $access_token = Forwarder::getAccessToken(Forwarder::PATIENT_SERVICE, $country);
+            return Http::withToken($access_token)->withHeaders([
                 'country' => $country,
             ])->get(env('PATIENT_SERVICE_URL') . $endpoint, $request->all());
         }
@@ -125,7 +122,7 @@ class ForwarderController extends Controller
     public function update(Request $request, $id)
     {
         $service_name = $request->route()->getName();
-        $country = $request->header('country_code');
+        $country = $request->header('country');
         $endpoint = str_replace('api/', '/', $request->path());
 
         if ($service_name !== null && str_contains($service_name, Forwarder::GADMIN_SERVICE)) {
@@ -149,9 +146,8 @@ class ForwarderController extends Controller
         }
 
         if ($service_name !== null && str_contains($service_name, Forwarder::PATIENT_SERVICE)) {
-            $access_token = Forwarder::getAccessToken(Forwarder::PATIENT_SERVICE);
-            return Http::withHeaders([
-                'Authorization' => 'Bearer ' . $access_token,
+            $access_token = Forwarder::getAccessToken(Forwarder::PATIENT_SERVICE, $country);
+            return Http::withToken($access_token)->withHeaders([
                 'country' => $country,
             ])->put(env('PATIENT_SERVICE_URL') . $endpoint, $request->all());
         }
@@ -182,9 +178,8 @@ class ForwarderController extends Controller
         }
 
         if ($service_name !== null && str_contains($service_name, Forwarder::PATIENT_SERVICE)) {
-            $access_token = Forwarder::getAccessToken(Forwarder::PATIENT_SERVICE);
-            return Http::withHeaders([
-                'Authorization' => 'Bearer ' . $access_token,
+            $access_token = Forwarder::getAccessToken(Forwarder::PATIENT_SERVICE, $country);
+            return Http::withToken($access_token)->withHeaders([
                 'country' => $country,
             ])->delete(env('PATIENT_SERVICE_URL') . $endpoint);
         }
