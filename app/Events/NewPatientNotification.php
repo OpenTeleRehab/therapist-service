@@ -30,7 +30,9 @@ class NewPatientNotification implements ShouldBroadcastNow
     /**
      * Create a new event instance.
      *
-     * @return void
+     * @param int $therapistId
+     * @param string $patientFirstName
+     * @param string $patientLastName
      */
     public function __construct($therapistId, $patientFirstName, $patientLastName)
     {

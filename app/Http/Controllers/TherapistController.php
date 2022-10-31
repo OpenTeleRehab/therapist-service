@@ -6,11 +6,13 @@ use App\Helpers\KeycloakHelper;
 use App\Helpers\RocketChatHelper;
 use App\Http\Resources\TherapistResource;
 use App\Http\Resources\UserResource;
+use App\Models\Forwarder;
 use App\Models\TreatmentPlan;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 define("KEYCLOAK_USERS", env('KEYCLOAK_URL') . '/auth/admin/realms/' . env('KEYCLOAK_REAMLS_NAME') . '/users');
 define("KEYCLOAK_EXECUTE_EMAIL", '/execute-actions-email?client_id=' . env('KEYCLOAK_BACKEND_CLIENT') . '&redirect_uri=' . env('REACT_APP_BASE_URL'));
@@ -67,7 +69,7 @@ class TherapistController extends Controller
         if (isset($data['id'])) {
             $users = User::where('id', $data['id'])->get();
         } else {
-            $query = User::query();
+            $query = User::query()->where('email', '!=', env('KEYCLOAK_BACKEND_USERNAME'));
 
             if ($request->has('clinic_id')) {
                 $query->where('clinic_id', $request->get('clinic_id'));
@@ -265,7 +267,7 @@ class TherapistController extends Controller
             return ['success' => false, 'message' => 'error_message.user_add'];
         }
 
-        $response = Http::get(env('GADMIN_SERVICE_URL') . '/get-organization', ['sub_domain' => env('APP_NAME')]);
+        $response = Http::withToken(Forwarder::getAccessToken(Forwarder::GADMIN_SERVICE))->get(env('GADMIN_SERVICE_URL') . '/get-organization', ['sub_domain' => env('APP_NAME')]);
 
         if ($response->successful()) {
             $organization = $response->json();
@@ -293,6 +295,7 @@ class TherapistController extends Controller
         }
 
         DB::commit();
+
         return ['success' => true, 'message' => 'success_message.user_add'];
     }
 
@@ -486,28 +489,31 @@ class TherapistController extends Controller
     }
 
     /**
-     * @param integer $id
+     * @param \App\Models\User $user
+     * @param \Illuminate\Http\Request $request
      *
-     * @return false|mixed|string
-     * @throws \Exception
+     * @return array
      */
     public function deleteByUserId(User $user, Request $request)
     {
         try {
             $countryCode = $request->get('country_code');
-            // Remove patients of therapist
+            // Remove patients of therapist.
             Http::withHeaders([
-                'country' => $countryCode ? $countryCode : null
+                'Authorization' => 'Bearer ' . Forwarder::getAccessToken(Forwarder::PATIENT_SERVICE),
+                'country' => $countryCode,
             ])->post(env('PATIENT_SERVICE_URL') . '/patient/delete/by-therapist', [
                 'therapist_id' => $user->id,
             ]);
 
-            // Remove own created libraries of therapist
-            Http::post(env('ADMIN_SERVICE_URL') . '/library/delete/by-therapist', [
-                'therapist_id' => $user->id,
-            ]);
+            // Remove own created libraries of therapist.
+            Http::withToken(Forwarder::getAccessToken(Forwarder::ADMIN_SERVICE))
+                ->post(env('ADMIN_SERVICE_URL') . '/library/delete/by-therapist', [
+                    'therapist_id' => $user->id,
+                    'country' => $countryCode,
+                ]);
 
-            // Remove own created treatment preset
+            // Remove own created treatment preset.
             TreatmentPlan::where('created_by', $user->id)->delete();
 
             $token = KeycloakHelper::getKeycloakAccessToken();
@@ -558,10 +564,9 @@ class TherapistController extends Controller
     }
 
     /**
-     * @param User $therapist
-     * @param string $password
-     * @param boolean $isTemporaryPassword
+     * @param \App\Models\User $therapist
      * @param string $userGroup
+     * @param string $languageCode
      *
      * @return false|mixed|string
      * @throws \Exception
@@ -649,7 +654,7 @@ class TherapistController extends Controller
     /**
      * @param User $user
      *
-     * @return \Illuminate\Http\Client\Response
+     * @return mixed
      */
     public function resendEmailToUser(User $user)
     {
@@ -668,7 +673,6 @@ class TherapistController extends Controller
             if ($isCanSend) {
                 return ['success' => true, 'message' => 'success_message.resend_email'];
             }
-
         }
 
         return ['success' => false, 'message' => 'error_message.cannot_resend_email'];
@@ -741,7 +745,8 @@ class TherapistController extends Controller
      * @param Request $request
      * @return array
      */
-    public function deleteChatRoomById(Request $request) {
+    public function deleteChatRoomById(Request $request)
+    {
         $chatRoomId = $request->get('chat_room_id');
         $therapistId = $request->get('therapist_id');
 
@@ -796,38 +801,47 @@ class TherapistController extends Controller
      * @param Request $request
      * @return int
      */
-    public function getTherapistPatientLimit (Request $request) {
+    public function getTherapistPatientLimit(Request $request)
+    {
         $therapist = User::find($request['therapist_id']);
         return $therapist ? $therapist->limit_patient : 0;
     }
 
     /**
      * @param Request $request
-     * @return bool
+     *
+     * @return mixed
      */
     public function getPatientByPhoneNumber(Request $request)
     {
         $phone = $request->get('phone');
-        $existedPhoneOnGlobalDb = Http::get(env('PATIENT_SERVICE_URL') . '/patient/count/by-phone-number', [
+        $patientId = $request->get('patient_id');
+
+        $existedPhoneOnGlobalDb = Http::withHeaders([
+            'Authorization' => 'Bearer ' . Forwarder::getAccessToken(Forwarder::PATIENT_SERVICE),
+        ])->get(env('PATIENT_SERVICE_URL') . '/patient/count/by-phone-number', [
             'phone' => $phone,
-            'patientId' => $request->get('patient_id')
+            'patientId' => $patientId
         ]);
 
         $existedPhoneOnVN = Http::withHeaders([
+            'Authorization' => 'Bearer ' . Forwarder::getAccessToken(Forwarder::PATIENT_SERVICE, config('settings.vn_country_iso')),
             'country' => config('settings.vn_country_iso')
         ])->get(env('PATIENT_SERVICE_URL') . '/patient/count/by-phone-number', [
             'phone' => $phone,
-            'patientId' => $request->get('patient_id')
+            'patientId' => $patientId
         ]);
 
         if (!empty($existedPhoneOnGlobalDb) && $existedPhoneOnGlobalDb->successful()) {
             $patientData = $existedPhoneOnGlobalDb->json();
         }
+
         if (!empty($existedPhoneOnVN) && $existedPhoneOnVN->successful()) {
             $patientDataVN = $existedPhoneOnVN->json();
         }
 
         $data = 0;
+
         if ($patientData > 0 || $patientDataVN > 0) {
             $data = 1;
         }

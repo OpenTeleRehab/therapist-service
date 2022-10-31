@@ -11,12 +11,21 @@ class NewPatient extends Notification
 {
     use Queueable;
 
+    /**
+     * @var string
+     */
     private $patientFirstName;
+
+    /**
+     * @var string
+     */
     private $patientLastName;
 
     /**
      * Create a new notification instance.
      *
+     * @param string $patientFirstName
+     * @param string $patientLastName
      * @return void
      */
     public function __construct($patientFirstName, $patientLastName)
@@ -37,7 +46,7 @@ class NewPatient extends Notification
     }
 
     /**
-     * @param $notifiable
+     * @param mixed $notifiable
      *
      * @return array
      */
@@ -46,19 +55,6 @@ class NewPatient extends Notification
         return [
             'patient_first_name' => $this->patientFirstName,
             'patient_last_name' => $this->patientLastName,
-        ];
-    }
-
-    /**
-     * Get the array representation of the notification.
-     *
-     * @param  mixed  $notifiable
-     * @return array
-     */
-    public function toArray($notifiable)
-    {
-        return [
-            //
         ];
     }
 }
