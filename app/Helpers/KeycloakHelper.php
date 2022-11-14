@@ -7,7 +7,6 @@ use Firebase\JWT\JWT;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 
 define("KEYCLOAK_TOKEN_URL", env('KEYCLOAK_URL') . '/auth/realms/' . env('KEYCLOAK_REAMLS_NAME') . '/protocol/openid-connect/token');
 define("KEYCLOAK_USER_URL", env('KEYCLOAK_URL') . '/auth/admin/realms/' . env('KEYCLOAK_REAMLS_NAME') . '/users');
@@ -26,7 +25,6 @@ class KeycloakHelper
     const GADMIN_ACCESS_TOKEN = 'gadmin_access_token';
     const ADMIN_ACCESS_TOKEN = 'admin_access_token';
     const THERAPIST_ACCESS_TOKEN = 'therapist_access_token';
-    const PATIENT_ACCESS_TOKEN = 'patient_access_token';
 
     /**
      * @return mixed|null
@@ -104,22 +102,18 @@ class KeycloakHelper
      */
     public static function getPatientKeycloakAccessToken($host)
     {
-        $access_token = Cache::get(self::PATIENT_ACCESS_TOKEN);
+        $response = Http::withHeaders(['country' => $host])->post(PATIENT_LOGIN_URL, [
+            'email' => env('KEYCLOAK_BACKEND_CLIENT'),
+            'pin' => env('PATIENT_BACKEND_PIN'),
+        ]);
 
-        if ($access_token) {
-            $token_arr = explode('.', $access_token);
-            $token_obj = json_decode(JWT::urlsafeB64Decode($token_arr[1]), true);
-            $token_exp_at = $token_obj['exp'];
-            $current_timestamp = Carbon::now()->timestamp;
+        if ($response->successful()) {
+            $result = $response->json();
 
-            if ($current_timestamp > $token_exp_at) {
-                return self::generatePatientToken(PATIENT_LOGIN_URL, $host, self::PATIENT_ACCESS_TOKEN);
-            }
-
-            return $access_token;
+            return $result['data']['token'];
         }
 
-        return self::generatePatientToken(PATIENT_LOGIN_URL, $host, self::PATIENT_ACCESS_TOKEN);
+        return null;
     }
 
     /**
@@ -240,31 +234,6 @@ class KeycloakHelper
             Cache::forever($cache_key, $result['access_token']);
 
             return $result['access_token'];
-        }
-
-        return null;
-    }
-
-    /**
-     * @param string $url
-     * @param string $host
-     * @param string $cache_key
-     *
-     * @return mixed|null
-     */
-    private static function generatePatientToken($url, $host, $cache_key)
-    {
-        $response = Http::withHeaders(['country' => $host])->post($url, [
-            'email' => env('KEYCLOAK_BACKEND_CLIENT'),
-            'pin' => env('PATIENT_BACKEND_PIN'),
-        ]);
-
-        if ($response->successful()) {
-            $result = $response->json();
-
-            Cache::forever($cache_key, $result['data']['token']);
-
-            return $result['data']['token'];
         }
 
         return null;
