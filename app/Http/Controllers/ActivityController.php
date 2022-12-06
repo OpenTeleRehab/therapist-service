@@ -98,15 +98,7 @@ class ActivityController extends Controller
         $activitiesObjIds = [];
         $result = [];
         foreach ($activities as $activity) {
-            if ($activity->type === Activity::ACTIVITY_TYPE_EXERCISE) {
-                $type = Activity::ACTIVITY_TYPE_EXERCISE;
-            } elseif ($activity->type === Activity::ACTIVITY_TYPE_MATERIAL) {
-                $type = Activity::ACTIVITY_TYPE_MATERIAL;
-            } else {
-                $type = Activity::ACTIVITY_TYPE_QUESTIONNAIRE;
-            }
-
-            $response = $this->getActivitiesFromAdminService($type, $activity->activity_id, $request);
+            $response = $this->getActivitiesFromAdminService($activity->type, $activity->activity_id, $request);
             if (!empty($response) && $response->successful()) {
                 if ($response->json()['data']) {
                     $activityObj = $response->json()['data'][0];
