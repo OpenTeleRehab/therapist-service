@@ -94,6 +94,9 @@ Route::group(['middleware' => 'auth:api'], function () {
         Route::get('questionnaire/list/by-ids', [ForwarderController::class, 'index']);
         Route::post('questionnaire/updateFavorite/by-therapist/{id}', [ForwarderController::class, 'store']);
         Route::apiResource('questionnaire', ForwarderController::class);
+
+        // Assistive Technologies
+        Route::get('assistive-technologies', [ForwarderController::class, 'index']);
     });
 
     // Patient Service
@@ -110,6 +113,8 @@ Route::group(['middleware' => 'auth:api'], function () {
         Route::get('patient-activities/list/by-ids', [ForwarderController::class, 'index']);
         Route::get('patient-treatment-plan/get-treatment-plan-detail', [ForwarderController::class, 'index']);
         Route::apiResource('patient-treatment-plan', ForwarderController::class);
+
+        Route::apiResource('patient-assistive-technologies', ForwarderController::class);
 
         Route::get('treatment-plan/export/{id}', [ForwarderController::class, 'index']);
 
