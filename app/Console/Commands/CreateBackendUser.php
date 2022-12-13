@@ -38,17 +38,20 @@ class CreateBackendUser extends Command
      */
     public function handle()
     {
-        User::updateOrCreate([
-            'email' => env('KEYCLOAK_BACKEND_CLIENT'),
-        ], [
-            'email' => env('KEYCLOAK_BACKEND_CLIENT'),
-            'first_name' => 'DO NOT DELETE!',
-            'last_name' => 'DO NOT DELETE!',
-            'clinic_id' => 0,
-            'country_id' => 0,
-            'limit_patient' => 0,
-            'enabled' => 1,
-        ]);
+        User::updateOrCreate(
+            [
+                'email' => env('KEYCLOAK_BACKEND_CLIENT'),
+            ],
+            [
+                'email' => env('KEYCLOAK_BACKEND_CLIENT'),
+                'first_name' => 'DO NOT DELETE!',
+                'last_name' => 'DO NOT DELETE!',
+                'clinic_id' => 0,
+                'country_id' => 0,
+                'limit_patient' => 0,
+                'enabled' => 1,
+            ]
+        );
 
         $this->info('Backend user has been created or updated successfully');
 
