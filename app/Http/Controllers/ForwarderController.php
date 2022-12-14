@@ -61,10 +61,10 @@ class ForwarderController extends Controller
             $response = Http::withToken($access_token);
 
             foreach ($request->allFiles() as $key => $file) {
-                if (str_contains($request->path(), 'questionnaire')) {
-                    $response = $response->attach($file->getClientOriginalName(), file_get_contents($file), $file->getClientOriginalName());
-                } else {
+                if (str_contains($request->path(), 'education-material')) {
                     $response = $response->attach($key, file_get_contents($file), $file->getClientOriginalName());
+                } else {
+                    $response = $response->attach($file->getClientOriginalName(), file_get_contents($file), $file->getClientOriginalName());
                 }
             }
 
@@ -135,10 +135,10 @@ class ForwarderController extends Controller
             $response = Http::withToken($access_token);
 
             foreach ($request->allFiles() as $key => $file) {
-                if (str_contains($request->path(), 'questionnaire')) {
-                    $response = $response->attach($file->getClientOriginalName(), file_get_contents($file), $file->getClientOriginalName());
-                } else {
+                if (str_contains($request->path(), 'education-material')) {
                     $response = $response->attach($key, file_get_contents($file), $file->getClientOriginalName());
+                } else {
+                    $response = $response->attach($file->getClientOriginalName(), file_get_contents($file), $file->getClientOriginalName());
                 }
             }
 
