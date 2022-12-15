@@ -8,6 +8,7 @@ use \App\Http\Controllers\TreatmentPlanController;
 use App\Http\Controllers\ChartController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\TermAndConditionController;
+use App\Http\Controllers\MessageController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -52,6 +53,9 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::get('treatment-plan/count/by-therapist', [TreatmentPlanController::class, 'countTherapistTreatmentPlan']);
     Route::get('treatment-plan/get-treatment-plan-detail', [TreatmentPlanController::class, 'getActivities']);
     Route::apiResource('treatment-plan', TreatmentPlanController::class);
+
+    // Message
+    Route::apiResource('message', MessageController::class);
 
     // User
     Route::get('user/profile', [ProfileController::class, 'getUserProfile']);
