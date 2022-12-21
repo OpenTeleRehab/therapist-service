@@ -86,6 +86,15 @@ class MessageController extends Controller
      *             type="string"
      *         )
      *     ),
+     *     @OA\Parameter(
+     *         name="draft",
+     *         in="query",
+     *         description="Mark message as draft",
+     *         required=false,
+     *         @OA\Schema(
+     *             type="boolean"
+     *         )
+     *     ),
      *     @OA\Response(
      *         response="200",
      *         description="successful operation"
