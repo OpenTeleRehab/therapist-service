@@ -68,7 +68,7 @@ class ForwarderController extends Controller
                 }
             }
 
-            return $response->post(env('ADMIN_SERVICE_URL') . $endpoint, $request->all());
+            return $response->post(env('ADMIN_SERVICE_URL') . $endpoint, $request->input());
         }
 
         if ($service_name !== null && str_contains($service_name, Forwarder::PATIENT_SERVICE)) {
@@ -142,7 +142,7 @@ class ForwarderController extends Controller
                 }
             }
 
-            return $response->post(env('ADMIN_SERVICE_URL') . $endpoint, $request->all());
+            return $response->post(env('ADMIN_SERVICE_URL') . $endpoint, $request->input());
         }
 
         if ($service_name !== null && str_contains($service_name, Forwarder::PATIENT_SERVICE)) {
