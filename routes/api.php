@@ -100,7 +100,7 @@ Route::group(['middleware' => 'auth:api'], function () {
         Route::apiResource('questionnaire', ForwarderController::class);
 
         // Assistive Technologies
-        Route::get('assistive-technologies', [ForwarderController::class, 'index']);
+        Route::get('assistive-technologies/list/get-all', [ForwarderController::class, 'index']);
     });
 
     // Patient Service
