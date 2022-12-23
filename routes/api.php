@@ -33,6 +33,7 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::get('therapist/get-used-profession', [TherapistController::class, 'getUsedProfession']);
     Route::get('therapist/get-patient-limit', [TherapistController::class, 'getTherapistPatientLimit']);
     Route::get('therapist/list/by-clinic-id', [TherapistController::class, 'getByClinicId']);
+    Route::get('therapist/get-call-access-token', [TherapistController::class, 'getCallAccessToken']);
     Route::post('therapist/new-patient-notification', [NotificationController::class, 'newPatientNotification']);
     Route::post('therapist/updateStatus/{user}', [TherapistController::class, 'updateStatus']);
     Route::post('therapist/resend-email/{user}', [TherapistController::class, 'resendEmailToUser']);

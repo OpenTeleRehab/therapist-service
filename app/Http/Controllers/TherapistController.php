@@ -10,8 +10,11 @@ use App\Models\Forwarder;
 use App\Models\TreatmentPlan;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Twilio\Jwt\AccessToken;
+use Twilio\Jwt\Grants\VideoGrant;
 
 define("KEYCLOAK_USERS", env('KEYCLOAK_URL') . '/auth/admin/realms/' . env('KEYCLOAK_REAMLS_NAME') . '/users');
 define("KEYCLOAK_EXECUTE_EMAIL", '/execute-actions-email?client_id=' . env('KEYCLOAK_BACKEND_CLIENT') . '&redirect_uri=' . env('REACT_APP_BASE_URL'));
@@ -485,6 +488,38 @@ class TherapistController extends Controller
         } catch (\Exception $e) {
             return ['success' => false, 'message' => $e->getMessage()];
         }
+    }
+
+    /**
+     * @param Request $request
+     *
+     * @return array
+     */
+    public function getCallAccessToken(Request $request)
+    {
+        $twilioAccountSid = env('TWILIO_ACCOUNT_SID');
+        $twilioApiKey = env('TWILIO_API_KEY');
+        $twilioApiSecret = env('TWILIO_API_KEY_SECRET');
+
+        $user = Auth::user();
+
+        // Create access token, which we will serialize and send to the client.
+        $token = new AccessToken(
+            $twilioAccountSid,
+            $twilioApiKey,
+            $twilioApiSecret,
+            3600,
+            $user['first_name'],
+        );
+
+        // Create Video grant.
+        $videoGrant = new VideoGrant();
+        $videoGrant->setRoom($request->room_id);
+
+        // Add grant to token.
+        $token->addGrant($videoGrant);
+
+        return ['success' => true, 'token' => $token->toJWT()];
     }
 
     /**
