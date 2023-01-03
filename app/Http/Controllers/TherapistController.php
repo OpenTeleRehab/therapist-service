@@ -78,9 +78,11 @@ class TherapistController extends Controller
             }
 
             if (isset($data['user_type']) && $data['user_type'] === User::ADMIN_GROUP_ORGANIZATION_ADMIN) {
-                $query->where(function ($query) use ($data) {
-                    $query->where('identity', 'like', '%' . $data['search_value'] . '%');
-                });
+                if (isset($data['search_value'])) {
+                    $query->where(function ($query) use ($data) {
+                        $query->where('identity', 'like', '%' . $data['search_value'] . '%');
+                    });
+                }
             } else {
                 if (isset($data['search_value'])) {
                     $query->where(function ($query) use ($data) {
