@@ -63,6 +63,23 @@ class MessageController extends Controller
     }
 
     /**
+     * @return int
+     */
+    public function getTherapistMessage() {
+        $monday = strtotime('monday this week');
+        $sunday = strtotime('sunday this week');
+        $startDate = date('Y-m-d', $monday);
+        $endDate = date('Y-m-d', $sunday);
+
+        $messages = Message::where('therapist_id', Auth::id())
+            ->whereDate('sent_at', '>=', $startDate)
+            ->whereDate('sent_at', '<=', $endDate)
+            ->count();
+
+        return  ['success' => true, 'data' => $messages];
+    }
+
+    /**
      * @OA\Post(
      *     path="/api/message",
      *     tags={"Message"},
