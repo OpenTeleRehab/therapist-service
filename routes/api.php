@@ -56,6 +56,7 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::apiResource('treatment-plan', TreatmentPlanController::class);
 
     // Message
+    Route::get('message/get-therapist-message', [MessageController::class, 'getTherapistMessage']);
     Route::apiResource('message', MessageController::class);
 
     // User
