@@ -164,7 +164,7 @@ class ForwarderController extends Controller
     public function destroy(Request $request, $id)
     {
         $service_name = $request->route()->getName();
-        $country = $request->header('country_code');
+        $country = $request->header('country');
         $endpoint = str_replace('api/', '/', $request->path());
 
         if ($service_name !== null && str_contains($service_name, Forwarder::GADMIN_SERVICE)) {
