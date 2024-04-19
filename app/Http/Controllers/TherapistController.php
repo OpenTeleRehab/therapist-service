@@ -534,19 +534,22 @@ class TherapistController extends Controller
     {
         try {
             $countryCode = $request->get('country_code');
+            $hardDelete = $request->boolean('hard_delete');
+
             // Remove patients of therapist.
             Http::withHeaders([
-                'Authorization' => 'Bearer ' . Forwarder::getAccessToken(Forwarder::PATIENT_SERVICE),
+                'Authorization' => 'Bearer ' . Forwarder::getAccessToken(Forwarder::PATIENT_SERVICE, $countryCode),
                 'country' => $countryCode,
             ])->post(env('PATIENT_SERVICE_URL') . '/patient/delete/by-therapist', [
                 'therapist_id' => $user->id,
+                'hard_delete' => $hardDelete,
             ]);
 
             // Remove own created libraries of therapist.
             Http::withToken(Forwarder::getAccessToken(Forwarder::ADMIN_SERVICE))
                 ->post(env('ADMIN_SERVICE_URL') . '/library/delete/by-therapist', [
                     'therapist_id' => $user->id,
-                    'country' => $countryCode,
+                    'hard_delete' => $hardDelete,
                 ]);
 
             // Remove own created treatment preset.
@@ -562,11 +565,9 @@ class TherapistController extends Controller
 
                 KeycloakHelper::deleteUser($token, $keyCloakUsers[0]['id']);
                 $user->delete();
-
-                return ['success' => true, 'message' => 'success_message.therapist_delete'];
             }
 
-            return ['success' => false, 'message' => 'error_message.therapist_delete'];
+            return ['success' => true, 'message' => 'success_message.therapist_delete'];
         } catch (\Exception $e) {
             return ['success' => false, 'message' => $e->getMessage()];
         }
