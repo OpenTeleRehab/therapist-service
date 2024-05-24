@@ -77,6 +77,10 @@ class TherapistController extends Controller
                 $query->where('clinic_id', $request->get('clinic_id'));
             }
 
+            if ($request->has('country_id')) {
+                $query->where('country_id', $request->get('country_id'));
+            }
+
             if (isset($data['user_type']) && $data['user_type'] === User::ADMIN_GROUP_ORGANIZATION_ADMIN) {
                 if (isset($data['search_value'])) {
                     $query->where(function ($query) use ($data) {
