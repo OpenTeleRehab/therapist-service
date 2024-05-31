@@ -243,8 +243,7 @@ class TherapistController extends Controller
         $email = $request->get('email');
         $userExist = User::where('email', $email)->first();
         if ($userExist) {
-            // Todo: message will be replaced.
-            return abort(409, 'error_message.email_exists');
+            return ['success' => false, 'message' => 'error_message.email_exists'];
         }
 
         DB::beginTransaction();
