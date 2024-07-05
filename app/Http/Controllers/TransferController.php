@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Resources\TransferResource;
 use App\Models\Forwarder;
 use App\Models\Transfer;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
@@ -55,21 +56,35 @@ class TransferController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return array
      */
-    public function accept(Request $request, int $id)
+    public function accept(Request $request)
     {
-        $transfer = Transfer::where('patient_id', $id)->first();
+        $patientId = $request->get('patient_id');
+        $patientChatUserId = $request->get('patient_chat_user_id');
+        $chatRooms = $request->get('chat_rooms');
+
+        $transfer = Transfer::where('patient_id', $patientId)->first();
+
+        $fromTherapist = User::find($transfer->from_therapist_id);
+        $therapist = User::find($transfer->to_therapist_id);
 
         $response = Http::withHeaders([
             'Authorization' => 'Bearer ' . Forwarder::getAccessToken(Forwarder::PATIENT_SERVICE, $request->header('country')),
             'country' => $request->header('country'),
-        ])->get(env('PATIENT_SERVICE_URL') . '/patient/transfer', [
-            'patient_id' => $id,
-            'therapist_id' => $transfer['to_therapist_id'],
+        ])->post(env('PATIENT_SERVICE_URL') . '/patient/transfer-to-therapist/' . $patientId, [
+            'therapist_id' => $therapist->id,
+            'therapist_identity' => $therapist->identity,
+            'new_chat_rooms' => [],
+            'chat_rooms' => $chatRooms,
             'therapist_type' => $transfer['therapist_type'],
         ]);
 
         if ($response->successful()) {
             $transfer->delete();
+
+            $chatRoom = $fromTherapist->chat_user_id . $patientChatUserId;
+            $chatRooms = array_values(array_diff($fromTherapist->chat_rooms, [$chatRoom]));
+
+            $fromTherapist->update(['chat_rooms' => $chatRooms]);
 
             return ['success' => true, 'message' => 'success_message.transfer_accepted'];
         }
