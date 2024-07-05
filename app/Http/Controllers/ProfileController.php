@@ -242,12 +242,15 @@ class ProfileController extends Controller
     public function addNewChatRoom(Request $request)
     {
         try {
-            $user = User::where('id', $request['therapist_id'])->first();
+            $user = User::find($request['therapist_id']);
             $newChatRoom = $request->get('chat_room_id');
-            $chatRooms = is_null($user->chat_rooms) ? [] : $user->chat_rooms;
-            array_push($chatRooms, $newChatRoom);
-            $user->chat_rooms = $chatRooms;
-            $user->save();
+            $chatRooms = $user->chat_rooms ?? [];
+
+            if (array_search($newChatRoom, $chatRooms) !== 0) {
+                $chatRooms[] = $newChatRoom;
+                $user->chat_rooms = $chatRooms;
+                $user->save();
+            }
         } catch (\Exception $e) {
             return ['success' => false, 'message' => $e->getMessage()];
         }
