@@ -9,6 +9,7 @@ use App\Http\Controllers\ChartController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\TermAndConditionController;
 use App\Http\Controllers\MessageController;
+use App\Http\Controllers\TransferController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -24,6 +25,7 @@ use Illuminate\Support\Facades\Route;
 Route::group(['middleware' => 'auth:api'], function () {
     // Patient
     Route::get('patient/by-phone-number', [TherapistController::class, 'getPatientByPhoneNumber']);
+    Route::get('patient/transfer', [TherapistController::class, 'transferPatient']);
 
     // Term Condition
     Route::get('term-condition/send-re-consent', [TermAndConditionController::class, 'addReConsentTermsOfServicesToUsers']);
@@ -65,6 +67,11 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::put('user/update-information', [ProfileController::class, 'updateUserProfile']);
     Route::put('user/add-new-chatroom', [ProfileController::class, 'addNewChatRoom']);
     Route::put('user/update-last-access', [ProfileController::class, 'updateLastAccess']);
+
+    // Transfer
+    Route::get('transfer/accept/{id}', [TransferController::class, 'accept']);
+    Route::get('transfer/decline/{id}', [TransferController::class, 'decline']);
+    Route::apiResource('transfer', TransferController::class);
 
     // Global Resource
     Route::name('global_admin.')->group(function () {
@@ -108,6 +115,7 @@ Route::group(['middleware' => 'auth:api'], function () {
     // Patient Service
     Route::name('patient.')->group(function () {
         Route::get('patient/list/by-therapist-id', [ForwarderController::class, 'index']);
+        Route::get('patient/list/by-ids', [ForwarderController::class, 'index']);
         Route::post('patient/activateDeactivateAccount/{id}', [ForwarderController::class, 'store']);
         Route::post('patient/deleteAccount/{id}', [ForwarderController::class, 'store']);
         Route::post('patient/delete-chat-room/by-id', [ForwarderController::class, 'store']);
