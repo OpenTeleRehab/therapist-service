@@ -32,4 +32,9 @@ class Transfer extends Model
     {
         return $this->belongsTo(User::class, 'from_therapist_id');
     }
+
+    public function to_therapist()
+    {
+        return $this->belongsTo(User::class, 'to_therapist_id');
+    }
 }
