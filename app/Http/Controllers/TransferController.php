@@ -38,12 +38,14 @@ class TransferController extends Controller
     {
         Transfer::updateOrCreate([
             'patient_id' => $request->get('patient_id'),
+            'to_therapist_id' => $request->get('to_therapist_id'),
+            'therapist_type' => $request->get('therapist_type'),
         ], [
             'patient_id' => $request->get('patient_id'),
             'clinic_id' => $request->get('clinic_id'),
             'from_therapist_id' => $request->get('from_therapist_id'),
             'to_therapist_id' => $request->get('to_therapist_id'),
-            'therapist_type' => Transfer::LEAD_THERAPIST,
+            'therapist_type' => $request->get('therapist_type'),
             'status' => Transfer::STATUS_INVITED,
         ]);
 
@@ -81,11 +83,6 @@ class TransferController extends Controller
         if ($response->successful()) {
             $transfer->delete();
 
-            $chatRoom = $fromTherapist->chat_user_id . $patientChatUserId;
-            $chatRooms = array_values(array_diff($fromTherapist->chat_rooms, [$chatRoom]));
-
-            $fromTherapist->update(['chat_rooms' => $chatRooms]);
-
             return ['success' => true, 'message' => 'success_message.transfer_accepted'];
         }
 
@@ -98,10 +95,21 @@ class TransferController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return array
      */
-    public function decline(int $id)
+    public function decline(int $patientId)
     {
-        Transfer::where('patient_id', $id)->update(['status' => Transfer::STATUS_DECLINED]);
+        Transfer::where('patient_id', $patientId)->update(['status' => Transfer::STATUS_DECLINED]);
 
         return ['success' => true, 'message' => 'success_message.transfer_rejected'];
+    }
+
+    /**
+     * @param Transfer $transfer
+     * @return array
+     */
+    public function destroy(Transfer $transfer)
+    {
+        $transfer->delete();
+
+        return ['success' => true, 'message' => 'success_message.transfer_deleted'];
     }
 }
