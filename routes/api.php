@@ -69,8 +69,8 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::put('user/update-last-access', [ProfileController::class, 'updateLastAccess']);
 
     // Transfer
-    Route::get('transfer/accept', [TransferController::class, 'accept']);
-    Route::get('transfer/decline/{id}', [TransferController::class, 'decline']);
+    Route::get('transfer/accept/{transfer}', [TransferController::class, 'accept']);
+    Route::get('transfer/decline/{transfer}', [TransferController::class, 'decline']);
     Route::apiResource('transfer', TransferController::class);
 
     // Global Resource

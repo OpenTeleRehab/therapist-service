@@ -58,15 +58,11 @@ class TransferController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return array
      */
-    public function accept(Request $request)
+    public function accept(Request $request, Transfer $transfer)
     {
         $patientId = $request->get('patient_id');
-        $patientChatUserId = $request->get('patient_chat_user_id');
         $chatRooms = $request->get('chat_rooms');
 
-        $transfer = Transfer::where('patient_id', $patientId)->first();
-
-        $fromTherapist = User::find($transfer->from_therapist_id);
         $therapist = User::find($transfer->to_therapist_id);
 
         $response = Http::withHeaders([
@@ -95,9 +91,9 @@ class TransferController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return array
      */
-    public function decline(int $patientId)
+    public function decline(Transfer $transfer)
     {
-        Transfer::where('patient_id', $patientId)->update(['status' => Transfer::STATUS_DECLINED]);
+        $transfer->update(['status' => Transfer::STATUS_DECLINED]);
 
         return ['success' => true, 'message' => 'success_message.transfer_rejected'];
     }
