@@ -22,8 +22,6 @@ class CreateTransfersTable extends Migration
             $table->enum('therapist_type', ['lead', 'supplementary']);
             $table->enum('status', ['invited', 'declined']);
             $table->timestamps();
-
-            $table->foreign('from_therapist_id')->references('id')->on('users')->onDelete('cascade');
         });
     }
 
