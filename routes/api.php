@@ -116,6 +116,7 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::name('patient.')->group(function () {
         Route::get('patient/list/by-therapist-id', [ForwarderController::class, 'index']);
         Route::get('patient/list/by-ids', [ForwarderController::class, 'index']);
+        Route::get('patient/id/{id}', [ForwarderController::class, 'index']);
         Route::post('patient/activateDeactivateAccount/{id}', [ForwarderController::class, 'store']);
         Route::post('patient/deleteAccount/{id}', [ForwarderController::class, 'store']);
         Route::post('patient/delete-chat-room/by-id', [ForwarderController::class, 'store']);
