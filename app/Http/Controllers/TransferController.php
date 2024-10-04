@@ -108,4 +108,15 @@ class TransferController extends Controller
 
         return ['success' => true, 'message' => 'success_message.transfer_deleted'];
     }
+
+    /**
+     * @param \Illuminate\Http\Request $request
+     * @return array
+     */
+    public function deleteByPatient(Request $request)
+    {
+        Transfer::where('patient_id', $request->get('patient_id'))->delete();
+
+        return ['success' => true, 'message' => 'success_message.transfer_deleted'];
+    }
 }
