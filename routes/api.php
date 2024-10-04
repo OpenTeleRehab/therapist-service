@@ -72,6 +72,7 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::get('transfer/accept/{transfer}', [TransferController::class, 'accept']);
     Route::get('transfer/decline/{transfer}', [TransferController::class, 'decline']);
     Route::apiResource('transfer', TransferController::class);
+    Route::delete('transfer/delete/by-patient', [TransferController::class, 'deleteByPatient']);
 
     // Global Resource
     Route::name('global_admin.')->group(function () {

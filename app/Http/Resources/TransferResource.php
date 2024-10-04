@@ -20,7 +20,7 @@ class TransferResource extends JsonResource
             'clinic_id' => $this->clinic_id,
             'from_therapist' => $this->from_therapist->only('id', 'first_name', 'last_name'),
             'from_therapist_id' => $this->from_therapist_id,
-            'to_therapist' => $this->to_therapist->only('id', 'first_name', 'last_name'),
+            'to_therapist' => $this->to_therapist ? $this->to_therapist->only('id', 'first_name', 'last_name') : null, // In case therapist is deleted.
             'to_therapist_id' => $this->to_therapist_id,
             'therapist_type' => $this->therapist_type,
             'status' => $this->status,

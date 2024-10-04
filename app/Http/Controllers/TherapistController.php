@@ -7,6 +7,7 @@ use App\Helpers\RocketChatHelper;
 use App\Http\Resources\TherapistResource;
 use App\Http\Resources\UserResource;
 use App\Models\Forwarder;
+use App\Models\Transfer;
 use App\Models\TreatmentPlan;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -538,6 +539,12 @@ class TherapistController extends Controller
         try {
             $countryCode = $request->get('country_code');
             $hardDelete = $request->boolean('hard_delete');
+
+            // Remove all active requests of patient transfer to other therapists
+            Transfer::where('from_therapist_id', $user->id)->delete();
+
+            // Decline all active requests of patient transfer from other therapists
+            Transfer::where('to_therapist_id', $user->id)->update(['status' => Transfer::STATUS_DECLINED]);
 
             // Remove patients of therapist.
             Http::withHeaders([
