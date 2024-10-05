@@ -119,4 +119,22 @@ class TransferController extends Controller
 
         return ['success' => true, 'message' => 'success_message.transfer_deleted'];
     }
+
+    /**
+     * @param \Illuminate\Http\Request $request
+     * @return array
+     */
+    public function getNumberOfActiveTransfers(Request $request)
+    {
+        $therapistId = $request->get('therapist_id');
+
+        $count = Transfer::where('status', Transfer::STATUS_INVITED)
+            ->where(function ($query) use ($therapistId) {
+                $query->where('from_therapist_id', $therapistId)
+                    ->orWhere('to_therapist_id', $therapistId);
+            })
+            ->count();
+
+        return ['success' => true, 'data' => $count];
+    }
 }
