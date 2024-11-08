@@ -249,6 +249,8 @@ class TherapistController extends Controller
 
         DB::beginTransaction();
 
+        $phone = $request->get('phone');
+        $dialCode = $request->get('dial_code');
         $firstName = $request->get('first_name');
         $lastName = $request->get('last_name');
         $country = $request->get('country');
@@ -262,6 +264,8 @@ class TherapistController extends Controller
 
         $therapist = User::create([
             'email' => $email,
+            'phone' => $phone,
+            'dial_code' => $dialCode,
             'first_name' => $firstName,
             'last_name' => $lastName,
             'country_id' => $country,
@@ -403,6 +407,8 @@ class TherapistController extends Controller
             $dataUpdate = [
                 'first_name' => $data['first_name'],
                 'last_name' => $data['last_name'],
+                'phone' => $data['phone'],
+                'dial_code' => $data['dial_code'],
             ];
 
             if (isset($data['language_id'])) {
