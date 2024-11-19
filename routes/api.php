@@ -10,6 +10,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\TermAndConditionController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\TransferController;
+use App\Http\Controllers\AuditLogController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -137,4 +138,11 @@ Route::group(['middleware' => 'auth:api'], function () {
 
         Route::get('push-notification', [ForwarderController::class, 'index']);
     });
+
+    // Audit logs
+    Route::get('audit-logs', [AuditLogController::class, 'index']);
+
 });
+
+// Audit logs
+Route::get('test-audit-logs', [AuditLogController::class, 'index']);

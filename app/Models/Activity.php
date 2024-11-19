@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Activity extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsActivity;
 
     const ACTIVITY_TYPE_EXERCISE = 'exercise';
     const ACTIVITY_TYPE_MATERIAL = 'material';
@@ -26,4 +27,12 @@ class Activity extends Model
      * @var array
      */
     protected $fillable = ['treatment_plan_id', 'week', 'day', 'activity_id', 'type', 'sets', 'reps', 'additional_information'];
+
+    /**
+     * Spatie\Activitylog config
+     */
+    protected static $logAttributes = ['*'];
+    protected static $logAttributesToIgnore = ['id', 'created_at', 'updated_at'];
+    protected static $logOnlyDirty = true;
+    protected static $submitEmptyLogs = false;
 }
