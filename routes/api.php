@@ -138,11 +138,4 @@ Route::group(['middleware' => 'auth:api'], function () {
 
         Route::get('push-notification', [ForwarderController::class, 'index']);
     });
-
-    // Audit logs
-    Route::get('audit-logs', [AuditLogController::class, 'index']);
-
 });
-
-// Audit logs
-Route::get('test-audit-logs', [AuditLogController::class, 'index']);

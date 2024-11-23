@@ -6,6 +6,7 @@ use App\Helpers\KeycloakHelper;
 use App\Helpers\RocketChatHelper;
 use App\Http\Resources\TherapistResource;
 use App\Http\Resources\UserResource;
+use App\Events\AddLogToAdminServiceEvent;
 use App\Models\Forwarder;
 use App\Models\Transfer;
 use App\Models\TreatmentPlan;
@@ -16,6 +17,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Twilio\Jwt\AccessToken;
 use Twilio\Jwt\Grants\VideoGrant;
+use Spatie\Activitylog\Models\Activity;
 
 define("KEYCLOAK_USERS", env('KEYCLOAK_URL') . '/auth/admin/realms/' . env('KEYCLOAK_REAMLS_NAME') . '/users');
 define("KEYCLOAK_EXECUTE_EMAIL", '/execute-actions-email?client_id=' . env('KEYCLOAK_BACKEND_CLIENT') . '&redirect_uri=' . env('REACT_APP_BASE_URL'));
@@ -485,6 +487,10 @@ class TherapistController extends Controller
             $token = KeycloakHelper::getKeycloakAccessToken();
             $userUrl = KEYCLOAK_USERS . '?email=' . $user->email;
             $user->update(['enabled' => $enabled]);
+
+            // Activity log
+            $lastLoggedActivity = Activity::all()->last();
+            event(new AddLogToAdminServiceEvent($lastLoggedActivity, $user));
 
             $response = Http::withToken($token)->get($userUrl);
             $keyCloakUsers = $response->json();

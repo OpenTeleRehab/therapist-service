@@ -7,6 +7,8 @@ use App\Listeners\AddReConsentTermsOfServicesToUsers;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
+use App\Events\AddLogToAdminServiceEvent;
+use App\Listeners\AddLogToAdminServiceListener;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -22,6 +24,9 @@ class EventServiceProvider extends ServiceProvider
         AddReConsentTermsOfServices::class => [
             AddReConsentTermsOfServicesToUsers::class
         ],
+        AddLogToAdminServiceEvent::class => [
+            AddLogToAdminServiceListener::class
+        ]
     ];
 
     /**
