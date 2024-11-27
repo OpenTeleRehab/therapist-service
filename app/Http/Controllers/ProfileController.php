@@ -221,7 +221,6 @@ class ProfileController extends Controller
                 'show_guidance' => $data['show_guidance']
             ];
             $user->update($dataUpdate);
-
              // Activity log
             $lastLoggedActivity = Activity::all()->last();
             event(new AddLogToAdminServiceEvent($lastLoggedActivity, $user));
@@ -256,6 +255,9 @@ class ProfileController extends Controller
                 $chatRooms[] = $newChatRoom;
                 $user->chat_rooms = $chatRooms;
                 $user->save();
+                // Activity log
+                $lastLoggedActivity = Activity::all()->last();
+                event(new AddLogToAdminServiceEvent($lastLoggedActivity, Auth::user()));
             }
         } catch (\Exception $e) {
             return ['success' => false, 'message' => $e->getMessage()];
@@ -275,6 +277,9 @@ class ProfileController extends Controller
                 'last_login' => now(),
                 'enabled' => true,
             ]);
+            // Activity log
+            $lastLoggedActivity = Activity::all()->last();
+            event(new AddLogToAdminServiceEvent($lastLoggedActivity, $user));
             return ['success' => true, 'message' => 'Successful'];
         } catch (\Exception $e) {
             return ['success' => false, 'message' => $e->getMessage()];

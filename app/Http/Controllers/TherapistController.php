@@ -243,6 +243,7 @@ class TherapistController extends Controller
      */
     public function store(Request $request)
     {
+        $authUser = Auth::user();
         $email = $request->get('email');
         $userExist = User::where('email', $email)->first();
         if ($userExist) {
@@ -281,6 +282,10 @@ class TherapistController extends Controller
             return ['success' => false, 'message' => 'error_message.user_add'];
         }
 
+        // Activity log
+        $lastLoggedActivity = Activity::all()->last();
+        event(new AddLogToAdminServiceEvent($lastLoggedActivity, $authUser));
+
         $response = Http::withToken(Forwarder::getAccessToken(Forwarder::GADMIN_SERVICE))->get(env('GADMIN_SERVICE_URL') . '/get-organization', ['sub_domain' => env('APP_NAME')]);
 
         if ($response->successful()) {
@@ -303,6 +308,9 @@ class TherapistController extends Controller
             $updateData['identity'] = $identity;
             $therapist->fill($updateData);
             $therapist->save();
+            // Activity log
+            $lastLoggedActivity = Activity::all()->last();
+            event(new AddLogToAdminServiceEvent($lastLoggedActivity, $authUser));
         } catch (\Exception $e) {
             DB::rollBack();
             return ['success' => false, 'message' => $e->getMessage()];
@@ -431,6 +439,9 @@ class TherapistController extends Controller
             }
 
             $user->update($dataUpdate);
+            // Activity log
+            $lastLoggedActivity = Activity::all()->last();
+            event(new AddLogToAdminServiceEvent($lastLoggedActivity, Auth::user()));
         } catch (\Exception $e) {
             return ['success' => false, 'message' => $e->getMessage()];
         }
@@ -487,7 +498,6 @@ class TherapistController extends Controller
             $token = KeycloakHelper::getKeycloakAccessToken();
             $userUrl = KEYCLOAK_USERS . '?email=' . $user->email;
             $user->update(['enabled' => $enabled]);
-
             // Activity log
             $lastLoggedActivity = Activity::all()->last();
             event(new AddLogToAdminServiceEvent($lastLoggedActivity, $user));
@@ -548,15 +558,22 @@ class TherapistController extends Controller
      */
     public function deleteByUserId(User $user, Request $request)
     {
+        $user = Auth::user();
         try {
             $countryCode = $request->get('country_code');
             $hardDelete = $request->boolean('hard_delete');
 
             // Remove all active requests of patient transfer to other therapists
             Transfer::where('from_therapist_id', $user->id)->delete();
+             // Activity log
+            $lastLoggedActivity = Activity::all()->last();
+            event(new AddLogToAdminServiceEvent($lastLoggedActivity, $user));
 
             // Decline all active requests of patient transfer from other therapists
             Transfer::where('to_therapist_id', $user->id)->update(['status' => Transfer::STATUS_DECLINED]);
+             // Activity log
+            $lastLoggedActivity = Activity::all()->last();
+            event(new AddLogToAdminServiceEvent($lastLoggedActivity, $user));
 
             // Remove patients of therapist.
             Http::withHeaders([
@@ -576,6 +593,9 @@ class TherapistController extends Controller
 
             // Remove own created treatment preset.
             TreatmentPlan::where('created_by', $user->id)->delete();
+             // Activity log
+            $lastLoggedActivity = Activity::all()->last();
+            event(new AddLogToAdminServiceEvent($lastLoggedActivity, $user));
 
             $token = KeycloakHelper::getKeycloakAccessToken();
 
@@ -615,6 +635,9 @@ class TherapistController extends Controller
 
                     KeycloakHelper::deleteUser($token, $keyCloakUsers[0]['id']);
                     $user->delete();
+                    // Activity log
+                    $lastLoggedActivity = Activity::all()->last();
+                    event(new AddLogToAdminServiceEvent($lastLoggedActivity, $user));
                 }
             }
         }
@@ -818,6 +841,9 @@ class TherapistController extends Controller
         $updateData['chat_rooms'] = $chatRooms;
         $therapist->fill($updateData);
         $therapist->save();
+        // Activity log
+        $lastLoggedActivity = Activity::all()->last();
+        event(new AddLogToAdminServiceEvent($lastLoggedActivity, Auth::user()));
 
         return ['success' => true, 'message' => 'success_message.deleted_chat_rooms'];
     }

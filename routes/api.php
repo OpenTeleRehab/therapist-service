@@ -12,6 +12,7 @@ use App\Http\Controllers\MessageController;
 use App\Http\Controllers\TransferController;
 use App\Http\Controllers\AuditLogController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AuditLogController as TherapistAuditLogController;
 
 /*
 |--------------------------------------------------------------------------
@@ -138,4 +139,7 @@ Route::group(['middleware' => 'auth:api'], function () {
 
         Route::get('push-notification', [ForwarderController::class, 'index']);
     });
+
+    // Audit logs
+    Route::post('/audit-logs', [TherapistAuditLogController::class, 'store']);
 });
