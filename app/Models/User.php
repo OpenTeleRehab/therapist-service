@@ -8,8 +8,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Database\Eloquent\Casts\Attribute;
 use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 class User extends Authenticatable
 {
@@ -32,15 +32,18 @@ class User extends Authenticatable
     ];
 
     /**
-     * Spatie\Activitylog config
+     * Get the options for activity logging.
+     *
+     * @return \Spatie\Activitylog\LogOptions
      */
-    protected static $logAttributes = ['*'];
-    protected static $logAttributesToIgnore = [
-        'id', 'password', 'chat_password', 'last_login', 'created_at', 'updated_at'
-    ];
-    protected static $logOnlyDirty = true;
-    protected static $submitEmptyLogs = false;
-
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logAll()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->logExcept(['id', 'password', 'chat_password', 'last_login', 'created_at', 'updated_at']);
+    }
 
     /**
      * The attributes that should be hidden for arrays.

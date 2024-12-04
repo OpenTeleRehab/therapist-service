@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 class TreatmentPlan extends Model
 {
@@ -30,13 +31,18 @@ class TreatmentPlan extends Model
     ];
 
     /**
-     * Spatie\Activitylog config
+     * Get the options for activity logging.
+     *
+     * @return \Spatie\Activitylog\LogOptions
      */
-    protected static $logAttributes = ['*'];
-    protected static $logAttributesToIgnore = ['id', 'created_at', 'updated_at'];
-    protected static $logOnlyDirty = true;
-    protected static $submitEmptyLogs = false;
-
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logAll()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->logExcept(['id', 'created_at', 'updated_at']);
+    }
 
     /**
      * Bootstrap the model and its traits.
