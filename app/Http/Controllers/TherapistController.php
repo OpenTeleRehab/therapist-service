@@ -245,8 +245,11 @@ class TherapistController extends Controller
     {
         $authUser = Auth::user();
         $email = $request->get('email');
-        $userExist = User::where('email', $email)->first();
-        if ($userExist) {
+        $clinic = $request->get('clinic');
+
+        $users = User::where('clinic_id', $clinic)->get();
+
+        if (User::where('email', $email)->exists()) {
             return ['success' => false, 'message' => 'error_message.email_exists'];
         }
 
@@ -258,7 +261,6 @@ class TherapistController extends Controller
         $lastName = $request->get('last_name');
         $country = $request->get('country');
         $limitPatient = $request->get('limit_patient');
-        $clinic = $request->get('clinic');
         $language = $request->get('language_id');
         $profession = $request->get('profession');
         $countryIdentity = $request->get('country_identity');
@@ -498,9 +500,19 @@ class TherapistController extends Controller
             $token = KeycloakHelper::getKeycloakAccessToken();
             $userUrl = KEYCLOAK_USERS . '?email=' . $user->email;
             $user->update(['enabled' => $enabled]);
-            // Activity log
+
+            // Activity log.
             $lastLoggedActivity = Activity::all()->last();
             event(new AddLogToAdminServiceEvent($lastLoggedActivity, $user));
+
+            // Create rocketchat room.
+            User::where('clinic_id', $user->clinic_id)
+                ->where('id', '!=', $user->id)
+                ->where('enabled', 1)
+                ->get()
+                ->map(function ($therapist) use ($user) {
+                    RocketChatHelper::createChatRoom($user->identity, $therapist->identity);
+                });
 
             $response = Http::withToken($token)->get($userUrl);
             $keyCloakUsers = $response->json();
@@ -537,7 +549,7 @@ class TherapistController extends Controller
             $twilioApiKey,
             $twilioApiSecret,
             3600,
-            $user['first_name'],
+            $user['identity']. '_' . $user['country_id'],
         );
 
         // Create Video grant.

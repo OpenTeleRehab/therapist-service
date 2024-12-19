@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Http;
 
 define('ROCKET_CHAT_LOGIN_URL', env('ROCKET_CHAT_URL') . '/api/v1/login');
 define('ROCKET_CHAT_LOGOUT_URL', env('ROCKET_CHAT_URL') . '/api/v1/logout');
+define('ROCKET_CHAT_CREATE_ROOM_URL', env('ROCKET_CHAT_URL') . '/api/v1/im.create');
 define('ROCKET_CHAT_CREATE_USER_URL', env('ROCKET_CHAT_URL') . '/api/v1/users.create');
 define('ROCKET_CHAT_UPDATE_USER_URL', env('ROCKET_CHAT_URL') . '/api/v1/users.update');
 define('ROCKET_CHAT_DELETE_USER_URL', env('ROCKET_CHAT_URL') . '/api/v1/users.delete');
@@ -53,6 +54,35 @@ class RocketChatHelper
         if ($response->successful()) {
             $result = $response->json();
             return $result['status'] === 'success';
+        }
+
+        $response->throw();
+    }
+
+    /**
+     * @see https://docs.rocket.chat/api/rest-api/methods/im/messages
+     * @param string $therapist  The therapist identity
+     * @param string $username   The patient identity
+     *
+     * @return mixed|null
+     * @throws \Illuminate\Http\Client\RequestException
+     */
+    public static function createChatRoom($therapist, $username)
+    {
+        $therapistAuth = self::login($therapist, $therapist . 'PWD');
+        $authToken = $therapistAuth['authToken'];
+        $userId = $therapistAuth['userId'];
+        $response = Http::withHeaders([
+            'X-Auth-Token' => $authToken,
+            'X-User-Id' => $userId,
+        ])->asJson()->post(ROCKET_CHAT_CREATE_ROOM_URL, ['username' => $username]);
+
+        // Always logout to clear local login token on completion.
+        self::logout($userId, $authToken);
+
+        if ($response->successful()) {
+            $result = $response->json();
+            return $result['success'] ? $result['room']['rid'] : null;
         }
 
         $response->throw();
