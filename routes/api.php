@@ -81,6 +81,8 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::name('global_admin.')->group(function () {
         Route::apiResource('category', ForwarderController::class);
         Route::apiResource('category-tree', ForwarderController::class);
+        Route::post('survey/skip', [ForwarderController::class, 'store']);
+        Route::post('survey/submit', [ForwarderController::class, 'store']);
     });
 
     // Admin Service
