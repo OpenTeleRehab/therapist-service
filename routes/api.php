@@ -140,6 +140,7 @@ Route::group(['middleware' => 'auth:api'], function () {
         Route::get('treatment-plan/export/{id}', [ForwarderController::class, 'index']);
 
         Route::get('push-notification', [ForwarderController::class, 'index']);
+        Route::get('questionnaire-result/export', [ForwarderController::class, 'index']);
     });
 
     // Audit logs
