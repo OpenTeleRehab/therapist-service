@@ -558,7 +558,6 @@ class TherapistController extends Controller
      */
     public function deleteByUserId(User $user, Request $request)
     {
-        $user = Auth::user();
         try {
             $countryCode = $request->get('country_code');
             $hardDelete = $request->boolean('hard_delete');
