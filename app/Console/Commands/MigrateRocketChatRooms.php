@@ -47,8 +47,12 @@ class MigrateRocketChatRooms extends Command
                 if ($therapists->isNotEmpty()) {
                     for ($i = 0; $i < count($therapists); $i++) {
                         for ($j = $i + 1; $j < count($therapists); $j++) {
-                            RocketChatHelper::createChatRoom($therapists[$i]['identity'], $therapists[$j]['identity']);
-                            sleep(30); // To avoid too many queries, delay by 30 seconds.
+                            try {
+                                RocketChatHelper::createChatRoom($therapists[$i]['identity'], $therapists[$j]['identity']);
+                                sleep(30); // To avoid too many queries, delay by 30 seconds.
+                            } catch (\Exception $e) {
+                                return $e->getMessage();
+                            }
                         }
                     }
                 }

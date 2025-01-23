@@ -511,7 +511,11 @@ class TherapistController extends Controller
                 ->where('enabled', 1)
                 ->get()
                 ->map(function ($therapist) use ($user) {
-                    RocketChatHelper::createChatRoom($user->identity, $therapist->identity);
+                    try {
+                        RocketChatHelper::createChatRoom($user->identity, $therapist->identity);
+                    } catch (\Exception $e) {
+                        return $e->getMessage();
+                    }
                 });
 
             $response = Http::withToken($token)->get($userUrl);
