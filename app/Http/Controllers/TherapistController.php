@@ -6,6 +6,7 @@ use App\Helpers\KeycloakHelper;
 use App\Helpers\RocketChatHelper;
 use App\Http\Resources\TherapistResource;
 use App\Http\Resources\UserResource;
+use App\Events\AddLogToAdminServiceEvent;
 use App\Models\Forwarder;
 use App\Models\Transfer;
 use App\Models\TreatmentPlan;
@@ -16,6 +17,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Twilio\Jwt\AccessToken;
 use Twilio\Jwt\Grants\VideoGrant;
+use Spatie\Activitylog\Models\Activity;
 
 define("KEYCLOAK_USERS", env('KEYCLOAK_URL') . '/auth/admin/realms/' . env('KEYCLOAK_REAMLS_NAME') . '/users');
 define("KEYCLOAK_EXECUTE_EMAIL", '/execute-actions-email?client_id=' . env('KEYCLOAK_BACKEND_CLIENT') . '&redirect_uri=' . env('REACT_APP_BASE_URL'));
@@ -241,19 +243,24 @@ class TherapistController extends Controller
      */
     public function store(Request $request)
     {
+        $authUser = Auth::user();
         $email = $request->get('email');
-        $userExist = User::where('email', $email)->first();
-        if ($userExist) {
+        $clinic = $request->get('clinic');
+
+        $users = User::where('clinic_id', $clinic)->get();
+
+        if (User::where('email', $email)->exists()) {
             return ['success' => false, 'message' => 'error_message.email_exists'];
         }
 
         DB::beginTransaction();
 
+        $phone = $request->get('phone');
+        $dialCode = $request->get('dial_code');
         $firstName = $request->get('first_name');
         $lastName = $request->get('last_name');
         $country = $request->get('country');
         $limitPatient = $request->get('limit_patient');
-        $clinic = $request->get('clinic');
         $language = $request->get('language_id');
         $profession = $request->get('profession');
         $countryIdentity = $request->get('country_identity');
@@ -262,6 +269,8 @@ class TherapistController extends Controller
 
         $therapist = User::create([
             'email' => $email,
+            'phone' => $phone,
+            'dial_code' => $dialCode,
             'first_name' => $firstName,
             'last_name' => $lastName,
             'country_id' => $country,
@@ -274,6 +283,10 @@ class TherapistController extends Controller
         if (!$therapist) {
             return ['success' => false, 'message' => 'error_message.user_add'];
         }
+
+        // Activity log
+        $lastLoggedActivity = Activity::all()->last();
+        event(new AddLogToAdminServiceEvent($lastLoggedActivity, $authUser));
 
         $response = Http::withToken(Forwarder::getAccessToken(Forwarder::GADMIN_SERVICE))->get(env('GADMIN_SERVICE_URL') . '/get-organization', ['sub_domain' => env('APP_NAME')]);
 
@@ -297,6 +310,9 @@ class TherapistController extends Controller
             $updateData['identity'] = $identity;
             $therapist->fill($updateData);
             $therapist->save();
+            // Activity log
+            $lastLoggedActivity = Activity::all()->last();
+            event(new AddLogToAdminServiceEvent($lastLoggedActivity, $authUser));
         } catch (\Exception $e) {
             DB::rollBack();
             return ['success' => false, 'message' => $e->getMessage()];
@@ -403,6 +419,8 @@ class TherapistController extends Controller
             $dataUpdate = [
                 'first_name' => $data['first_name'],
                 'last_name' => $data['last_name'],
+                'phone' => $data['phone'],
+                'dial_code' => $data['dial_code'],
             ];
 
             if (isset($data['language_id'])) {
@@ -423,6 +441,9 @@ class TherapistController extends Controller
             }
 
             $user->update($dataUpdate);
+            // Activity log
+            $lastLoggedActivity = Activity::all()->last();
+            event(new AddLogToAdminServiceEvent($lastLoggedActivity, Auth::user()));
         } catch (\Exception $e) {
             return ['success' => false, 'message' => $e->getMessage()];
         }
@@ -480,6 +501,23 @@ class TherapistController extends Controller
             $userUrl = KEYCLOAK_USERS . '?email=' . $user->email;
             $user->update(['enabled' => $enabled]);
 
+            // Activity log.
+            $lastLoggedActivity = Activity::all()->last();
+            event(new AddLogToAdminServiceEvent($lastLoggedActivity, $user));
+
+            // Create rocketchat room.
+            User::where('clinic_id', $user->clinic_id)
+                ->where('id', '!=', $user->id)
+                ->where('enabled', 1)
+                ->get()
+                ->map(function ($therapist) use ($user) {
+                    try {
+                        RocketChatHelper::createChatRoom($user->identity, $therapist->identity);
+                    } catch (\Exception $e) {
+                        return $e->getMessage();
+                    }
+                });
+
             $response = Http::withToken($token)->get($userUrl);
             $keyCloakUsers = $response->json();
             $url = KEYCLOAK_USERS . '/' . $keyCloakUsers[0]['id'];
@@ -515,7 +553,7 @@ class TherapistController extends Controller
             $twilioApiKey,
             $twilioApiSecret,
             3600,
-            $user['first_name'],
+            $user['identity']. '_' . $user['country_id'],
         );
 
         // Create Video grant.
@@ -542,9 +580,15 @@ class TherapistController extends Controller
 
             // Remove all active requests of patient transfer to other therapists
             Transfer::where('from_therapist_id', $user->id)->delete();
+             // Activity log
+            $lastLoggedActivity = Activity::all()->last();
+            event(new AddLogToAdminServiceEvent($lastLoggedActivity, $user));
 
             // Decline all active requests of patient transfer from other therapists
             Transfer::where('to_therapist_id', $user->id)->update(['status' => Transfer::STATUS_DECLINED]);
+             // Activity log
+            $lastLoggedActivity = Activity::all()->last();
+            event(new AddLogToAdminServiceEvent($lastLoggedActivity, $user));
 
             // Remove patients of therapist.
             Http::withHeaders([
@@ -564,6 +608,9 @@ class TherapistController extends Controller
 
             // Remove own created treatment preset.
             TreatmentPlan::where('created_by', $user->id)->delete();
+             // Activity log
+            $lastLoggedActivity = Activity::all()->last();
+            event(new AddLogToAdminServiceEvent($lastLoggedActivity, $user));
 
             $token = KeycloakHelper::getKeycloakAccessToken();
 
@@ -603,6 +650,9 @@ class TherapistController extends Controller
 
                     KeycloakHelper::deleteUser($token, $keyCloakUsers[0]['id']);
                     $user->delete();
+                    // Activity log
+                    $lastLoggedActivity = Activity::all()->last();
+                    event(new AddLogToAdminServiceEvent($lastLoggedActivity, $user));
                 }
             }
         }
@@ -806,6 +856,9 @@ class TherapistController extends Controller
         $updateData['chat_rooms'] = $chatRooms;
         $therapist->fill($updateData);
         $therapist->save();
+        // Activity log
+        $lastLoggedActivity = Activity::all()->last();
+        event(new AddLogToAdminServiceEvent($lastLoggedActivity, Auth::user()));
 
         return ['success' => true, 'message' => 'success_message.deleted_chat_rooms'];
     }

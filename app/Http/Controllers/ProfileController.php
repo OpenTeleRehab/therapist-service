@@ -4,10 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Helpers\KeycloakHelper;
 use App\Http\Resources\UserResource;
+use App\Events\AddLogToAdminServiceEvent;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
+use Spatie\Activitylog\Models\Activity;
 
 define("KEYCLOAK_USERS", env('KEYCLOAK_URL') . '/auth/admin/realms/' . env('KEYCLOAK_REAMLS_NAME') . '/users');
 
@@ -219,6 +221,9 @@ class ProfileController extends Controller
                 'show_guidance' => $data['show_guidance']
             ];
             $user->update($dataUpdate);
+             // Activity log
+            $lastLoggedActivity = Activity::all()->last();
+            event(new AddLogToAdminServiceEvent($lastLoggedActivity, $user));
 
             if ($data['language_code']) {
                 try {
@@ -250,6 +255,9 @@ class ProfileController extends Controller
                 $chatRooms[] = $newChatRoom;
                 $user->chat_rooms = $chatRooms;
                 $user->save();
+                // Activity log
+                $lastLoggedActivity = Activity::all()->last();
+                event(new AddLogToAdminServiceEvent($lastLoggedActivity, Auth::user()));
             }
         } catch (\Exception $e) {
             return ['success' => false, 'message' => $e->getMessage()];
@@ -269,6 +277,9 @@ class ProfileController extends Controller
                 'last_login' => now(),
                 'enabled' => true,
             ]);
+            // Activity log
+            $lastLoggedActivity = Activity::all()->last();
+            event(new AddLogToAdminServiceEvent($lastLoggedActivity, $user));
             return ['success' => true, 'message' => 'Successful'];
         } catch (\Exception $e) {
             return ['success' => false, 'message' => $e->getMessage()];

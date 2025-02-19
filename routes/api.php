@@ -10,7 +10,9 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\TermAndConditionController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\TransferController;
+use App\Http\Controllers\AuditLogController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AuditLogController as TherapistAuditLogController;
 
 /*
 |--------------------------------------------------------------------------
@@ -79,6 +81,8 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::name('global_admin.')->group(function () {
         Route::apiResource('category', ForwarderController::class);
         Route::apiResource('category-tree', ForwarderController::class);
+        Route::post('survey/skip', [ForwarderController::class, 'store']);
+        Route::post('survey/submit', [ForwarderController::class, 'store']);
     });
 
     // Admin Service
@@ -136,5 +140,9 @@ Route::group(['middleware' => 'auth:api'], function () {
         Route::get('treatment-plan/export/{id}', [ForwarderController::class, 'index']);
 
         Route::get('push-notification', [ForwarderController::class, 'index']);
+        Route::get('questionnaire-result/export', [ForwarderController::class, 'index']);
     });
+
+    // Audit logs
+    Route::post('/audit-logs', [TherapistAuditLogController::class, 'store']);
 });

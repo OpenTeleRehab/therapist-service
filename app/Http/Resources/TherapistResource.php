@@ -17,6 +17,8 @@ class TherapistResource extends JsonResource
         return [
             'id' => $this->id,
             'identity' => $this->identity,
+            'phone' => $this->phone,
+            'dial_code' => $this->dial_code,
             'first_name' => $this->first_name,
             'last_name' => $this->last_name,
             'enabled' => $this->enabled,
