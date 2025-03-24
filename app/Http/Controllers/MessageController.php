@@ -2,14 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Events\AddLogToAdminServiceEvent;
 use App\Http\Resources\MessageResource;
 use App\Models\Message;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Twilio\Rest\Client;
-use Spatie\Activitylog\Models\Activity;
 
 class MessageController extends Controller
 {
@@ -155,9 +153,6 @@ class MessageController extends Controller
                 'sent_at' => $sent,
                 'draft' => $request->get('draft'),
             ]);
-            // Activity log
-            $lastLoggedActivity = Activity::all()->last();
-            event(new AddLogToAdminServiceEvent($lastLoggedActivity, Auth::user()));
         }
 
         return ['success' => true, 'message' => 'success_message.message_add'];
