@@ -3,14 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\TransferResource;
-use App\Events\AddLogToAdminServiceEvent;
 use App\Models\Forwarder;
 use App\Models\Transfer;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
-use Spatie\Activitylog\Models\Activity;
 
 class TransferController extends Controller
 {
@@ -50,9 +48,6 @@ class TransferController extends Controller
             'therapist_type' => $request->get('therapist_type'),
             'status' => Transfer::STATUS_INVITED,
         ]);
-        // Activity log
-        $lastLoggedActivity = Activity::all()->last();
-        event(new AddLogToAdminServiceEvent($lastLoggedActivity, Auth::user()));
 
         return ['success' => true, 'message' => 'success_message.transfer_invited'];
     }
@@ -83,9 +78,6 @@ class TransferController extends Controller
 
         if ($response->successful()) {
             $transfer->delete();
-             // Activity log
-            $lastLoggedActivity = Activity::all()->last();
-            event(new AddLogToAdminServiceEvent($lastLoggedActivity, Auth::user()));
 
             return ['success' => true, 'message' => 'success_message.transfer_accepted'];
         }
@@ -102,9 +94,6 @@ class TransferController extends Controller
     public function decline(Transfer $transfer)
     {
         $transfer->update(['status' => Transfer::STATUS_DECLINED]);
-         // Activity log
-        $lastLoggedActivity = Activity::all()->last();
-        event(new AddLogToAdminServiceEvent($lastLoggedActivity, Auth::user()));
 
         return ['success' => true, 'message' => 'success_message.transfer_rejected'];
     }
@@ -116,9 +105,6 @@ class TransferController extends Controller
     public function destroy(Transfer $transfer)
     {
         $transfer->delete();
-         // Activity log
-        $lastLoggedActivity = Activity::all()->last();
-        event(new AddLogToAdminServiceEvent($lastLoggedActivity, Auth::user()));
         return ['success' => true, 'message' => 'success_message.transfer_deleted'];
     }
 
@@ -129,9 +115,6 @@ class TransferController extends Controller
     public function deleteByPatient(Request $request)
     {
         Transfer::where('patient_id', $request->get('patient_id'))->delete();
-         // Activity log
-        $lastLoggedActivity = Activity::all()->last();
-        event(new AddLogToAdminServiceEvent($lastLoggedActivity, Auth::user()));
 
         return ['success' => true, 'message' => 'success_message.transfer_deleted'];
     }

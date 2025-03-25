@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Events\AddLogToAdminServiceEvent;
 use App\Http\Resources\TreatmentPlanResource;
 use App\Models\Activity;
 use App\Models\Forwarder;
@@ -10,8 +9,6 @@ use App\Models\TreatmentPlan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
-use Spatie\Activitylog\Models\Activity as ActivityLog;
 
 class TreatmentPlanController extends Controller
 {
@@ -75,9 +72,6 @@ class TreatmentPlanController extends Controller
         );
 
         if (!$treatmentPlan) {
-            // Activity log
-            $lastLoggedActivity = ActivityLog::all()->last();
-            event(new AddLogToAdminServiceEvent($lastLoggedActivity, Auth::user()));
             return ['success' => false, 'message' => 'error_message.treatment_plan_add_as_preset'];
         }
 
@@ -101,9 +95,6 @@ class TreatmentPlanController extends Controller
             'name' => $request->get('name'),
             'total_of_weeks' => $request->get('total_of_weeks', 1),
         ]);
-        // Activity log
-        $lastLoggedActivity = ActivityLog::all()->last();
-        event(new AddLogToAdminServiceEvent($lastLoggedActivity, Auth::user()));
 
         $this->updateOrCreateActivities($treatmentPlan->id, $request->get('activities', []));
         return ['success' => true, 'message' => 'success_message.treatment_plan_update'];
@@ -145,9 +136,7 @@ class TreatmentPlanController extends Controller
                     }
 
                     $activityObj = Activity::firstOrCreate($updateFields);
-                    // Activity log
-                    $lastLoggedActivity = ActivityLog::all()->last();
-                    event(new AddLogToAdminServiceEvent($lastLoggedActivity, $user));
+
                     $activityIds[] = $activityObj->id;
                 }
             }
@@ -163,9 +152,7 @@ class TreatmentPlanController extends Controller
                             'type' => Activity::ACTIVITY_TYPE_MATERIAL,
                         ],
                     );
-                    // Activity log
-                    $lastLoggedActivity = ActivityLog::all()->last();
-                    event(new AddLogToAdminServiceEvent($lastLoggedActivity, $user));
+
                     $activityIds[] = $activityObj->id;
                 }
             }
@@ -181,9 +168,7 @@ class TreatmentPlanController extends Controller
                             'type' => Activity::ACTIVITY_TYPE_QUESTIONNAIRE,
                         ],
                     );
-                    // Activity log
-                    $lastLoggedActivity = ActivityLog::all()->last();
-                    event(new AddLogToAdminServiceEvent($lastLoggedActivity, $user));
+
                     $activityIds[] = $activityObj->id;
                 }
                 // TODO: move to Queued Event Listeners.
@@ -204,9 +189,7 @@ class TreatmentPlanController extends Controller
                             'type' => Activity::ACTIVITY_TYPE_QUESTIONNAIRE,
                         ],
                     );
-                    // Activity log
-                    $lastLoggedActivity = ActivityLog::all()->last();
-                    event(new AddLogToAdminServiceEvent($lastLoggedActivity, $user));
+
                     $activityIds[] = $activityObj->id;
                 }
             }
@@ -216,9 +199,6 @@ class TreatmentPlanController extends Controller
         Activity::where('treatment_plan_id', $treatmentPlanId)
             ->whereNotIn('id', $activityIds)
             ->delete();
-        // Activity log
-        $lastLoggedActivity = ActivityLog::all()->last();
-        event(new AddLogToAdminServiceEvent($lastLoggedActivity, $user));
     }
 
     /**
@@ -354,9 +334,7 @@ class TreatmentPlanController extends Controller
         }
 
         $treatmentPlan->delete();
-        // Activity log
-        $lastLoggedActivity = ActivityLog::all()->last();
-        event(new AddLogToAdminServiceEvent($lastLoggedActivity, Auth::user()));
+
         return ['success' => true, 'message' => 'success_message.treatment_plan_delete'];
     }
 

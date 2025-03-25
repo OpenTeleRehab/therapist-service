@@ -8,12 +8,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Log;
-use Spatie\Activitylog\Traits\LogsActivity;
-use Spatie\Activitylog\LogOptions;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, LogsActivity;
+    use HasFactory, Notifiable;
 
     const ADMIN_GROUP_ORGANIZATION_ADMIN = 'organization_admin';
     const ADMIN_GROUP_GLOBAL_ADMIN = 'global_admin';
@@ -30,20 +28,6 @@ class User extends Authenticatable
         'identity', 'enabled', 'chat_user_id', 'chat_password', 'chat_rooms', 'last_login', 'show_guidance',
         'phone', 'dial_code',
     ];
-
-    /**
-     * Get the options for activity logging.
-     *
-     * @return \Spatie\Activitylog\LogOptions
-     */
-    public function getActivitylogOptions(): LogOptions
-    {
-        return LogOptions::defaults()
-            ->logAll()
-            ->logOnlyDirty()
-            ->dontSubmitEmptyLogs()
-            ->logExcept(['id', 'password', 'chat_password', 'last_login', 'created_at', 'updated_at']);
-    }
 
     /**
      * The attributes that should be hidden for arrays.
