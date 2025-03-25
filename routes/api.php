@@ -145,4 +145,7 @@ Route::group(['middleware' => 'auth:api'], function () {
 
     // Audit logs
     Route::post('/audit-logs', [TherapistAuditLogController::class, 'store']);
+
+    // Superset
+    Route::get('/superset-guest-token', [SupersetController::class, 'index']);
 });
