@@ -64,6 +64,9 @@ class SupersetController extends Controller
         ];
 
         $guestTokenPayload['resources'][0]['id'] = env('SUPERSET_DASHBOARD_ID_FOR_THERAPIST');
+        $guestTokenPayload['rls'] = [
+            ['clause' => "country_id = $user->country_id AND clinic_id = $user->clinic_id AND therapist_id = $user->id"]
+        ];
 
         // Step 3: Request Guest Token from Superset, sending CSRF token and cookies.
         $guestResponse = Http::withHeaders([
