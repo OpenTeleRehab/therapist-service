@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SupersetController;
 use App\Http\Controllers\TherapistController;
 use App\Http\Controllers\ForwarderController;
 use \App\Http\Controllers\TreatmentPlanController;
