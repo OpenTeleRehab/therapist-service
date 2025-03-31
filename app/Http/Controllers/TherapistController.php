@@ -761,6 +761,17 @@ class TherapistController extends Controller
     }
 
     /**
+     * @param \Illuminate\Http\Request $request
+     *
+     * @return array
+     */
+    public function getById(Request $request)
+    {
+        $user = User::find($request->get('id'));
+        return $user;
+    }
+
+    /**
      * @OA\Get(
      *     path="/api/therapist/list/by-clinic-id",
      *     tags={"Therapist"},

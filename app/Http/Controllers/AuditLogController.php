@@ -2,11 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Events\AddLogToAdminServiceEvent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Validator;
-use App\Http\Resources\AuditLogResource;
+use App\Models\User;
 use Spatie\Activitylog\Models\Activity;
 
 class AuditLogController extends Controller
@@ -21,21 +19,26 @@ class AuditLogController extends Controller
     public function store(Request $request)
     {
         $user = Auth::user();
-        $logName = $request->get('log_name');
-        $type = $request->get('type');
-        $storeData = [
-            'attributes' => ['user_id' => $user->id]
-        ];
-
         // Prepare the log data
-        activity()
-           ->withProperties($storeData)
-           ->useLog($logName)
-           ->log($type);
+        Activity::create([
+            'log_name' => 'therapist_service',
+            'properties' => [
+                'attributes' => ['user_id' => $user->id],
+            ],
+            'event' => 'logout',
+            'subject_id' => $user->id,
+            'subject_type' => $user::class,
+            'causer_id' => $user->id,
+            'causer_type' => User::class,
+            'description' => 'logout',
+            'full_name' => $user->last_name . ' ' . $user->first_name,
+            'clinic_id' => $user->clinic_id,
+            'country_id' => $user->country_id,
+            'group' => 'therapist',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
 
-        // Activity log
-        $lastLoggedActivity = Activity::all()->last();
-        event(new AddLogToAdminServiceEvent($lastLoggedActivity, $user));
         return ['success' => true];
     }
 }

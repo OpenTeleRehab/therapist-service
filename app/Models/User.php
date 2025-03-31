@@ -8,15 +8,19 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Log;
+use Spatie\Activitylog\Models\Activity as ActivityLog;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, LogsActivity;
 
     const ADMIN_GROUP_ORGANIZATION_ADMIN = 'organization_admin';
     const ADMIN_GROUP_GLOBAL_ADMIN = 'global_admin';
     const ADMIN_GROUP_COUNTRY_ADMIN = 'country_admin';
     const ADMIN_GROUP_CLINIC_ADMIN = 'clinic_admin';
+    const GROUP_THERAPIST = 'therapist';
 
     /**
      * The attributes that are mass assignable.
@@ -47,6 +51,41 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'chat_rooms' => 'array',
     ];
+
+    /**
+     * Get the options for activity logging.
+     *
+     * @return \Spatie\Activitylog\LogOptions
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logAll()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->logExcept(['id', 'chat_user_id', 'chat_password' , 'chat_rooms', 'created_at', 'updated_at', 'email_verified_at', 'remember_token', 'password']);
+    }
+
+    /**
+     * Modify the activity properties before it is saved.
+     *
+     * @param \Spatie\Activitylog\Models\Activity $activity
+     * @return void
+     */
+    public function tapActivity(ActivityLog $activity)
+    {
+        $request = request();
+        $activity->causer_id = $request['user_id'] ? $request['user_id'] : $this->id;
+        $activity->full_name = $request['user_name'] ? $request['user_name'] : $this->last_name . ' ' . $this->first_name; 
+        $activity->group = $request['group'] ? $request['group'] : User::GROUP_THERAPIST;
+        $activity->clinic_id = $request->has('group') 
+            ? ($request['group'] === self::ADMIN_GROUP_ORGANIZATION_ADMIN ? null : $request->input('clinic_id')) 
+            : $this->clinic_id;
+
+        $activity->country_id = $request->has('group')
+            ? ($request['group'] === self::ADMIN_GROUP_ORGANIZATION_ADMIN ? null : $request->input('country_id')) 
+            : $this->country_id;
+    }
 
     /**
      * Bootstrap the model and its traits.

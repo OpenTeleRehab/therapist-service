@@ -35,6 +35,7 @@ Route::group(['middleware' => 'auth:api'], function () {
 
     // Therapist
     Route::get('therapist/by-ids', [TherapistController::class, 'getByIds']);
+    Route::get('therapist/by-id', [TherapistController::class, 'getById']);
     Route::get('therapist/get-used-profession', [TherapistController::class, 'getUsedProfession']);
     Route::get('therapist/get-patient-limit', [TherapistController::class, 'getTherapistPatientLimit']);
     Route::get('therapist/list/by-clinic-id', [TherapistController::class, 'getByClinicId']);
