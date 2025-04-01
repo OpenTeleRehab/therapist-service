@@ -198,7 +198,10 @@ class TreatmentPlanController extends Controller
         // Remove not selected activities.
         Activity::where('treatment_plan_id', $treatmentPlanId)
             ->whereNotIn('id', $activityIds)
-            ->delete();
+            ->get()
+            ->each(function ($activity) {
+                $activity->delete();
+            });
     }
 
     /**
