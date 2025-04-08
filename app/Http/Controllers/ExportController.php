@@ -12,10 +12,11 @@ class ExportController extends Controller
 {
     public function export(Request $request)
     {
+        //TODO: Should improve this to be more generic.
         $user = Auth::user();
         $userId = $user->id;
         $jobId = $userId . now();
-        $lang = $request->get('lang');
+        $lang = $request->get('lang', 'en');
         $type = $request->get('type');
         $country = $request->header('country');
         $payload = [

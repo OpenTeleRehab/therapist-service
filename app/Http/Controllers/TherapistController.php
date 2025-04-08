@@ -812,6 +812,46 @@ class TherapistController extends Controller
     }
 
     /**
+     * @OA\Get(
+     *     path="/api/therapist/list/by-country-id",
+     *     tags={"Therapist"},
+     *     summary="Lists all therapists by country",
+     *     operationId="therapistListByCountry",
+     *     @OA\Parameter(
+     *         name="country_id",
+     *         in="query",
+     *         description="Country id",
+     *         required=true,
+     *         @OA\Schema(
+     *             type="integer"
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response="200",
+     *         description="successful operation"
+     *     ),
+     *     @OA\Response(response=400, description="Bad request"),
+     *     @OA\Response(response=404, description="Resource Not Found"),
+     *     @OA\Response(response=401, description="Authentication is required"),
+     *     security={
+     *         {
+     *             "oauth2_security": {}
+     *         }
+     *     },
+     * )
+     *
+     * @param \Illuminate\Http\Request $request
+     *
+     * @return array
+     */
+    public function getByCountryId(Request $request)
+    {
+        $users = User::where('country_id', $request->get('country_id'))->where('enabled', 1)->get();
+
+        return ['success' => true, 'data' => TherapistResource::collection($users)];
+    }
+
+    /**
      * @param Request $request
      * @return mixed
      */
