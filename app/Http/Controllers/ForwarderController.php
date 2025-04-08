@@ -32,9 +32,14 @@ class ForwarderController extends Controller
 
         if ($service_name !== null && str_contains($service_name, Forwarder::PATIENT_SERVICE)) {
             $access_token = Forwarder::getAccessToken(Forwarder::PATIENT_SERVICE, $country);
-            return Http::withToken($access_token)->withHeaders([
+            $response = Http::withToken($access_token)->withHeaders([
                 'country' => $country
             ])->get(env('PATIENT_SERVICE_URL') . $endpoint, $request->all());
+            return response($response->body(), $response->status())
+                ->withHeaders([
+                    'Content-Type' => $response->header('Content-Type'),
+                    'Content-Disposition' => $response->header('Content-Disposition'),
+                ]);
         }
     }
 

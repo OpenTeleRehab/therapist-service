@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\ActivityController;
+use App\Http\Controllers\DownloadTrackerController;
+use App\Http\Controllers\ExportController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SupersetController;
 use App\Http\Controllers\TherapistController;
@@ -11,7 +13,6 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\TermAndConditionController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\TransferController;
-use App\Http\Controllers\AuditLogController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuditLogController as TherapistAuditLogController;
 
@@ -142,7 +143,14 @@ Route::group(['middleware' => 'auth:api'], function () {
         Route::get('treatment-plan/export/{id}', [ForwarderController::class, 'index']);
 
         Route::get('push-notification', [ForwarderController::class, 'index']);
-        Route::get('questionnaire-result/export', [ForwarderController::class, 'index']);
+
+        Route::get('download-trackers', [DownloadTrackerController::class, 'index']);
+        Route::put('download-trackers', [DownloadTrackerController::class, 'updateProgress']);
+        Route::delete('download-trackers', [DownloadTrackerController::class, 'destroy']);
+
+        Route::get('export', [ExportController::class, 'export']);
+
+        Route::get('download-file', [ForwarderController::class, 'index']);
     });
 
     // Audit logs
