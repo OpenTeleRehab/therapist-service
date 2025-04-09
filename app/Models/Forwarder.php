@@ -10,6 +10,7 @@ class Forwarder extends Model
     const GADMIN_SERVICE = 'global_admin';
     const ADMIN_SERVICE = 'admin';
     const PATIENT_SERVICE = 'patient';
+    const THERAPIST_SERVICE = 'therapist';
 
     /**
      * @param string $service_name
