@@ -54,11 +54,17 @@ class Transfer extends Model
      */
     public function tapActivity(ActivityLog $activity)
     {
-        $user = Auth::user();
-        $activity->causer_id = $user->id;
-        $activity->full_name = $user->last_name . ' ' . $user->first_name; 
-        $activity->clinic_id = $user->clinic_id;
-        $activity->country_id = $user->country_id;
+        $request = request();
+        $user = null;
+        if ($request['from_therapist_id']) {
+            $user = User::find($request['from_therapist_id']);
+        } else {
+            $user = Auth::user();
+        }
+        $activity->causer_id = $user?->id;
+        $activity->full_name = $user?->last_name . ' ' . $user?->first_name;
+        $activity->clinic_id = $user?->clinic_id;
+        $activity->country_id = $user?->country_id;
         $activity->group = User::GROUP_THERAPIST;
     }
 

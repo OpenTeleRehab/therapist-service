@@ -241,11 +241,8 @@ class TherapistController extends Controller
      */
     public function store(Request $request)
     {
-        $authUser = Auth::user();
         $email = $request->get('email');
         $clinic = $request->get('clinic');
-
-        $users = User::where('clinic_id', $clinic)->get();
 
         if (User::where('email', $email)->exists()) {
             return ['success' => false, 'message' => 'error_message.email_exists'];
