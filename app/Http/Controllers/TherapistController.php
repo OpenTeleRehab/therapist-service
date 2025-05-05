@@ -288,7 +288,7 @@ class TherapistController extends Controller
         }
 
         try {
-            $this->createKeycloakTherapist($therapist, 'therapist', $languageCode);
+            $userKeycloakUuid = $this->createKeycloakTherapist($therapist, $languageCode);
 
             // Create unique identity.
             $orgIdentity = str_pad($organization['id'], 4, '0', STR_PAD_LEFT);
@@ -301,6 +301,7 @@ class TherapistController extends Controller
             $updateData['identity'] = $identity;
             $therapist->fill($updateData);
             $therapist->save();
+            $this->sendEmailToNewUser($userKeycloakUuid);
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -633,13 +634,12 @@ class TherapistController extends Controller
 
     /**
      * @param \App\Models\User $therapist
-     * @param string $userGroup
      * @param string $languageCode
      *
      * @return false|mixed|string
      * @throws \Exception
      */
-    private static function createKeycloakTherapist($therapist, $userGroup, $languageCode)
+    private static function createKeycloakTherapist($therapist, $languageCode)
     {
         $token = KeycloakHelper::getKeycloakAccessToken();
 
@@ -657,32 +657,29 @@ class TherapistController extends Controller
                     'firstName' => $therapist->first_name,
                     'lastName' => $therapist->last_name,
                     'attributes' => [
-                        'locale' => [$languageCode ? $languageCode : '']
+                        'locale' => [$languageCode ?: '']
                     ],
                 ];
 
                 if ($userExists && count($userExists) > 0) {
                     $userKeycloakUuid = $userExists[0]['id'];
-        
+
                     $updateResponse = Http::withToken($token)
                         ->withHeaders(['Content-Type' => 'application/json'])
                         ->put(KEYCLOAK_USERS . '/' . $userKeycloakUuid, $data);
-        
+
                     if ($updateResponse->successful()) {
-                        self::sendEmailToNewUser($userKeycloakUuid);
                         return $userKeycloakUuid;
                     }
                 } else {
                     $response = Http::withToken($token)->withHeaders([
                         'Content-Type' => 'application/json'
                     ])->post(KEYCLOAK_USERS, $data);
-        
+
                     if ($response->successful()) {
                         $createdUserUrl = $response->header('Location');
                         $lintArray = explode('/', $createdUserUrl);
                         $userKeycloakUuid = end($lintArray);
-        
-                        self::sendEmailToNewUser($userKeycloakUuid);
                         return $userKeycloakUuid;
                     }
                 }
