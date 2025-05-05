@@ -79,11 +79,11 @@ class User extends Authenticatable
         $activity->full_name = $request['user_name'] ? $request['user_name'] : $this->last_name . ' ' . $this->first_name; 
         $activity->group = $request['group'] ? $request['group'] : User::GROUP_THERAPIST;
         $activity->clinic_id = $request->has('group') 
-            ? ($request['group'] === self::ADMIN_GROUP_ORGANIZATION_ADMIN ? null : $request->input('clinic_id')) 
+            ? ($request['group'] === self::ADMIN_GROUP_ORGANIZATION_ADMIN ? null : $request->input('clinic_id')) ?? $this->clinic_id
             : $this->clinic_id;
 
         $activity->country_id = $request->has('group')
-            ? ($request['group'] === self::ADMIN_GROUP_ORGANIZATION_ADMIN ? null : $request->input('country_id')) 
+            ? ($request['group'] === self::ADMIN_GROUP_ORGANIZATION_ADMIN ? null : $request->input('country_id')) ?? $this->country_id
             : $this->country_id;
     }
 

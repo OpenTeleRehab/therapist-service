@@ -154,9 +154,9 @@ Route::group(['middleware' => 'auth:api'], function () {
         Route::get('download-file', [ForwarderController::class, 'index']);
     });
 
-    // Audit logs
-    Route::post('/audit-logs', [TherapistAuditLogController::class, 'store']);
-
     // Superset
     Route::get('/superset-guest-token', [SupersetController::class, 'index']);
 });
+
+// Audit logs
+Route::post('/audit-logs', [TherapistAuditLogController::class, 'store']);
