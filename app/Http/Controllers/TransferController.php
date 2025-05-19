@@ -29,6 +29,27 @@ class TransferController extends Controller
     }
 
     /**
+     * Display a listing of the resource.
+     *
+     * @return array
+     */
+    public function retrieve(Request $request)
+    {
+        $userId = $request->input('user_id');
+        $status = $request->input('status');
+
+        $transfers = Transfer::where(function ($query) use ($userId) {
+                $query->where('from_therapist_id', $userId)
+                    ->orWhere('to_therapist_id', $userId);
+            })
+            ->where('status', $status)
+            ->get();
+
+        return ['success' => true, 'data' => TransferResource::collection($transfers)];
+    }
+
+
+    /**
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
