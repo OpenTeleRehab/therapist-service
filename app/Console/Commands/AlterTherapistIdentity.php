@@ -3,9 +3,12 @@
 namespace App\Console\Commands;
 
 use App\Helpers\RocketChatHelper;
+use App\Helpers\CryptHelper;
 use App\Models\User;
+use App\Models\Forwarder;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class AlterTherapistIdentity extends Command
 {
@@ -46,7 +49,7 @@ class AlterTherapistIdentity extends Command
                 // Update user chat username.
                 $data = [
                     'username' => $identity,
-                    'password' => $identity . 'PWD',
+                    'password' => bin2hex(random_bytes(16)),
                 ];
 
                 if ($user->chat_user_id) {
@@ -56,7 +59,7 @@ class AlterTherapistIdentity extends Command
                         // Update user identity and chat password.
                         User::where('id', $user->id)->update([
                             'identity' => $identity,
-                            'chat_password' => hash('sha256', $data['password']),
+                            'chat_password' => CryptHelper::encrypt($data['password'])
                         ]);
                     }
                 }

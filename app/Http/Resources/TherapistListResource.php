@@ -5,7 +5,7 @@ namespace App\Http\Resources;
 use Illuminate\Http\Resources\Json\JsonResource;
 use App\Models\User;
 
-class UserResource extends JsonResource
+class TherapistListResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -29,17 +29,12 @@ class UserResource extends JsonResource
             $responseData = array_merge($responseData, [
                 'first_name' => $this->first_name,
                 'last_name' => $this->last_name,
-                'email' => $this->email,
                 'phone' => $this->phone,
                 'dial_code' => $this->dial_code,
+                'email' => $this->email,
                 'enabled' => $this->enabled,
                 'last_login' => $this->last_login,
-                'profession_id' => $this->profession_id,
                 'language_id' => $this->language_id,
-                'chat_user_id' => $this->chat_user_id,
-                'chat_password' => $this->chat_password,
-                'chat_rooms' => $this->chat_rooms ?: [],
-                'show_guidance' => $this->show_guidance,
             ]);
         }
         return $responseData;
