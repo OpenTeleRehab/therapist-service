@@ -26,7 +26,7 @@ use App\Http\Controllers\AuditLogController as TherapistAuditLogController;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
-Route::group(['middleware' => 'auth:api'], function () {
+Route::group(['middleware' => ['auth:api', 'verify.data.access']], function () {
     // Patient
     Route::get('patient/by-phone-number', [TherapistController::class, 'getPatientByPhoneNumber']);
     Route::get('patient/transfer', [TherapistController::class, 'transferPatient']);
