@@ -288,7 +288,7 @@ class TherapistController extends Controller
         }
 
         try {
-            $userKeycloakUuid = $this->createKeycloakTherapist($therapist, $languageCode);
+            $userKeycloakUuid = $this->createKeycloakTherapist($therapist, $languageCode, User::GROUP_THERAPIST);
 
             // Create unique identity.
             $orgIdentity = str_pad($organization['id'], 4, '0', STR_PAD_LEFT);
@@ -639,7 +639,7 @@ class TherapistController extends Controller
      * @return false|mixed|string
      * @throws \Exception
      */
-    private static function createKeycloakTherapist($therapist, $languageCode)
+    private static function createKeycloakTherapist($therapist, $languageCode, $group)
     {
         $token = KeycloakHelper::getKeycloakAccessToken();
 
@@ -680,7 +680,10 @@ class TherapistController extends Controller
                         $createdUserUrl = $response->header('Location');
                         $lintArray = explode('/', $createdUserUrl);
                         $userKeycloakUuid = end($lintArray);
-                        return $userKeycloakUuid;
+                        $isCanAssignUserToGroup = self::assignUserToGroup($token, $createdUserUrl, $group);
+                        if ($isCanAssignUserToGroup) {
+                            return $userKeycloakUuid;
+                        }
                     }
                 }
                 throw new \Exception('Failed to crate Keycloak user');
@@ -689,6 +692,29 @@ class TherapistController extends Controller
             }
         }
         throw new \Exception('no_token');
+    }
+
+    /**
+     * @param string $token
+     * @param string $userUrl
+     * @param string $userGroup
+     * @param false $isUnassigned
+     *
+     * @return bool
+     */
+    private static function assignUserToGroup($token, $userUrl, $userGroup, $isUnassigned = false)
+    {
+        $userGroups = KeycloakHelper::getUserGroup($token);
+        $url = $userUrl . '/groups/' . $userGroups[$userGroup];
+        if ($isUnassigned) {
+            $response = Http::withToken($token)->delete($url);
+        } else {
+            $response = Http::withToken($token)->put($url);
+        }
+        if ($response->successful()) {
+            return true;
+        }
+        return false;
     }
 
     /**
