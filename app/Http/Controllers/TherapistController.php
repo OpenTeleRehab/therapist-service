@@ -4,8 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Helpers\KeycloakHelper;
 use App\Helpers\RocketChatHelper;
-use App\Http\Resources\TherapistResource;
-use App\Http\Resources\UserResource;
+use App\Helpers\CryptHelper;
+use App\Http\Resources\TherapistChatroomResource;
+use App\Http\Resources\TherapistListResource;
 use App\Models\Forwarder;
 use App\Models\Transfer;
 use App\Models\TreatmentPlan;
@@ -16,6 +17,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Twilio\Jwt\AccessToken;
 use Twilio\Jwt\Grants\VideoGrant;
+use Illuminate\Support\Facades\Log;
 
 define("KEYCLOAK_USERS", env('KEYCLOAK_URL') . '/auth/admin/realms/' . env('KEYCLOAK_REAMLS_NAME') . '/users');
 define("KEYCLOAK_EXECUTE_EMAIL", '/execute-actions-email?client_id=' . env('KEYCLOAK_BACKEND_CLIENT') . '&redirect_uri=' . env('REACT_APP_BASE_URL'));
@@ -140,7 +142,7 @@ class TherapistController extends Controller
                 'total_count' => $users->total()
             ];
         }
-        return ['success' => true, 'data' => UserResource::collection($users), 'info' => $info];
+        return ['success' => true, 'data' => TherapistListResource::collection($users), 'info' => $info];
     }
 
     /**
@@ -595,7 +597,11 @@ class TherapistController extends Controller
             if ($response->successful()) {
                 $keyCloakUsers = $response->json();
 
-                KeycloakHelper::deleteUser($token, $keyCloakUsers[0]['id']);
+                if (!empty($keyCloakUsers)) {
+                    KeycloakHelper::deleteUser($token, $keyCloakUsers[0]['id']);
+                } else {
+                    Log::warning("No user found in Keycloak for email: {$user->email}");
+                }
                 $user->delete();
             }
 
@@ -676,6 +682,7 @@ class TherapistController extends Controller
                         'Content-Type' => 'application/json'
                     ])->post(KEYCLOAK_USERS, $data);
 
+
                     if ($response->successful()) {
                         $createdUserUrl = $response->header('Location');
                         $lintArray = explode('/', $createdUserUrl);
@@ -686,7 +693,7 @@ class TherapistController extends Controller
                         }
                     }
                 }
-                throw new \Exception('Failed to crate Keycloak user');
+                throw new \Exception('Failed to create Keycloak user');
             } catch (\Exception $e) {
                 throw new \Exception($e->getMessage());
             }
@@ -727,7 +734,7 @@ class TherapistController extends Controller
      */
     private static function createChatUser($username, $email, $name)
     {
-        $password = $username . 'PWD';
+        $password = bin2hex(random_bytes(16));
         $chatUser = [
             'name' => $name,
             'email' => $email,
@@ -743,7 +750,7 @@ class TherapistController extends Controller
         }
         return [
             'chat_user_id' => $chatUserId,
-            'chat_password' => hash('sha256', $password)
+            'chat_password' => CryptHelper::encrypt($password)
         ];
     }
 
@@ -797,7 +804,7 @@ class TherapistController extends Controller
     public function getByIds(Request $request)
     {
         $users = User::whereIn('id', json_decode($request->get('ids', [])))->get();
-        return ['success' => true, 'data' => TherapistResource::collection($users)];
+        return ['success' => true, 'data' => TherapistChatroomResource::collection($users)];
     }
 
     /**
@@ -848,7 +855,7 @@ class TherapistController extends Controller
     {
         $users = User::where('clinic_id', $request->get('clinic_id'))->where('enabled', 1)->get();
 
-        return ['success' => true, 'data' => TherapistResource::collection($users)];
+        return ['success' => true, 'data' => TherapistListResource::collection($users)];
     }
 
     /**
@@ -888,7 +895,7 @@ class TherapistController extends Controller
     {
         $users = User::where('country_id', $request->get('country_id'))->where('enabled', 1)->get();
 
-        return ['success' => true, 'data' => TherapistResource::collection($users)];
+        return ['success' => true, 'data' => TherapistChatroomResource::collection($users)];
     }
 
     /**

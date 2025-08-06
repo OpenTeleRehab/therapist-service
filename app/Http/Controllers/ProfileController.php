@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Helpers\KeycloakHelper;
-use App\Http\Resources\UserResource;
+use App\Http\Resources\ProfileResource;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -33,7 +33,7 @@ class ProfileController extends Controller
      *     },
      * )
      *
-     * @return \App\Http\Resources\UserResource
+     * @return \App\Http\Resources\ProfileResource
      */
     public function getUserProfile()
     {
@@ -46,7 +46,7 @@ class ProfileController extends Controller
             ]);
         }
 
-        return new UserResource($user);
+        return new ProfileResource($user);
     }
 
     /**
