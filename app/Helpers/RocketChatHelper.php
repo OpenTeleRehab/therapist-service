@@ -137,15 +137,12 @@ class RocketChatHelper
                 'X-2fa-Method' => 'password'
             ])->asJson()->post(ROCKET_CHAT_UPDATE_USER_URL, $payload);
 
-            if ($response->successful()) {
-                return $response->json()['success'];
-            }
+            $response->throw();
 
-            Log::error('RocketChat update failed: ' . $response->body());
-            return false;
+            return $response->json()['success'] ?? false;
         } catch (\Exception $e) {
-            Log::error('RocketChat exception: ' . $e->getMessage());
-            return false;
+            Log::error('RocketChat update failed: ' . $e->getMessage());
+            throw $e;
         }
     }
 
