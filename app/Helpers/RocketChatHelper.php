@@ -137,15 +137,18 @@ class RocketChatHelper
                 'X-2fa-Method' => 'password'
             ])->asJson()->post(ROCKET_CHAT_UPDATE_USER_URL, $payload);
 
-            $response->throw();
+            if ($response->successful()) {
+                $result = $response->json();
+                return $result['success'];
+            }
 
-            return $response->json()['success'] ?? false;
+            Log::error('RocketChat update failed: ' . $response->body());
+            return false;
         } catch (\Exception $e) {
-            Log::error('RocketChat update failed: ' . $e->getMessage());
-            throw $e;
+            Log::error('RocketChat exception: ' . $e->getMessage());
+            return false;
         }
     }
-
 
     /**
      * @see https://docs.rocket.chat/api/rest-api/methods/users/delete
