@@ -47,7 +47,7 @@ class VerifyDataAccess
         }
 
         // Verify if the auth user is the same as the requested therapist id
-        if ($user && $therapistId && (int)$user->therapist_id !== (int)$therapistId) {
+        if ($user && $therapistId && (int)$user->id !== (int)$therapistId) {
             $accessDenied = true;
         }
 
