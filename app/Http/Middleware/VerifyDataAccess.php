@@ -31,6 +31,7 @@ class VerifyDataAccess
         // Early exit: skip validation
         if (
             (!isset($countryHeader) && !isset($countryId) && !isset($clinicId) && !isset($therapistId)) ||
+            ($user && $user->type === User::ADMIN_GROUP_ORG_ADMIN) ||
             ($user && $user->email === env('KEYCLOAK_BACKEND_CLIENT'))
         ) {
             return $next($request);
