@@ -101,8 +101,8 @@ Route::group(['middleware' => ['auth:api', 'verify.data.access']], function () {
         Route::get('profession', [ForwarderController::class, 'index'])->middleware('role:view_profession');
         Route::get('settings', [ForwarderController::class, 'index'])->middleware('role:view_setting');
         Route::get('guidance-page', [ForwarderController::class, 'index'])->middleware('role:view_guidance_page');
-        Route::get('health-condition-group', [ForwarderController::class, 'index']);
-        Route::get('health-condition', [ForwarderController::class, 'index']);
+        Route::get('health-condition-group', [ForwarderController::class, 'index'])->middleware('role:manage_health_condition');
+        Route::get('health-condition', [ForwarderController::class, 'index'])->middleware('role:manage_health_condition');
 
         // Exercises
         Route::post('exercise/suggest', [ForwarderController::class, 'store'])->middleware('role:manage_exercise');
