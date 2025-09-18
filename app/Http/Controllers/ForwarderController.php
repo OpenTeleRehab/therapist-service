@@ -19,22 +19,26 @@ class ForwarderController extends Controller
         $service_name = $request->route()->getName();
         $country = $request->header('country');
         $endpoint = str_replace('api/', '/', $request->path());
+        $params = $request->all();
+        $user = auth()->user();
 
         if ($service_name !== null && str_contains($service_name, Forwarder::GADMIN_SERVICE)) {
             $access_token = Forwarder::getAccessToken(Forwarder::GADMIN_SERVICE);
-            return Http::withToken($access_token)->get(env('GADMIN_SERVICE_URL') . $endpoint, $request->all());
+            return Http::withToken($access_token)->get(env('GADMIN_SERVICE_URL') . $endpoint, $params);
         }
 
         if ($service_name !== null && str_contains($service_name, Forwarder::ADMIN_SERVICE)) {
             $access_token = Forwarder::getAccessToken(Forwarder::ADMIN_SERVICE);
-            return Http::withToken($access_token)->get(env('ADMIN_SERVICE_URL') . $endpoint, $request->all());
+            $params['country_id'] ??= $user->country_id;
+            return Http::withToken($access_token)->get(env('ADMIN_SERVICE_URL') . $endpoint, $params);
         }
 
         if ($service_name !== null && str_contains($service_name, Forwarder::PATIENT_SERVICE)) {
             $access_token = Forwarder::getAccessToken(Forwarder::PATIENT_SERVICE, $country);
+            $params['therapist_id'] ??= $user->id;
             $response = Http::withToken($access_token)->withHeaders([
                 'country' => $country
-            ])->get(env('PATIENT_SERVICE_URL') . $endpoint, $request->all());
+            ])->get(env('PATIENT_SERVICE_URL') . $endpoint, $params);
             return response($response->body(), $response->status())
                 ->withHeaders([
                     'Content-Type' => $response->header('Content-Type'),

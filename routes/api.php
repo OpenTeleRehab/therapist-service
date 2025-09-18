@@ -48,6 +48,7 @@ Route::group(['middleware' => ['auth:api', 'verify.data.access']], function () {
     Route::post('therapist/delete-chat-room/by-id', [TherapistController::class, 'deleteChatRoomById'])->middleware('role:delete_chat_room');
     Route::post('therapist/delete/by-id/{user}', [TherapistController::class, 'deleteByUserId'])->middleware('role:access_all');
     Route::post('therapist/delete/by-clinic', [TherapistController::class, 'deleteByClinicId'])->middleware('role:access_all');
+    Route::get('therapist/list-for-chatroom', [TherapistController::class, 'listForChatroom'])->middleware('role:view_clinic_therapist');
     Route::apiResource('therapist', TherapistController::class)->middleware('role:access_all');
 
     // Dashboard
