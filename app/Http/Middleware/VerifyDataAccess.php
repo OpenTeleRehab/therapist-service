@@ -26,29 +26,26 @@ class VerifyDataAccess
         $therapistId   = $request->get('therapist_id') ?? $request->get('therapist');
         
         $user = auth()->user();
-        $accessDenied = false;
+        $deny = fn() => response()->json(['message' => 'Access denied'], 403);
 
         // Early exit: skip validation
-        if (
-            (!isset($countryHeader) && !isset($countryId) && !isset($clinicId) && !isset($therapistId)) ||
-            ($user && $user->email === env('KEYCLOAK_BACKEND_CLIENT'))
-        ) {
+        if ($user && $user->email === env('KEYCLOAK_BACKEND_CLIENT')) {
             return $next($request);
         }
 
         // Verify if the auth user belongs to their assigned country
         if ($user && $countryId && (int)$user->country_id !== (int)$countryId) {
-            $accessDenied = true;
+            return $deny();
         }
 
         // Verify if the auth user belongs to their assigned clinic
         if ($user && $clinicId && (int)$user->clinic_id !== (int)$clinicId) {
-            $accessDenied = true;
+            return $deny();
         }
 
         // Verify if the auth user is the same as the requested therapist id
         if ($user && $therapistId && (int)$user->id !== (int)$therapistId) {
-            $accessDenied = true;
+            return $deny();
         }
 
         // Country header check
@@ -67,12 +64,8 @@ class VerifyDataAccess
             }
 
             if ($user && (int)$user->country_id !== (int)$country['id']) {
-                $accessDenied = true;
+                return $deny();
             }
-        }
-
-        if ($accessDenied) {
-            return response()->json(['message' => 'Access denied'], 403);
         }
 
         return $next($request);

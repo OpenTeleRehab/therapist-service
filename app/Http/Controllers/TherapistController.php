@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Helpers\KeycloakHelper;
 use App\Helpers\RocketChatHelper;
 use App\Helpers\CryptHelper;
+use App\Http\Resources\TherapistChatroomResource;
 use App\Http\Resources\TherapistListResource;
+use App\Http\Resources\TherapistOptionResource;
 use App\Models\Forwarder;
 use App\Models\Transfer;
 use App\Models\TreatmentPlan;
@@ -852,9 +854,18 @@ class TherapistController extends Controller
      */
     public function getByClinicId(Request $request)
     {
-        $users = User::where('clinic_id', $request->get('clinic_id'))->where('enabled', 1)->get();
+        $clinicId = $request->get('clinic_id') ?? Auth::user()->clinic_id;
+        $users = User::where('clinic_id', $clinicId)->where('enabled', 1)->get();
 
-        return ['success' => true, 'data' => TherapistListResource::collection($users)];
+        return ['success' => true, 'data' => TherapistOptionResource::collection($users)];
+    }
+
+    public function listForChatroom(Request $request)
+    {
+        $clinicId = $request->get('clinic_id') ?? Auth::user()->clinic_id;
+        $users = User::where('clinic_id', $clinicId)->where('enabled', 1)->get();
+
+        return ['success' => true, 'data' => TherapistChatroomResource::collection($users)];
     }
 
     /**
