@@ -2,15 +2,15 @@
 
 namespace App\Http\Resources;
 
-use Illuminate\Http\Resources\Json\JsonResource;
 use App\Models\User;
+use Illuminate\Http\Resources\Json\JsonResource;
 
 class TherapistListResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param \Illuminate\Http\Request $request
      * @return array
      */
     public function toArray($request)
@@ -24,7 +24,7 @@ class TherapistListResource extends JsonResource
             'limit_patient' => $this->limit_patient,
         ];
 
-        if ($request->get('user_type') !== User::ADMIN_GROUP_CLINIC_ADMIN ) {
+        if ($request->get('user_type') === User::ADMIN_GROUP_CLINIC_ADMIN) {
             $responseData = array_merge($responseData, [
                 'first_name' => $this->first_name,
                 'last_name' => $this->last_name,
