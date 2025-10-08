@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use App\Http\Resources\TransferResource;
 use App\Models\Forwarder;
 use App\Models\Transfer;
-use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 
@@ -56,7 +56,7 @@ class TransferController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param \Illuminate\Http\Request $request
      * @return array
      */
     public function store(Request $request)
@@ -78,26 +78,37 @@ class TransferController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return array
+     * @param Request $request
+     * @param Transfer $transfer
+     * @return array|\Illuminate\Http\JsonResponse
+     * @throws \Illuminate\Http\Client\ConnectionException
      */
     public function accept(Request $request, Transfer $transfer)
     {
         $patientId = $request->get('patient_id');
-        $chatRooms = $request->get('chat_rooms');
+        $toTherapist = $transfer->to_therapist;
+        $fromTherapist = $transfer->from_therapist;
 
-        $therapist = User::find($transfer->to_therapist_id);
+        // Validate therapist and patient match
+        if ($toTherapist->id !== Auth::id()) {
+            return response()->json([
+                'error' => 'Unauthorized: You are not assigned as the receiving therapist for this transfer.',
+            ], Response::HTTP_FORBIDDEN);
+        }
+
+        if ($patientId != $transfer->patient_id) {
+            return response()->json([
+                'error' => 'Invalid patient ID for this transfer.',
+            ], Response::HTTP_BAD_REQUEST);
+        }
 
         $response = Http::withHeaders([
             'Authorization' => 'Bearer ' . Forwarder::getAccessToken(Forwarder::PATIENT_SERVICE, $request->header('country')),
             'country' => $request->header('country'),
         ])->post(env('PATIENT_SERVICE_URL') . '/patient/transfer-to-therapist/' . $patientId, [
-            'therapist_id' => $therapist->id,
-            'therapist_identity' => $therapist->identity,
-            'new_chat_rooms' => [],
-            'chat_rooms' => $chatRooms,
+            'therapist_id' => $toTherapist->id,
+            'new_chat_rooms' => $toTherapist->chat_rooms ?? [],
+            'chat_rooms' => $fromTherapist->chat_rooms ?? [],
             'therapist_type' => $transfer['therapist_type'],
         ]);
 
@@ -113,7 +124,7 @@ class TransferController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param \Illuminate\Http\Request $request
      * @return array
      */
     public function decline(Transfer $transfer)
