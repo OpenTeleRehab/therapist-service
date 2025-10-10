@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\CryptHelper;
 use App\Helpers\KeycloakHelper;
 use App\Helpers\RocketChatHelper;
-use App\Helpers\CryptHelper;
 use App\Http\Resources\TherapistChatroomResource;
 use App\Http\Resources\TherapistListResource;
 use App\Http\Resources\TherapistOptionResource;
@@ -16,9 +16,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Twilio\Jwt\AccessToken;
 use Twilio\Jwt\Grants\VideoGrant;
-use Illuminate\Support\Facades\Log;
 
 define("KEYCLOAK_USERS", env('KEYCLOAK_URL') . '/auth/admin/realms/' . env('KEYCLOAK_REAMLS_NAME') . '/users');
 define("KEYCLOAK_EXECUTE_EMAIL", '/execute-actions-email?client_id=' . env('KEYCLOAK_BACKEND_CLIENT') . '&redirect_uri=' . env('REACT_APP_BASE_URL'));
@@ -125,13 +125,13 @@ class TherapistController extends Controller
                         } elseif ($filterObj->columnName === 'therapist_clinic' && $filterObj->value !== '') {
                             $query->where('clinic_id', $filterObj->value);
                         } elseif ($filterObj->columnName === 'id') {
-                            $query->where('identity', 'like', '%' .  $filterObj->value . '%');
+                            $query->where('identity', 'like', '%' . $filterObj->value . '%');
                         } elseif ($filterObj->columnName === 'profession') {
                             $query->where('profession_id', $filterObj->value);
                         } elseif ($filterObj->columnName === 'limit_patient') {
                             $query->where('limit_patient', $filterObj->value);
                         } else {
-                            $query->where($filterObj->columnName, 'like', '%' .  $filterObj->value . '%');
+                            $query->where($filterObj->columnName, 'like', '%' . $filterObj->value . '%');
                         }
                     }
                 });
@@ -540,7 +540,7 @@ class TherapistController extends Controller
             $twilioApiKey,
             $twilioApiSecret,
             3600,
-            $user['identity']. '_' . $user['country_id'],
+            $user['identity'] . '_' . $user['country_id'],
         );
 
         // Create Video grant.
@@ -652,11 +652,12 @@ class TherapistController extends Controller
 
         if ($token) {
             try {
-                $keycloakUsersResponse = Http::withToken($token)->get(KEYCLOAK_USERS, ['email' => $therapist->email]);
+                $keycloakUsersResponse = Http::withToken($token)->get(KEYCLOAK_USERS, ['email' => $therapist->email, 'exact' => 'true']);
                 $userExists = null;
                 if ($keycloakUsersResponse->successful()) {
                     $userExists = $keycloakUsersResponse->json();
                 }
+
                 $data = [
                     'username' => $therapist->email,
                     'email' => $therapist->email,
@@ -764,7 +765,7 @@ class TherapistController extends Controller
     {
         $token = KeycloakHelper::getKeycloakAccessToken();
 
-        $url = KEYCLOAK_USER_URL . '/'. $userId . KEYCLOAK_EXECUTE_EMAIL;
+        $url = KEYCLOAK_USER_URL . '/' . $userId . KEYCLOAK_EXECUTE_EMAIL;
         $response = Http::withToken($token)->put($url, ['UPDATE_PASSWORD']);
 
         return $response;
