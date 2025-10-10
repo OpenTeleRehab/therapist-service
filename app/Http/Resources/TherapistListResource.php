@@ -22,6 +22,9 @@ class TherapistListResource extends JsonResource
             'country_id' => $this->country_id,
             'profession_id' => $this->profession_id,
             'limit_patient' => $this->limit_patient,
+            'chat_user_id' => $this->chat_user_id,  // @TODO:
+            'first_name' => $this->first_name,      // @TODO:
+            'last_name' => $this->last_name,        // @TODO: separated endpoint 'therapist/by-ids' for mobile app & other services
         ];
 
         if ($request->get('user_type') === User::ADMIN_GROUP_CLINIC_ADMIN) {
