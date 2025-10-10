@@ -24,7 +24,7 @@ class VerifyDataAccess
         $countryId     = $request->get('country_id') ?? $request->get('country');
         $clinicId      = $request->get('clinic_id') ?? $request->get('clinic');
         $therapistId   = $request->get('therapist_id') ?? $request->get('therapist');
-        
+
         $user = auth()->user();
         $deny = fn() => response()->json(['message' => 'Access denied'], 403);
 
@@ -34,17 +34,17 @@ class VerifyDataAccess
         }
 
         // Verify if the auth user belongs to their assigned country
-        if ($user && $countryId && (int)$user->country_id !== (int)$countryId) {
+        if ($user && isset($countryId) && (int)$user->country_id !== (int)$countryId) {
             return $deny();
         }
 
         // Verify if the auth user belongs to their assigned clinic
-        if ($user && $clinicId && (int)$user->clinic_id !== (int)$clinicId) {
+        if ($user && isset($clinicId) && (int)$user->clinic_id !== (int)$clinicId) {
             return $deny();
         }
 
         // Verify if the auth user is the same as the requested therapist id
-        if ($user && $therapistId && (int)$user->id !== (int)$therapistId) {
+        if ($user && isset($therapistId) && (int)$user->id !== (int)$therapistId) {
             return $deny();
         }
 

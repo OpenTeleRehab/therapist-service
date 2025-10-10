@@ -19,10 +19,8 @@ class TransferController extends Controller
      */
     public function index()
     {
-        $user = Auth::user();
-
-        $transfers = Transfer::where('from_therapist_id', $user['id'])
-            ->orWhere('to_therapist_id', $user['id'])
+        $transfers = Transfer::where('from_therapist_id', Auth::id())
+            ->orWhere('to_therapist_id', Auth::id())
             ->get();
 
         return ['success' => true, 'data' => TransferResource::collection($transfers)];
