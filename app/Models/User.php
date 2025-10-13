@@ -76,9 +76,9 @@ class User extends Authenticatable
     {
         $request = request();
         $activity->causer_id = $request['user_id'] ? $request['user_id'] : $this->id;
-        $activity->full_name = $request['user_name'] ? $request['user_name'] : $this->last_name . ' ' . $this->first_name; 
+        $activity->full_name = $request['user_name'] ? $request['user_name'] : $this->last_name . ' ' . $this->first_name;
         $activity->group = $request['group'] ? $request['group'] : User::GROUP_THERAPIST;
-        $activity->clinic_id = $request->has('group') 
+        $activity->clinic_id = $request->has('group')
             ? ($request['group'] === self::ADMIN_GROUP_ORGANIZATION_ADMIN ? null : $request->input('clinic_id')) ?? $this->clinic_id
             : $this->clinic_id;
 
