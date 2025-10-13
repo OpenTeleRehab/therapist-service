@@ -15,20 +15,17 @@ class TherapistListResource extends JsonResource
      */
     public function toArray($request)
     {
-        $responseData = [
+        $resource = [
             'id' => $this->id,
             'identity' => $this->identity,
             'clinic_id' => $this->clinic_id,
             'country_id' => $this->country_id,
             'profession_id' => $this->profession_id,
             'limit_patient' => $this->limit_patient,
-            'chat_user_id' => $this->chat_user_id,  // @TODO:
-            'first_name' => $this->first_name,      // @TODO:
-            'last_name' => $this->last_name,        // @TODO: separated endpoint 'therapist/by-ids' for mobile app & other services
         ];
 
         if ($request->get('user_type') === User::ADMIN_GROUP_CLINIC_ADMIN) {
-            $responseData = array_merge($responseData, [
+            $resource = array_merge($resource, [
                 'first_name' => $this->first_name,
                 'last_name' => $this->last_name,
                 'phone' => $this->phone,
@@ -38,6 +35,7 @@ class TherapistListResource extends JsonResource
                 'language_id' => $this->language_id,
             ]);
         }
-        return $responseData;
+
+        return $resource;
     }
 }

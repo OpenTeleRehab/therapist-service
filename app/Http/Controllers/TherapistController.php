@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Helpers\CryptHelper;
 use App\Helpers\KeycloakHelper;
 use App\Helpers\RocketChatHelper;
+use App\Http\Resources\PatientTherapistResource;
 use App\Http\Resources\TherapistChatroomResource;
 use App\Http\Resources\TherapistListResource;
 use App\Http\Resources\TherapistOptionResource;
@@ -1027,5 +1028,18 @@ class TherapistController extends Controller
         }
 
         return ['success' => true, 'data' => $data];
+    }
+
+    /**
+     * @param \Illuminate\Http\Request $request
+     *
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     */
+    public function getPatientTherapistByIds(Request $request)
+    {
+        $ids = json_decode($request->get('ids', []));
+        $users = User::whereIn('id', $ids)->get();
+
+        return PatientTherapistResource::collection($users);
     }
 }

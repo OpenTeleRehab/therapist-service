@@ -29,6 +29,7 @@ use App\Http\Controllers\AuditLogController as TherapistAuditLogController;
 Route::group(['middleware' => ['auth:api', 'verify.data.access']], function () {
     // Patient
     Route::get('patient/by-phone-number', [TherapistController::class, 'getPatientByPhoneNumber'])->middleware('role:view_patient');
+    Route::get('patient/therapist-by-ids', [TherapistController::class, 'getPatientTherapistByIds'])->middleware('role:access_all');
 
     // Term Condition
     Route::get('term-condition/send-re-consent', [TermAndConditionController::class, 'addReConsentTermsOfServicesToUsers'])->middleware('role:access_all');
