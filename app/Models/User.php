@@ -22,6 +22,23 @@ class User extends Authenticatable
     const ADMIN_GROUP_CLINIC_ADMIN = 'clinic_admin';
     const GROUP_THERAPIST = 'therapist';
 
+    // MFA constants configurations
+    const MFA_ENFORCE = 'force';
+    const MFA_RECOMMEND = 'recommend';
+    const MFA_DISABLE = 'skip';
+    const MFA_KEY_ENFORCEMENT = 'mfa_enforcement';
+    const ROLE_LEVEL = [
+        'organization_admin' => 1,
+        'country_admin' => 2,
+        'clinic_admin' => 3,
+        'therapist' => 4,
+    ];
+    const ENFORCEMENT_LEVEL = [
+        'force' => 1,
+        'recommend' => 2,
+        'skip' => 3,
+    ];
+
     /**
      * The attributes that are mass assignable.
      *
