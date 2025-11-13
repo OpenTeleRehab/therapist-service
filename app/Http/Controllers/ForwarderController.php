@@ -50,7 +50,7 @@ class ForwarderController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param \Illuminate\Http\Request $request
      *
      * @return \GuzzleHttp\Promise\PromiseInterface|\Illuminate\Http\Client\Response|\Illuminate\Http\Response
      */
@@ -69,15 +69,51 @@ class ForwarderController extends Controller
             $access_token = Forwarder::getAccessToken(Forwarder::ADMIN_SERVICE);
             $response = Http::withToken($access_token);
 
-            foreach ($request->allFiles() as $key => $file) {
-                if (str_contains($request->path(), 'education-material')) {
-                    $response = $response->attach($key, file_get_contents($file), $file->getClientOriginalName());
+            $multipart = [];
+
+            // Handle regular form inputs (including arrays)
+            foreach ($request->all() as $key => $value) {
+                // Skip files
+                if ($request->hasFile($key)) {
+                    continue;
+                }
+
+                if (is_array($value)) {
+                    foreach ($value as $subValue) {
+                        $multipart[] = [
+                            'name' => "{$key}[]",
+                            'contents' => (string)$subValue,
+                        ];
+                    }
                 } else {
-                    $response = $response->attach($file->getClientOriginalName(), file_get_contents($file), $file->getClientOriginalName());
+                    $multipart[] = [
+                        'name' => (string)$key,
+                        'contents' => (string)$value,
+                    ];
                 }
             }
 
-            return $response->post(env('ADMIN_SERVICE_URL') . $endpoint, $request->input());
+            // Handle uploaded files
+            foreach ($request->allFiles() as $key => $file) {
+                // Support multiple files (array inputs)
+                if (is_array($file)) {
+                    foreach ($file as $subFile) {
+                        $multipart[] = [
+                            'name' => "{$key}[]",
+                            'contents' => fopen($subFile->getRealPath(), 'r'),
+                            'filename' => $subFile->getClientOriginalName(),
+                        ];
+                    }
+                } else {
+                    $multipart[] = [
+                        'name' => (string)$key,
+                        'contents' => fopen($file->getRealPath(), 'r'),
+                        'filename' => $file->getClientOriginalName(),
+                    ];
+                }
+            }
+
+            return $response->asMultipart()->post(env('ADMIN_SERVICE_URL') . $endpoint, $multipart);
         }
 
         if ($service_name !== null && str_contains($service_name, Forwarder::PATIENT_SERVICE)) {
@@ -92,7 +128,7 @@ class ForwarderController extends Controller
      * Display the specified resource.
      *
      * @param \Illuminate\Http\Request $request
-     * @param  int  $id
+     * @param int $id
      *
      * @return \GuzzleHttp\Promise\PromiseInterface|\Illuminate\Http\Client\Response|\Illuminate\Http\Response
      */
@@ -123,8 +159,8 @@ class ForwarderController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
+     * @param \Illuminate\Http\Request $request
+     * @param int $id
      *
      * @return \GuzzleHttp\Promise\PromiseInterface|\Illuminate\Http\Client\Response|\Illuminate\Http\Response
      */
@@ -142,16 +178,51 @@ class ForwarderController extends Controller
         if ($service_name !== null && str_contains($service_name, Forwarder::ADMIN_SERVICE)) {
             $access_token = Forwarder::getAccessToken(Forwarder::ADMIN_SERVICE);
             $response = Http::withToken($access_token);
+            $multipart = [];
 
-            foreach ($request->allFiles() as $key => $file) {
-                if (str_contains($request->path(), 'education-material')) {
-                    $response = $response->attach($key, file_get_contents($file), $file->getClientOriginalName());
+            // Handle regular form inputs (including arrays)
+            foreach ($request->all() as $key => $value) {
+                // Skip files
+                if ($request->hasFile($key)) {
+                    continue;
+                }
+
+                if (is_array($value)) {
+                    foreach ($value as $subValue) {
+                        $multipart[] = [
+                            'name' => "{$key}[]",
+                            'contents' => (string)$subValue,
+                        ];
+                    }
                 } else {
-                    $response = $response->attach($file->getClientOriginalName(), file_get_contents($file), $file->getClientOriginalName());
+                    $multipart[] = [
+                        'name' => (string)$key,
+                        'contents' => (string)$value,
+                    ];
                 }
             }
 
-            return $response->post(env('ADMIN_SERVICE_URL') . $endpoint, $request->input());
+            // Handle uploaded files
+            foreach ($request->allFiles() as $key => $file) {
+                // Support multiple files (array inputs)
+                if (is_array($file)) {
+                    foreach ($file as $subFile) {
+                        $multipart[] = [
+                            'name' => "{$key}[]",
+                            'contents' => fopen($subFile->getRealPath(), 'r'),
+                            'filename' => $subFile->getClientOriginalName(),
+                        ];
+                    }
+                } else {
+                    $multipart[] = [
+                        'name' => (string)$key,
+                        'contents' => fopen($file->getRealPath(), 'r'),
+                        'filename' => $file->getClientOriginalName(),
+                    ];
+                }
+            }
+
+            return $response->asMultipart()->post(env('ADMIN_SERVICE_URL') . $endpoint, $multipart);
         }
 
         if ($service_name !== null && str_contains($service_name, Forwarder::PATIENT_SERVICE)) {
@@ -166,7 +237,7 @@ class ForwarderController extends Controller
      * Remove the specified resource from storage.
      *
      * @param \Illuminate\Http\Request $request
-     * @param  int  $id
+     * @param int $id
      *
      * @return \GuzzleHttp\Promise\PromiseInterface|\Illuminate\Http\Client\Response|\Illuminate\Http\Response
      */
