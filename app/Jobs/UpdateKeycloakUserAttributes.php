@@ -35,6 +35,7 @@ class UpdateKeycloakUserAttributes implements ShouldQueue
         $countryIds = $this->data['country_ids'] ?? [];
         $clinicIds = $this->data['clinic_ids'] ?? [];
         $attributes = $this->data['attributes'] ?? [];
+        $authUserEnforcement = $this->data['admin_enforcement'] ?? null;
 
         JobTracker::updateOrCreate(
             ['job_id' => $this->jobId],
@@ -74,44 +75,31 @@ class UpdateKeycloakUserAttributes implements ShouldQueue
                 }
 
                 $existingAttributes = $userData['attributes'] ?? [];
-
                 $newEnforcement = $attributes[User::MFA_KEY_ENFORCEMENT] ?? null;
-                $oldEnforcement = isset($existingAttributes[User::MFA_KEY_ENFORCEMENT])
-                    ? (is_array($existingAttributes[User::MFA_KEY_ENFORCEMENT])
-                        ? $existingAttributes[User::MFA_KEY_ENFORCEMENT][0]
-                        : $existingAttributes[User::MFA_KEY_ENFORCEMENT])
-                    : null;
 
                 if (
-                    $oldEnforcement !== null &&
-                    in_array($newEnforcement, [
-                        User::MFA_DISABLE,
-                        User::MFA_RECOMMEND,
-                        User::MFA_ENFORCE
-                    ], true) &&
-                    in_array($oldEnforcement, [
-                        User::MFA_DISABLE,
-                        User::MFA_RECOMMEND,
-                        User::MFA_ENFORCE
-                    ], true) &&
-                    (User::ENFORCEMENT_LEVEL[$newEnforcement] ?? 0) >
-                    (User::ENFORCEMENT_LEVEL[$oldEnforcement] ?? 0)
+                    $newEnforcement !== null &&
+                    (
+                        $authUserEnforcement == null ||
+                        (User::ENFORCEMENT_LEVEL[$newEnforcement] ?? 0) <=
+                        (User::ENFORCEMENT_LEVEL[$authUserEnforcement] ?? 0)
+                    )
                 ) {
-                    continue;
-                }
+                    foreach ($attributes as $key => $value) {
+                        if (
+                            $key === User::MFA_KEY_ENFORCEMENT &&
+                            $attributes[$key] === User::MFA_DISABLE
+                        ) {
+                            KeycloakHelper::deleteUserCredentialByType($user->email, 'otp');
+                        }
 
-                foreach ($attributes as $key => $value) {
-                    if (
-                        $key === User::MFA_KEY_ENFORCEMENT &&
-                        $attributes[$key] === User::MFA_DISABLE
-                    ) {
-                        KeycloakHelper::deleteUserCredentialByType($user->email, 'otp');
+                        $existingAttributes[$key] = is_array($value) ? $value : [$value];
                     }
 
-                    $existingAttributes[$key] = is_array($value) ? $value : [$value];
+                    KeycloakHelper::updateUserAttributesById($userData['id'], $existingAttributes);
+                } else {
+                    continue;
                 }
-
-                KeycloakHelper::updateUserAttributesById($userData['id'], $existingAttributes);
             }
 
             JobTracker::where('job_id', $this->jobId)->update(['status' => JobTracker::COMPLETED]);
