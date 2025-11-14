@@ -76,7 +76,15 @@ class UpdateKeycloakUserAttributes implements ShouldQueue
 
                 $existingAttributes = $userData['attributes'] ?? [];
 
-                $newEnforcement = $attributes[User::MFA_KEY_ENFORCEMENT] ?? null;
+                if (isset($attributes['mfa_expiration_duration'])) {
+                    $existingAttributes[User::MFA_MAX_AGE] = $attributes['mfa_expiration_duration'];
+                }
+
+                if (isset($attributes['skip_mfa_setup_duration'])) {
+                    $existingAttributes[User::MFA_SKIP_MAX_AGE] = $attributes['skip_mfa_setup_duration'];
+                }
+
+                $newEnforcement = $attributes['mfa_enforcement'] ?? null;
                 $oldEnforcement = isset($existingAttributes[User::MFA_KEY_ENFORCEMENT])
                     ? (is_array($existingAttributes[User::MFA_KEY_ENFORCEMENT])
                         ? $existingAttributes[User::MFA_KEY_ENFORCEMENT][0]
@@ -84,8 +92,8 @@ class UpdateKeycloakUserAttributes implements ShouldQueue
                     : null;
 
                 if (
-                    $newEnforcement !== null &&
-                    (User::ENFORCEMENT_LEVEL[$newEnforcement] ?? 0) <
+                    $oldEnforcement == null ||
+                    (User::ENFORCEMENT_LEVEL[$newEnforcement] ?? 0) <=
                     (User::ENFORCEMENT_LEVEL[$oldEnforcement] ?? 4) &&
                     (
                         $authUserEnforcement == null ||
@@ -93,21 +101,15 @@ class UpdateKeycloakUserAttributes implements ShouldQueue
                         (User::ENFORCEMENT_LEVEL[$authUserEnforcement] ?? 0)
                     )
                 ) {
-                    foreach ($attributes as $key => $value) {
-                        if (
-                            $key === User::MFA_KEY_ENFORCEMENT &&
-                            $attributes[$key] === User::MFA_DISABLE
-                        ) {
-                            KeycloakHelper::deleteUserCredentialByType($user->email, 'otp');
-                        }
-
-                        $existingAttributes[$key] = is_array($value) ? $value : [$value];
+                    if ($newEnforcement === User::MFA_DISABLE) {
+                        KeycloakHelper::deleteUserCredentialByType($user->email, 'otp');
                     }
-
-                    KeycloakHelper::updateUserAttributesById($userData['id'], $existingAttributes);
+                    $existingAttributes[User::MFA_KEY_ENFORCEMENT] = $newEnforcement;
                 } else {
                     continue;
                 }
+
+                KeycloakHelper::updateUserAttributesById($userData['id'], $existingAttributes);
             }
 
             JobTracker::where('job_id', $this->jobId)->update(['status' => JobTracker::COMPLETED]);
