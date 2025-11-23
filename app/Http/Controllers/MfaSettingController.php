@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\JobTracker;
 use Illuminate\Http\Request;
 use App\Jobs\UpdateFederatedUsersMfaJob;
-use App\Jobs\UpdateKeycloakUserAttributes;
 
 class MfaSettingController extends Controller
 {
@@ -25,11 +24,19 @@ class MfaSettingController extends Controller
             'skip_mfa_setup_duration' => 'nullable|integer|min:0',
         ]);
 
-        UpdateFederatedUsersMfaJob::dispatchSync($validatedData);
+        try {
+            UpdateFederatedUsersMfaJob::dispatchSync($validatedData);
 
-        return response()->json([
-            'success' => true
-        ]);
+            return response()->json([
+                'success' => true,
+                'message' => 'MFA update job has been queued successfully.',
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
     }
 
     public function jobStatus($jobId)
