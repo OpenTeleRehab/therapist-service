@@ -436,6 +436,10 @@ class KeycloakHelper
 
         $keycloakUser = KeycloakHelper::getKeycloakUserByUsername($username);
 
+        if (!$keycloakUser || !is_array($keycloakUser) || empty($keycloakUser['id'])) {
+            return false;
+        }
+
         $userId = $keycloakUser['id'];
 
         $credentials = self::getUserCredential($userId);
@@ -478,5 +482,44 @@ class KeycloakHelper
         ]);
 
         return $response->successful();
+    }
+
+    /**
+     * Update or set custom attributes for a Keycloak user by username.
+     *
+     * This method fetches the user by username, merges the provided attributes
+     * with any existing user attributes, and sends an update request to the
+     * Keycloak Admin API. Returns true on success or false if the user
+     * is not found or the update request fails.
+     *
+     * @param  string  $username    The username of the user whose attributes will be updated.
+     * @param  array   $attributes  An associative array of attributes to add or update.
+     * @return bool  Returns true if the update was successful, false otherwise.
+     */
+    public static function setUserAttributes(string $username, array $attributes): bool
+    {
+        $token = KeycloakHelper::getKeycloakAccessToken();
+
+        $keycloakUser = KeycloakHelper::getKeycloakUserByUsername($username);
+
+        if (!$keycloakUser) {
+            return false;
+        }
+
+        $url = KEYCLOAK_USER_URL . '/' . $keycloakUser['id'];
+
+        $attributes = array_filter($attributes, fn($value) => $value !== null);
+
+        $existingAttributes = $keycloakUser['attributes'] ?? [];
+        $keycloakUser['attributes'] = array_merge($existingAttributes, $attributes);
+
+        $updateResponse = Http::withToken($token)
+            ->put($url, $keycloakUser);
+
+        if (!$updateResponse->successful()) {
+            return false;
+        }
+
+        return true;
     }
 }

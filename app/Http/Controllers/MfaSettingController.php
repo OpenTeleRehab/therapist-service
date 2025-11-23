@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Jobs\UpdateKeycloakUserAttributes;
 use App\Models\JobTracker;
 use Illuminate\Http\Request;
+use App\Jobs\UpdateFederatedUsersMfaJob;
+use App\Jobs\UpdateKeycloakUserAttributes;
 
 class MfaSettingController extends Controller
 {
@@ -16,24 +17,18 @@ class MfaSettingController extends Controller
      */
     public function store(Request $request)
     {
-        $data = $request->validate([
-            'country_ids' => 'sometimes|array|nullable',
-            'clinic_ids' => 'sometimes|array|nullable',
-            'attributes' => 'required|array',
+        $validatedData = $request->validate([
+            'country_ids' => 'nullable|array',
+            'clinic_ids' => 'nullable|array',
+            'mfa_enforcement' => 'required|in:skip,recommend,force',
+            'mfa_expiration_duration' => 'nullable|integer|min:0',
+            'skip_mfa_setup_duration' => 'nullable|integer|min:0',
         ]);
 
-        $jobId = uniqid('therapist_');
-
-        JobTracker::updateOrCreate(
-            ['job_id' => $jobId],
-            ['status' => JobTracker::PENDING]
-        );
-
-        UpdateKeycloakUserAttributes::dispatch($data, $jobId);
+        UpdateFederatedUsersMfaJob::dispatchSync($validatedData);
 
         return response()->json([
-            'success' => true,
-            'job_id' => $jobId,
+            'success' => true
         ]);
     }
 
