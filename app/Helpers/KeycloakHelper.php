@@ -375,4 +375,151 @@ class KeycloakHelper
 
         return false;
     }
+
+    /**
+     * Get a Keycloak user by username.
+     *
+     * @param string $username
+     * @return array|null
+     */
+    public static function getKeycloakUserByUsername(string $username)
+    {
+        $token = self::getKeycloakAccessToken();
+        if (!$token) {
+            return null;
+        }
+
+        $response = Http::withToken($token)->withHeaders([
+            'Content-Type' => 'application/json'
+        ])->get(KEYCLOAK_USER_URL, [
+            'username' => $username,
+        ]);
+
+        if ($response->successful()) {
+            return $response->json()[0] ?? null;
+        }
+
+        return null;
+    }
+
+    /**
+     * Retrieve the credentials for a specific Keycloak user.
+     *
+     * @param  string  $userId
+     * @return array|null
+     */
+    public static function getUserCredential(string $userId): ?array
+    {
+        $token = KeycloakHelper::getKeycloakAccessToken();
+
+        $endPoint = KEYCLOAK_USER_URL . '/' . $userId . '/credentials';
+
+        $response = Http::withToken($token)->get($endPoint);
+
+        if (!$response->successful()) {
+            return null;
+        }
+
+        return $response->json();
+    }
+
+    /**
+     * Delete a specific type of credential (e.g., OTP, password) for a Keycloak user.
+     *
+     * @param  string  $userId
+     * @param  string  $type
+     * @return bool
+     */
+    public static function deleteUserCredentialByType(string $username, string $type): bool
+    {
+        $token = KeycloakHelper::getKeycloakAccessToken();
+
+        $keycloakUser = KeycloakHelper::getKeycloakUserByUsername($username);
+
+        if (!$keycloakUser || !is_array($keycloakUser) || empty($keycloakUser['id'])) {
+            return false;
+        }
+
+        $userId = $keycloakUser['id'];
+
+        $credentials = self::getUserCredential($userId);
+
+        if (empty($credentials)) {
+            return false;
+        }
+
+        $credential = collect($credentials)->firstWhere('type', $type);
+
+        if (!$credential || empty($credential['id'])) {
+            return false;
+        }
+
+        $endpoint = KEYCLOAK_USER_URL . '/' . $userId . '/credentials/' . $credential['id'];
+
+        $response = Http::withToken($token)->delete($endpoint);
+
+        return $response->successful();
+    }
+
+    /**
+     * Set a Keycloak user attributes.
+     *
+     * @param string $id Keycloak user UUID
+     * @param array $attributes
+     * @return bool
+     */
+    public static function updateUserAttributesById(string $id, array $attributes)
+    {
+        $token = self::getKeycloakAccessToken();
+        if (!$token) {
+            return false;
+        }
+
+        $response = Http::withToken($token)->withHeaders([
+            'Content-Type' => 'application/json'
+        ])->put(KEYCLOAK_USER_URL . '/' . $id, [
+            'attributes' => $attributes
+        ]);
+
+        return $response->successful();
+    }
+
+    /**
+     * Update or set custom attributes for a Keycloak user by username.
+     *
+     * This method fetches the user by username, merges the provided attributes
+     * with any existing user attributes, and sends an update request to the
+     * Keycloak Admin API. Returns true on success or false if the user
+     * is not found or the update request fails.
+     *
+     * @param  string  $username    The username of the user whose attributes will be updated.
+     * @param  array   $attributes  An associative array of attributes to add or update.
+     * @return bool  Returns true if the update was successful, false otherwise.
+     */
+    public static function setUserAttributes(string $username, array $attributes): bool
+    {
+        $token = KeycloakHelper::getKeycloakAccessToken();
+
+        $keycloakUser = KeycloakHelper::getKeycloakUserByUsername($username);
+
+        if (!$keycloakUser) {
+            return false;
+        }
+
+        $url = KEYCLOAK_USER_URL . '/' . $keycloakUser['id'];
+
+        $attributes = array_filter($attributes, fn($value) => $value !== null);
+
+        $existingAttributes = $keycloakUser['attributes'] ?? [];
+        $keycloakUser['attributes'] = array_merge($existingAttributes, $attributes);
+
+        $updateResponse = Http::withToken($token)
+            ->put($url, $keycloakUser);
+
+        if (!$updateResponse->successful()) {
+            return false;
+        }
+
+        return true;
+    }
 }

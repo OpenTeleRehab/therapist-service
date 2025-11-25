@@ -15,6 +15,7 @@ use App\Http\Controllers\MessageController;
 use App\Http\Controllers\TransferController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuditLogController as TherapistAuditLogController;
+use App\Http\Controllers\MfaSettingController;
 
 /*
 |--------------------------------------------------------------------------
@@ -83,6 +84,10 @@ Route::group(['middleware' => ['auth:api', 'verify.data.access']], function () {
     Route::delete('transfer/delete/by-patient', [TransferController::class, 'deleteByPatient'])->middleware('role:manage_transfer');
     Route::get('transfer/number/by-therapist', [TransferController::class, 'getNumberOfActiveTransfers'])->middleware('role:access_all');
 
+    // Mfa Settings
+    Route::get('mfa-settings/{jobId}', [MfaSettingController::class, 'jobStatus'])->middleware('role:access_all');
+    Route::post('mfa-settings', [MfaSettingController::class, 'store'])->middleware('role:access_all');
+
     // Global Resource
     Route::name('global_admin.')->group(function () {
         Route::apiResource('category', ForwarderController::class)->middleware('role:manage_category');
@@ -101,6 +106,8 @@ Route::group(['middleware' => ['auth:api', 'verify.data.access']], function () {
         Route::get('profession', [ForwarderController::class, 'index'])->middleware('role:view_profession');
         Route::get('settings', [ForwarderController::class, 'index'])->middleware('role:view_setting');
         Route::get('guidance-page', [ForwarderController::class, 'index'])->middleware('role:view_guidance_page');
+        Route::get('health-condition-group', [ForwarderController::class, 'index'])->middleware('role:manage_health_condition');
+        Route::get('health-condition', [ForwarderController::class, 'index'])->middleware('role:manage_health_condition');
 
         // Exercises
         Route::post('exercise/suggest', [ForwarderController::class, 'store'])->middleware('role:manage_exercise');

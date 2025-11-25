@@ -17,9 +17,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Twilio\Jwt\AccessToken;
 use Twilio\Jwt\Grants\VideoGrant;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 define("KEYCLOAK_USERS", env('KEYCLOAK_URL') . '/auth/admin/realms/' . env('KEYCLOAK_REAMLS_NAME') . '/users');
 define("KEYCLOAK_EXECUTE_EMAIL", '/execute-actions-email?client_id=' . env('KEYCLOAK_BACKEND_CLIENT') . '&redirect_uri=' . env('REACT_APP_BASE_URL'));
@@ -305,7 +307,23 @@ class TherapistController extends Controller
             $updateData['identity'] = $identity;
             $therapist->fill($updateData);
             $therapist->save();
-            $this->sendEmailToNewUser($userKeycloakUuid);
+
+            $federatedDomains = array_map(fn($d) => strtolower(trim($d)), explode(',', env('FEDERATED_DOMAINS', '')));
+            $lowerCaseEmail = strtolower($email);
+            if (Str::endsWith($lowerCaseEmail, $federatedDomains)) {
+                $emailSendingData = [
+                    'subject' => 'Welcome to OpenTeleRehab',
+                    'name' => $lastName . ' ' . $firstName,
+                    'link' => env('REACT_APP_BASE_URL')
+                ];
+
+                Mail::send('federatedUser.mail', $emailSendingData, function ($message) use ($email, $emailSendingData) {
+                    $message->to($email)
+                        ->subject($emailSendingData['subject']);
+                });
+            } else {
+                $this->sendEmailToNewUser($userKeycloakUuid);
+            }
 
         } catch (\Exception $e) {
             DB::rollBack();
