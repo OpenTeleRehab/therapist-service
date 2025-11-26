@@ -397,7 +397,12 @@ class KeycloakHelper
         ]);
 
         if ($response->successful()) {
-            return $response->json()[0] ?? null;
+            $users = $response->json();
+            foreach ($users as $user) {
+                if (isset($user['username']) && $user['username'] === $username) {
+                    return $user;
+                }
+            }
         }
 
         return null;
