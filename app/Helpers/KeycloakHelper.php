@@ -393,16 +393,10 @@ class KeycloakHelper
             'Content-Type' => 'application/json'
         ])->get(KEYCLOAK_USER_URL, [
             'username' => $username,
-            'exact' => true,
         ]);
 
         if ($response->successful()) {
-            $users = $response->json();
-            foreach ($users as $user) {
-                if (isset($user['username']) && $user['username'] === $username) {
-                    return $user;
-                }
-            }
+            return $response->json()[0] ?? null;
         }
 
         return null;
