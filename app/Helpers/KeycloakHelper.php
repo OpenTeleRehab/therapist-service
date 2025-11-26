@@ -393,6 +393,7 @@ class KeycloakHelper
             'Content-Type' => 'application/json'
         ])->get(KEYCLOAK_USER_URL, [
             'username' => $username,
+            'exact' => true,
         ]);
 
         if ($response->successful()) {
