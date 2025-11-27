@@ -16,6 +16,7 @@ use App\Http\Controllers\TransferController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuditLogController as TherapistAuditLogController;
 use App\Http\Controllers\MfaSettingController;
+use App\Http\Controllers\PhcWorkerController;
 
 /*
 |--------------------------------------------------------------------------
@@ -51,6 +52,15 @@ Route::group(['middleware' => ['auth:api', 'verify.data.access']], function () {
     Route::post('therapist/delete/by-clinic', [TherapistController::class, 'deleteByClinicId'])->middleware('role:access_all');
     Route::get('therapist/list-for-chatroom', [TherapistController::class, 'listForChatroom'])->middleware('role:view_clinic_therapist');
     Route::apiResource('therapist', TherapistController::class)->middleware('role:access_all');
+
+    // PHC Worker
+    Route::get('phc-workers', [PhcWorkerController::class, 'index'])->middleware('role:access_all');
+    Route::get('phc-workers/count-by-phc-service', [PhcWorkerController::class, 'countPhcWorkerByPhcService'])->middleware('role:access_all');
+    Route::post('phc-workers', [PhcWorkerController::class, 'store'])->middleware('role:access_all');
+    Route::put('phc-workers/{phcWorker}', [PhcWorkerController::class, 'update'])->middleware('role:access_all');
+    Route::post('phc-workers/delete/by-id/{user}', [PhcWorkerController::class, 'deleteByUserId'])->middleware('role:access_all');
+    Route::post('phc-workers/updateStatus/{user}', [PhcWorkerController::class, 'updateStatus'])->middleware('role:access_all');
+    Route::post('phc-workers/resend-email/{user}', [PhcWorkerController::class, 'resendEmailToUser'])->middleware('role:access_all');
 
     // Dashboard
     Route::get('chart/get-data-for-global-admin', [ChartController::class, 'getDataForGlobalAdmin']); // deprecated

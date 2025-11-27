@@ -20,7 +20,11 @@ class User extends Authenticatable
     const ADMIN_GROUP_GLOBAL_ADMIN = 'global_admin';
     const ADMIN_GROUP_COUNTRY_ADMIN = 'country_admin';
     const ADMIN_GROUP_CLINIC_ADMIN = 'clinic_admin';
+    const ADMIN_GROUP_PHC_SERVICE_ADMIN = 'phc_service_admin';
     const GROUP_THERAPIST = 'therapist';
+    const GROUP_PHC_WORKER = 'phc_worker';
+    const TYPE_THERAPIST = 'therapist';
+    const TYPE_PHC_WORKER = 'phc_worker';
 
     // MFA constants configurations
     const MFA_ENFORCE = 'force';
@@ -52,7 +56,7 @@ class User extends Authenticatable
     protected $fillable = [
         'first_name', 'last_name', 'email', 'country_id', 'clinic_id', 'limit_patient', 'language_id', 'profession_id',
         'identity', 'enabled', 'chat_user_id', 'chat_password', 'chat_rooms', 'last_login', 'show_guidance',
-        'phone', 'dial_code',
+        'phone', 'dial_code', 'region_id', 'province_id', 'type', 'phc_service_id',
     ];
 
     /**

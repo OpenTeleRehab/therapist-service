@@ -31,6 +31,30 @@ class KeycloakHelper
     const VN_PATIENT_ACCESS_TOKEN = 'vn_patient_access_token';
 
     /**
+     * @return string
+     */
+    public static function getUserUrl(): string
+    {
+        return config('keycloak.user_url');
+    }
+
+    /**
+     * @return string
+     */
+    public static function getExecuteEmailUrl(): string
+    {
+        return config('keycloak.execute_email');
+    }
+
+    /**
+     * @return string
+     */
+    public static function getGroupsUrl(): string
+    {
+        return config('keycloak.groups_url');
+    }
+
+    /**
      * @return mixed|null
      */
     public static function getKeycloakAccessToken()
@@ -225,12 +249,28 @@ class KeycloakHelper
      */
     public static function deleteUser($token, $userUuid)
     {
-        $url = KEYCLOAK_USERS . '/' . $userUuid;
+        $url = self::getUserUrl() . '/' . $userUuid;
         $response = Http::withToken($token)->delete($url);
 
         return $response->successful();
     }
 
+    /**
+     * Create a new group in Keycloak.
+     *
+     * @param string $groupName
+     * @return bool
+     */
+    public static function createGroup($groupName)
+    {
+        $token = self::getKeycloakAccessToken();
+
+        $response = Http::withToken($token)
+            ->withHeaders(['Content-Type' => 'application/json'])
+            ->post(self::getGroupsUrl(), ['name' => $groupName]);
+
+        return $response->successful();
+    }
 
     /**
      * Create a realm role in Keycloak.

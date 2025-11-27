@@ -12,6 +12,7 @@ class SetupKeycloakPermissions extends Command
 
     public function handle()
     {
+        $groups = ['therapist', 'phc_worker'];
         $roles = [
             'view_patient',
             'view_transfered_patient',
@@ -85,7 +86,43 @@ class SetupKeycloakPermissions extends Command
                 'download_file',
                 'view_dashboard',
             ],
+            'phc_worker' => [
+                'view_patient',
+                'get_call_token',
+                'push_patient_notification',
+                'delete_chat_room',
+                'view_activity_list',
+                'manage_treatment_plan',
+                'manage_message',
+                'manage_own_profile',
+                'view_country',
+                'view_disease',
+                'view_profession',
+                'view_setting',
+                'view_guidance_page',
+                'view_assistive_technology',
+                'manage_patient',
+                'manage_appointment',
+                'view_patient_activity',
+                'manage_patient_treatment_plan',
+                'manage_patient_assistive_technology',
+                'export_treatment_plan',
+                'view_notification',
+                'download_file',
+                'view_dashboard',
+            ],
         ];
+
+        $this->line("Creating groups...");
+
+        foreach ($groups as $groupName) {
+            $created = KeycloakHelper::createGroup($groupName);
+            if ($created) {
+                $this->info(" - Group '{$groupName}': Created");
+            } else {
+                $this->warn(" - Group '{$groupName}': Already exists or failed");
+            }
+        }
 
         $this->line("Creating roles...");
 
