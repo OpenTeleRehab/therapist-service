@@ -5,12 +5,11 @@ namespace App\Http\Controllers;
 use App\Helpers\CryptHelper;
 use App\Helpers\KeycloakHelper;
 use App\Helpers\RocketChatHelper;
-use App\Http\Resources\PatientTherapistResource;
-use App\Http\Resources\TherapistChatroomResource;
-use App\Http\Resources\TherapistListResource;
-use App\Http\Resources\TherapistOptionResource;
+use App\Http\Resources\PatientPhcWorkerResource;
+use App\Http\Resources\PhcWorkerChatroomResource;
+use App\Http\Resources\PhcWorkerListResource;
+use App\Http\Resources\PhcWorkerOptionResource;
 use App\Models\Forwarder;
-use App\Models\Transfer;
 use App\Models\TreatmentPlan;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -23,21 +22,18 @@ use Twilio\Jwt\Grants\VideoGrant;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
-define("KEYCLOAK_USERS", env('KEYCLOAK_URL') . '/auth/admin/realms/' . env('KEYCLOAK_REAMLS_NAME') . '/users');
-define("KEYCLOAK_EXECUTE_EMAIL", '/execute-actions-email?client_id=' . env('KEYCLOAK_BACKEND_CLIENT') . '&redirect_uri=' . env('REACT_APP_BASE_URL'));
-
-class TherapistController extends Controller
+class PhcWorkerController extends Controller
 {
     /**
      * @OA\Get(
-     *     path="/api/therapist",
-     *     tags={"Therapist"},
-     *     summary="Lists all therapists",
-     *     operationId="therapistList",
+     *     path="/api/phc-workers",
+     *     tags={"PhcWorker"},
+     *     summary="Lists all phc workers",
+     *     operationId="phcWorkerList",
      *     @OA\Parameter(
-     *         name="clinic_id",
+     *         name="phc_service_id",
      *         in="query",
-     *         description="Clinic id",
+     *         description="PHC Service id",
      *         required=false,
      *         @OA\Schema(
      *             type="integer"
@@ -73,19 +69,22 @@ class TherapistController extends Controller
     public function index(Request $request)
     {
         $data = $request->all();
-        $info = [];
 
         if (isset($data['id'])) {
             $users = User::where('id', $data['id'])->get();
         } else {
-            $query = User::query()->where('email', '!=', env('KEYCLOAK_BACKEND_USERNAME'))->where('type', User::TYPE_THERAPIST);
-
-            if ($request->has('clinic_id')) {
-                $query->where('clinic_id', $request->get('clinic_id'));
-            }
+            $query = User::query()->where('email', '!=', env('KEYCLOAK_BACKEND_USERNAME'))->where('type', User::TYPE_PHC_WORKER);
 
             if ($request->has('country_id')) {
                 $query->where('country_id', $request->get('country_id'));
+            }
+
+            if ($request->has('province_id')) {
+                $query->where('province_id', $request->get('province_id'));
+            }
+
+            if ($request->has('phc_service_id')) {
+                $query->where('phc_service_id', $request->get('phc_service_id'));
             }
 
             if (isset($data['user_type']) && $data['user_type'] === User::ADMIN_GROUP_ORGANIZATION_ADMIN) {
@@ -123,10 +122,8 @@ class TherapistController extends Controller
                             $endDate->format('Y-m-d');
                             $query->whereDate('last_login', '>=', $startDate)
                                 ->whereDate('last_login', '<=', $endDate);
-                        } elseif ($filterObj->columnName === 'therapist_country' && $filterObj->value !== '') {
+                        } elseif ($filterObj->columnName === 'phc_country' && $filterObj->value !== '') {
                             $query->where('country_id', $filterObj->value);
-                        } elseif ($filterObj->columnName === 'therapist_clinic' && $filterObj->value !== '') {
-                            $query->where('clinic_id', $filterObj->value);
                         } elseif ($filterObj->columnName === 'id') {
                             $query->where('identity', 'like', '%' . $filterObj->value . '%');
                         } elseif ($filterObj->columnName === 'profession') {
@@ -141,20 +138,17 @@ class TherapistController extends Controller
             }
 
             $users = $query->paginate($data['page_size']);
-            $info = [
-                'current_page' => $users->currentPage(),
-                'total_count' => $users->total()
-            ];
         }
-        return ['success' => true, 'data' => TherapistListResource::collection($users), 'info' => $info];
+
+        return response()->json(['data' => PhcWorkerListResource::collection($users), 'current_page' => $users->currentPage(), 'total_count' => $users->total()]);
     }
 
     /**
      * @OA\Post(
-     *     path="/api/therapist",
-     *     tags={"Therapist"},
-     *     summary="Create therapist",
-     *     operationId="createTherapist",
+     *     path="/api/phc-workers",
+     *     tags={"PhcWorker"},
+     *     summary="Create phc worker",
+     *     operationId="createPhcWorker",
      *     @OA\Parameter(
      *         name="email",
      *         in="query",
@@ -183,9 +177,27 @@ class TherapistController extends Controller
      *         )
      *     ),
      *     @OA\Parameter(
-     *         name="country",
+     *         name="country_id",
      *         in="query",
-     *         description="Country_id",
+     *         description="Country id",
+     *         required=true,
+     *         @OA\Schema(
+     *             type="string"
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="region_id",
+     *         in="query",
+     *         description="Region id",
+     *         required=true,
+     *         @OA\Schema(
+     *             type="string"
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="province_id",
+     *         in="query",
+     *         description="Province id",
      *         required=true,
      *         @OA\Schema(
      *             type="string"
@@ -201,9 +213,9 @@ class TherapistController extends Controller
      *         )
      *     ),
      *     @OA\Parameter(
-     *         name="clinic",
+     *         name="phc_service",
      *         in="query",
-     *         description="clinic_id",
+     *         description="phc_service_id",
      *         required=true,
      *         @OA\Schema(
      *             type="integer"
@@ -219,7 +231,7 @@ class TherapistController extends Controller
      *         )
      *     ),
      *     @OA\Parameter(
-     *         name="profession",
+     *         name="profession_id",
      *         in="query",
      *         description="Profession id",
      *         required=false,
@@ -247,42 +259,48 @@ class TherapistController extends Controller
      */
     public function store(Request $request)
     {
+        $request->validate([
+            'email' => 'required|email|unique:users,email',
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'country_id' => 'required|integer',
+            'region_id' => 'required|integer',
+            'province_id' => 'required|integer',
+            'limit_patient' => 'required|integer',
+            'phc_service_id' => 'required|integer'
+        ]);
+
         $email = $request->get('email');
-        $clinic = $request->get('clinic');
-
-        if (User::where('email', $email)->exists()) {
-            return ['success' => false, 'message' => 'error_message.email_exists'];
-        }
-
-        DB::beginTransaction();
-
         $phone = $request->get('phone');
         $dialCode = $request->get('dial_code');
         $firstName = $request->get('first_name');
         $lastName = $request->get('last_name');
-        $country = $request->get('country');
         $limitPatient = $request->get('limit_patient');
-        $language = $request->get('language_id');
-        $profession = $request->get('profession');
-        $countryIdentity = $request->get('country_identity');
-        $clinicIdentity = $request->get('clinic_identity');
+        $languageId = $request->get('language_id');
+        $professionId = $request->get('profession_id');
+        $regionId = $request->get('region_id');
+        $provinceId = $request->get('province_id');
         $languageCode = $request->get('language_code');
 
-        $therapist = User::create([
+        DB::beginTransaction();
+        $phcWorker = User::create([
+            'first_name' => $firstName,
+            'last_name' => $lastName,
             'email' => $email,
             'phone' => $phone,
             'dial_code' => $dialCode,
-            'first_name' => $firstName,
-            'last_name' => $lastName,
-            'country_id' => $country,
+            'country_id' => $request->get('country_id'),
+            'region_id' => $regionId,
+            'province_id' => $provinceId,
             'limit_patient' => $limitPatient,
-            'clinic_id' => $clinic,
-            'language_id' => $language,
-            'profession_id' => $profession
+            'phc_service_id' => $request->get('phc_service_id'),
+            'type' => User::TYPE_PHC_WORKER,
+            'profession_id' => $professionId,
+            'language_id' => $languageId,
         ]);
 
-        if (!$therapist) {
-            return ['success' => false, 'message' => 'error_message.user_add'];
+        if (!$phcWorker) {
+            return response()->json(['message' => 'error_message.phc_worker_create']);
         }
 
         $response = Http::withToken(Forwarder::getAccessToken(Forwarder::GADMIN_SERVICE))->get(env('GADMIN_SERVICE_URL') . '/get-organization', ['sub_domain' => env('APP_NAME')]);
@@ -290,24 +308,24 @@ class TherapistController extends Controller
         if ($response->successful()) {
             $organization = $response->json();
         } else {
-            return ['success' => false, 'message' => 'error_message.organization_not_found'];
+            return response()->json(['message' => 'error_message.organization_not_found']);
         }
 
         try {
-            $userKeycloakUuid = $this->createKeycloakTherapist($therapist, $languageCode, User::GROUP_THERAPIST);
-
+            $userKeycloakUuid = $this->createKeycloakPhcWorker($phcWorker, $languageCode, User::GROUP_PHC_WORKER);
+            $countryIdentity = $request->get('country_identity');
+            $phcServiceIdentity = $request->get('phc_service_identity');
             // Create unique identity.
             $orgIdentity = str_pad($organization['id'], 4, '0', STR_PAD_LEFT);
-            $identity = 'T' . $orgIdentity . $countryIdentity . $clinicIdentity .
-                str_pad($therapist->id, 5, '0', STR_PAD_LEFT);
+            $identity = 'PHC' . $orgIdentity . $countryIdentity . $phcServiceIdentity .
+                str_pad($phcWorker->id, 5, '0', STR_PAD_LEFT);
 
             // Create chat user.
             $updateData = $this->createChatUser($identity, $email, $lastName . ' ' . $firstName);
 
             $updateData['identity'] = $identity;
-            $therapist->fill($updateData);
-            $therapist->save();
-
+            $phcWorker->fill($updateData);
+            $phcWorker->save();
             $federatedDomains = array_map(fn($d) => strtolower(trim($d)), explode(',', env('FEDERATED_DOMAINS', '')));
             $lowerCaseEmail = strtolower($email);
             if (Str::endsWith($lowerCaseEmail, $federatedDomains)) {
@@ -327,20 +345,20 @@ class TherapistController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return ['success' => false, 'message' => $e->getMessage()];
+            return response()->json(['message' => $e->getMessage()]);
         }
 
         DB::commit();
 
-        return ['success' => true, 'message' => 'success_message.user_add'];
+        return response()->json(['message' => 'success_message.phc_worker_create'], 201);
     }
 
     /**
      * @OA\Put(
-     *     path="/api/therapist/{id}",
-     *     tags={"Therapist"},
-     *     summary="Update therapist",
-     *     operationId="updateTherapist",
+     *     path="/api/phc-workers/{id}",
+     *     tags={"Phc Worker"},
+     *     summary="Update phc worker",
+     *     operationId="updatePhcWorker",
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
@@ -396,7 +414,7 @@ class TherapistController extends Controller
      *         )
      *     ),
      *     @OA\Parameter(
-     *         name="profession",
+     *         name="profession_id",
      *         in="query",
      *         description="Profession id",
      *         required=false,
@@ -427,44 +445,43 @@ class TherapistController extends Controller
     {
         try {
             $user = User::findOrFail($id);
-            $data = $request->all();
+            $request->validate([
+                'first_name' => 'required|string|max:255',
+                'last_name' => 'required|string|max:255',
+                'country_id' => 'required|integer',
+                'region_id' => 'required|integer',
+                'province_id' => 'required|integer',
+                'limit_patient' => 'required|integer',
+                'phc_service_id' => 'required|integer'
+            ]);
             $dataUpdate = [
-                'first_name' => $data['first_name'],
-                'last_name' => $data['last_name'],
-                'phone' => $data['phone'],
-                'dial_code' => $data['dial_code'],
+                'first_name' => $request->get('first_name'),
+                'last_name' => $request->get('last_name'),
+                'phone' => $request->get('phone'),
+                'dial_code' => $request->get('dial_code'),
+                'profession_id' => $request->get('profession_id'),
+                'language_id' => $request->get('language_id'),
             ];
-
-            if (isset($data['language_id'])) {
-                $dataUpdate['language_id'] = $data['language_id'];
-            }
-            if (isset($data['profession'])) {
-                $dataUpdate['profession_id'] = $data['profession'];
-            }
-            if (isset($data['limit_patient'])) {
-                $dataUpdate['limit_patient'] = $data['limit_patient'];
-            }
-            if (isset($data['language_code'])) {
+            if ($request->has('language_code')) {
                 try {
-                    $this->updateUserLocale($user->email, $data['language_code']);
+                    $this->updateUserLocale($user->email, $request->get('language_code'));
                 } catch (\Exception $e) {
-                    return ['success' => false, 'message' => $e->getMessage()];
+                    return response()->json(['message' => $e->getMessage()], 500);
                 }
             }
 
             $user->update($dataUpdate);
-
         } catch (\Exception $e) {
-            return ['success' => false, 'message' => $e->getMessage()];
+            return response()->json(['message' => $e->getMessage()], 500);
         }
 
-        return ['success' => true, 'message' => 'success_message.user_update'];
+        return response()->json(['message' => 'success_message.phc_worker_update'], 200);
     }
 
     /**
      * @OA\Post(
-     *     path="/api/therapist/updateStatus/{user}",
-     *     tags={"Therapist"},
+     *     path="/api/phc-workers/updateStatus/{user}",
+     *     tags={"PhcWorker"},
      *     summary="Update user status",
      *     operationId="updateUserStatus",
      *     @OA\Parameter(
@@ -508,17 +525,17 @@ class TherapistController extends Controller
         try {
             $enabled = $request->boolean('enabled');
             $token = KeycloakHelper::getKeycloakAccessToken();
-            $userUrl = KEYCLOAK_USERS . '?email=' . $user->email;
+            $userUrl = KeycloakHelper::getUserUrl() . '?email=' . $user->email;
             $user->update(['enabled' => $enabled]);
 
             // Create rocketchat room.
-            User::where('clinic_id', $user->clinic_id)
+            User::where('phc_service_id', $user->phc_service_id)
                 ->where('id', '!=', $user->id)
                 ->where('enabled', 1)
                 ->get()
-                ->map(function ($therapist) use ($user) {
+                ->map(function ($phcWorker) use ($user) {
                     try {
-                        RocketChatHelper::createChatRoom($user->identity, $therapist->identity);
+                        RocketChatHelper::createChatRoom($user->identity, $phcWorker->identity);
                     } catch (\Exception $e) {
                         return $e->getMessage();
                     }
@@ -526,17 +543,17 @@ class TherapistController extends Controller
 
             $response = Http::withToken($token)->get($userUrl);
             $keyCloakUsers = $response->json();
-            $url = KEYCLOAK_USERS . '/' . $keyCloakUsers[0]['id'];
+            $url = KeycloakHelper::getUserUrl() . '/' . $keyCloakUsers[0]['id'];
 
             $userUpdated = Http::withToken($token)
                 ->put($url, ['enabled' => $enabled]);
 
             if ($userUpdated) {
-                return ['success' => true, 'message' => 'success_message.user_update'];
+                return response()->json(['message' => 'success_message.phc_worker_update_status'], 200);
             }
-            return ['success' => false, 'message' => 'error_message.user_update'];
+            return response()->json(['message' => 'error_message.phc_worker_update_status'], 500);
         } catch (\Exception $e) {
-            return ['success' => false, 'message' => $e->getMessage()];
+            return response()->json(['message' => $e->getMessage()], 500);
         }
     }
 
@@ -574,60 +591,35 @@ class TherapistController extends Controller
 
     /**
      * @param \App\Models\User $user
-     * @param \Illuminate\Http\Request $request
      *
      * @return array
      */
-    public function deleteByUserId(User $user, Request $request)
+    public function deleteByUserId(User $user)
     {
         try {
-            $countryCode = $request->get('country_code');
-            $hardDelete = $request->boolean('hard_delete');
-
-            // Remove all active requests of patient transfer to other therapists
-            Transfer::where('from_therapist_id', $user->id)->delete();
-
-            // Decline all active requests of patient transfer from other therapists
-            Transfer::where('to_therapist_id', $user->id)->update(['status' => Transfer::STATUS_DECLINED]);
-
-            // Remove patients of therapist.
-            Http::withHeaders([
-                'Authorization' => 'Bearer ' . Forwarder::getAccessToken(Forwarder::PATIENT_SERVICE, $countryCode),
-                'country' => $countryCode,
-            ])->post(env('PATIENT_SERVICE_URL') . '/patient/delete/by-therapist', [
-                'therapist_id' => $user->id,
-                'hard_delete' => $hardDelete,
-            ]);
-
-            // Remove own created libraries of therapist.
-            Http::withToken(Forwarder::getAccessToken(Forwarder::ADMIN_SERVICE))
-                ->post(env('ADMIN_SERVICE_URL') . '/library/delete/by-therapist', [
-                    'therapist_id' => $user->id,
-                    'hard_delete' => $hardDelete,
-                ]);
-
+            //TODO: Remove patients of that phc worker.
             // Remove own created treatment preset.
             TreatmentPlan::where('created_by', $user->id)->delete();
 
             $token = KeycloakHelper::getKeycloakAccessToken();
 
-            $userUrl = KEYCLOAK_USERS . '?email=' . $user->email;
+            $userUrl = KeycloakHelper::getUserUrl() . '?email=' . $user->email;
             $response = Http::withToken($token)->get($userUrl);
 
             if ($response->successful()) {
                 $keyCloakUsers = $response->json();
-
                 if (!empty($keyCloakUsers)) {
                     KeycloakHelper::deleteUser($token, $keyCloakUsers[0]['id']);
                 } else {
                     Log::warning("No user found in Keycloak for email: {$user->email}");
                 }
+
                 $user->delete();
             }
 
-            return ['success' => true, 'message' => 'success_message.therapist_delete'];
+            return response()->json(['message' => 'success_message.phc_worker_delete'], 200);
         } catch (\Exception $e) {
-            return ['success' => false, 'message' => $e->getMessage()];
+            return response()->json(['message' => $e->getMessage()], 500);
         }
     }
 
@@ -635,15 +627,15 @@ class TherapistController extends Controller
      * @param Request $request
      * @return array
      */
-    public function deleteByClinicId(Request $request)
+    public function deleteByPhcServiceId(Request $request)
     {
-        $clinicId = $request->get('clinic_id');
-        $users = User::where('clinic_id', $clinicId)->get();
+        $phcServiceId = $request->get('phc_service_id');
+        $users = User::where('phc_service_id', $phcServiceId)->get();
         if (count($users) > 0) {
             foreach ($users as $user) {
                 $token = KeycloakHelper::getKeycloakAccessToken();
 
-                $userUrl = KEYCLOAK_USERS . '?email=' . $user->email;
+                $userUrl = KeycloakHelper::getUserUrl() . '?email=' . $user->email;
                 $response = Http::withToken($token)->get($userUrl);
 
                 if ($response->successful()) {
@@ -655,34 +647,34 @@ class TherapistController extends Controller
             }
         }
 
-        return ['success' => true, 'message' => 'success_message.therapist_delete'];
+        return ['success' => true, 'message' => 'success_message.phc_worker_delete'];
     }
 
     /**
-     * @param \App\Models\User $therapist
+     * @param \App\Models\User $phcWorker
      * @param string $languageCode
      *
      * @return false|mixed|string
      * @throws \Exception
      */
-    private static function createKeycloakTherapist($therapist, $languageCode, $group)
+    private static function createKeycloakPhcWorker($phcWorker, $languageCode, $group)
     {
         $token = KeycloakHelper::getKeycloakAccessToken();
 
         if ($token) {
             try {
-                $keycloakUsersResponse = Http::withToken($token)->get(KEYCLOAK_USERS, ['email' => $therapist->email, 'exact' => 'true']);
+                $keycloakUsersResponse = Http::withToken($token)->get(KeycloakHelper::getUserUrl(), ['email' => $phcWorker->email, 'exact' => 'true']);
                 $userExists = null;
                 if ($keycloakUsersResponse->successful()) {
                     $userExists = $keycloakUsersResponse->json();
                 }
 
                 $data = [
-                    'username' => $therapist->email,
-                    'email' => $therapist->email,
+                    'username' => $phcWorker->email,
+                    'email' => $phcWorker->email,
                     'enabled' => true,
-                    'firstName' => $therapist->first_name,
-                    'lastName' => $therapist->last_name,
+                    'firstName' => $phcWorker->first_name,
+                    'lastName' => $phcWorker->last_name,
                     'attributes' => [
                         'locale' => [$languageCode ?: '']
                     ],
@@ -693,7 +685,7 @@ class TherapistController extends Controller
 
                     $updateResponse = Http::withToken($token)
                         ->withHeaders(['Content-Type' => 'application/json'])
-                        ->put(KEYCLOAK_USERS . '/' . $userKeycloakUuid, $data);
+                        ->put(KeycloakHelper::getUserUrl() . '/' . $userKeycloakUuid, $data);
 
                     if ($updateResponse->successful()) {
                         return $userKeycloakUuid;
@@ -701,7 +693,7 @@ class TherapistController extends Controller
                 } else {
                     $response = Http::withToken($token)->withHeaders([
                         'Content-Type' => 'application/json'
-                    ])->post(KEYCLOAK_USERS, $data);
+                    ])->post(KeycloakHelper::getUserUrl(), $data);
 
 
                     if ($response->successful()) {
@@ -784,7 +776,7 @@ class TherapistController extends Controller
     {
         $token = KeycloakHelper::getKeycloakAccessToken();
 
-        $url = KEYCLOAK_USER_URL . '/' . $userId . KEYCLOAK_EXECUTE_EMAIL;
+        $url = KeycloakHelper::getUserUrl() . '/' . $userId . KeycloakHelper::getExecuteEmailUrl();
         $response = Http::withToken($token)->put($url, ['UPDATE_PASSWORD']);
 
         return $response;
@@ -801,7 +793,7 @@ class TherapistController extends Controller
 
         $response = Http::withToken($token)->withHeaders([
             'Content-Type' => 'application/json'
-        ])->get(KEYCLOAK_USERS, [
+        ])->get(KeycloakHelper::getUserUrl(), [
             'username' => $user->email,
         ]);
 
@@ -825,7 +817,7 @@ class TherapistController extends Controller
     public function getByIds(Request $request)
     {
         $users = User::whereIn('id', json_decode($request->get('ids', [])))->get();
-        return ['success' => true, 'data' => TherapistListResource::collection($users)];
+        return ['success' => true, 'data' => PhcWorkerListResource::collection($users)];
     }
 
     /**
@@ -841,14 +833,14 @@ class TherapistController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/api/therapist/list/by-clinic-id",
-     *     tags={"Therapist"},
-     *     summary="Lists all therapists by clinic",
-     *     operationId="therapistListByClinic",
+     *     path="/api/phc-workers/list/by-phc-service-id",
+     *     tags={"PhcWorker"},
+     *     summary="Lists all phc workers by phc service",
+     *     operationId="phcWorkerListByPhcService",
      *     @OA\Parameter(
-     *         name="clinic_id",
+     *         name="phc_service_id",
      *         in="query",
-     *         description="Clinic id",
+     *         description="PHC service id",
      *         required=true,
      *         @OA\Schema(
      *             type="integer"
@@ -872,28 +864,34 @@ class TherapistController extends Controller
      *
      * @return array
      */
-    public function getByClinicId(Request $request)
+    public function getByPhcServiceId(Request $request)
     {
-        $clinicId = $request->get('clinic_id') ?? Auth::user()->clinic_id;
-        $users = User::where('clinic_id', $clinicId)->where('enabled', 1)->get();
+        $phcServiceId = $request->get('phc_service_id') ?? Auth::user()->phc_service_id;
+        $users = User::where('phc_service_id', $phcServiceId)->where('enabled', 1)->get();
 
-        return ['success' => true, 'data' => TherapistOptionResource::collection($users)];
+        return ['success' => true, 'data' => PhcWorkerOptionResource::collection($users)];
     }
 
+
+    /**
+     * @param \Illuminate\Http\Request $request
+     *
+     * @return array
+     */
     public function listForChatroom(Request $request)
     {
-        $clinicId = $request->get('clinic_id') ?? Auth::user()->clinic_id;
-        $users = User::where('clinic_id', $clinicId)->where('enabled', 1)->get();
+        $phcServiceId = $request->get('phc_service_id') ?? Auth::user()->phc_service_id;
+        $users = User::where('phc_service_id', $phcServiceId)->where('enabled', 1)->get();
 
-        return ['success' => true, 'data' => TherapistChatroomResource::collection($users)];
+        return ['success' => true, 'data' => PhcWorkerChatroomResource::collection($users)];
     }
 
     /**
      * @OA\Get(
-     *     path="/api/therapist/list/by-country-id",
-     *     tags={"Therapist"},
-     *     summary="Lists all therapists by country",
-     *     operationId="therapistListByCountry",
+     *     path="/api/phc-workers/list/by-country-id",
+     *     tags={"PhcWorker"},
+     *     summary="Lists all phc workers by country",
+     *     operationId="phcWorkerListByCountry",
      *     @OA\Parameter(
      *         name="country_id",
      *         in="query",
@@ -923,9 +921,9 @@ class TherapistController extends Controller
      */
     public function getByCountryId(Request $request)
     {
-        $users = User::where('country_id', $request->get('country_id'))->where('enabled', 1)->where('type', User::TYPE_THERAPIST)->get();
+        $users = User::where('country_id', $request->get('country_id'))->where('enabled', 1)->where('type', User::TYPE_PHC_WORKER)->get();
 
-        return ['success' => true, 'data' => TherapistListResource::collection($users)];
+        return ['success' => true, 'data' => PhcWorkerListResource::collection($users)];
     }
 
     /**
@@ -935,9 +933,9 @@ class TherapistController extends Controller
     public function getUsedProfession(Request $request)
     {
         $professionId = $request->get('profession_id');
-        $therapists = User::where('profession_id', $professionId)->count();
+        $phcWorkers = User::where('profession_id', $professionId)->count();
 
-        return $therapists > 0;
+        return $phcWorkers > 0;
     }
 
     /**
@@ -947,17 +945,17 @@ class TherapistController extends Controller
     public function deleteChatRoomById(Request $request)
     {
         $chatRoomId = $request->get('chat_room_id');
-        $therapistId = $request->get('therapist_id');
+        $phcWorkerId = $request->get('phc_worker_id');
 
-        $therapist = User::where('id', $therapistId)->first();
-        $chatRooms = $therapist['chat_rooms'];
+        $phcWorker = User::where('id', $phcWorkerId)->first();
+        $chatRooms = $phcWorker['chat_rooms'];
         if (($key = array_search($chatRoomId, $chatRooms)) !== false) {
             unset($chatRooms[$key]);
         }
 
         $updateData['chat_rooms'] = $chatRooms;
-        $therapist->fill($updateData);
-        $therapist->save();
+        $phcWorker->fill($updateData);
+        $phcWorker->save();
 
         return ['success' => true, 'message' => 'success_message.deleted_chat_rooms'];
     }
@@ -972,20 +970,18 @@ class TherapistController extends Controller
     private function updateUserLocale($email, $languageCode)
     {
         $token = KeycloakHelper::getKeycloakAccessToken();
-
         if ($token) {
             try {
-                $userUrl = KEYCLOAK_USERS . '?email=' . $email;
-
+                $userUrl = KeycloakHelper::getUserUrl() . '?email=' . $email;
                 $response = Http::withToken($token)->get($userUrl);
                 $keyCloakUsers = $response->json();
-                $url = KEYCLOAK_USERS . '/' . $keyCloakUsers[0]['id'];
-
-                $response = Http::withToken($token)->put($url, [
-                    'attributes' => [
-                        'locale' => [$languageCode]
-                    ]
-                ]);
+                 if (empty($keyCloakUsers)) {
+                    throw new \Exception("User not found in Keycloak");
+                }
+                $user = $keyCloakUsers[0];
+                $url = KeycloakHelper::getUserUrl() . '/' . $user['id'];
+                $user['attributes']['locale'] = [$languageCode];
+                $response = Http::withToken($token)->put($url, $user);
 
                 return $response->successful();
             } catch (\Exception $e) {
@@ -1000,10 +996,10 @@ class TherapistController extends Controller
      * @param Request $request
      * @return int
      */
-    public function getTherapistPatientLimit(Request $request)
+    public function getPhcWorkerPatientLimit(Request $request)
     {
-        $therapist = User::find($request['therapist_id']);
-        return $therapist ? $therapist->limit_patient : 0;
+        $phcWorker = User::find($request['phc_worker_id']);
+        return $phcWorker ? $phcWorker->limit_patient : 0;
     }
 
     /**
@@ -1053,11 +1049,26 @@ class TherapistController extends Controller
      *
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
-    public function getPatientTherapistByIds(Request $request)
+    public function getPatientPhcWorkerByIds(Request $request)
     {
         $ids = json_decode($request->get('ids', []));
         $users = User::whereIn('id', $ids)->get();
 
-        return PatientTherapistResource::collection($users);
+        return PatientPhcWorkerResource::collection($users);
+    }
+
+    /**
+     * @param \Illuminate\Http\Request $request
+     *
+     * @return array
+     */
+    public function countPhcWorkerByPhcService(Request $request)
+    {
+        $phcServiceId = $request->get('phc_service_id');
+        $phcWorkerTotal = User::where('phc_service_id', $phcServiceId)->where('enabled', 1)->where('type', User::TYPE_PHC_WORKER)->count();
+
+        return [
+            'data' => $phcWorkerTotal
+        ];
     }
 }
