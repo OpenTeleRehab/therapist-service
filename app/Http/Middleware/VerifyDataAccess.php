@@ -26,6 +26,27 @@ class VerifyDataAccess
         $therapistId   = $request->get('therapist_id') ?? $request->get('therapist');
 
         $user = auth()->user();
+         if ($user->email == env('KEYCLOAK_BACKEND_CLIENT')) {
+            if (!empty($request->header('int-country-id'))) {
+                $user->country_id = (int) $request->header('int-country-id');
+            }
+
+            if (!empty($request->header('int-region-id'))) {
+                $user->region_id = (int) $request->header('int-region-id');
+            }
+
+            if (!empty($request->header('int-province-id'))) {
+                $user->province_id = (int) $request->header('int-province-id');
+            }
+
+            if (!empty($request->header('int-clinic-id'))) {
+                $user->clinic_id = (int) $request->header('int-clinic-id');
+            }
+
+            if (!empty($request->header('int-phc-service-id'))) {
+                $user->phc_service_id = (int) $request->header('int-phc-service-id');
+            }
+        }
         $deny = fn() => response()->json(['message' => 'Access denied'], 403);
 
         // Early exit: skip validation

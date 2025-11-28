@@ -23,9 +23,6 @@ use Twilio\Jwt\Grants\VideoGrant;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
-define("KEYCLOAK_USERS", env('KEYCLOAK_URL') . '/auth/admin/realms/' . env('KEYCLOAK_REAMLS_NAME') . '/users');
-define("KEYCLOAK_EXECUTE_EMAIL", '/execute-actions-email?client_id=' . env('KEYCLOAK_BACKEND_CLIENT') . '&redirect_uri=' . env('REACT_APP_BASE_URL'));
-
 class TherapistController extends Controller
 {
     /**
@@ -86,6 +83,14 @@ class TherapistController extends Controller
 
             if ($request->has('country_id')) {
                 $query->where('country_id', $request->get('country_id'));
+            }
+
+            if ($request->has('region_id')) {
+                $query->where('region_id', $request->get('region_id'));
+            }
+
+            if ($request->has('province_id')) {
+                $query->where('province_id', $request->get('province_id'));
             }
 
             if (isset($data['user_type']) && $data['user_type'] === User::ADMIN_GROUP_ORGANIZATION_ADMIN) {
@@ -188,7 +193,25 @@ class TherapistController extends Controller
      *         description="Country_id",
      *         required=true,
      *         @OA\Schema(
-     *             type="string"
+     *             type="integer"
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="region_id",
+     *         in="query",
+     *         description="Region id",
+     *         required=true,
+     *         @OA\Schema(
+     *             type="integer"
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="province_id",
+     *         in="query",
+     *         description="Province id",
+     *         required=true,
+     *         @OA\Schema(
+     *             type="integer"
      *         )
      *     ),
      *     @OA\Parameter(
@@ -247,20 +270,23 @@ class TherapistController extends Controller
      */
     public function store(Request $request)
     {
-        $email = $request->get('email');
-        $clinic = $request->get('clinic');
-
-        if (User::where('email', $email)->exists()) {
-            return ['success' => false, 'message' => 'error_message.email_exists'];
-        }
-
+        $request->validate([
+            'email' => 'required|email|unique:users,email',
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'limit_patient' => 'required|integer',
+        ],
+        [
+            'email.unique' => 'error_message.email_exists',
+        ]);
+        $user = Auth::user();
         DB::beginTransaction();
 
+        $email = $request->get('email');
         $phone = $request->get('phone');
         $dialCode = $request->get('dial_code');
         $firstName = $request->get('first_name');
         $lastName = $request->get('last_name');
-        $country = $request->get('country');
         $limitPatient = $request->get('limit_patient');
         $language = $request->get('language_id');
         $profession = $request->get('profession');
@@ -274,11 +300,13 @@ class TherapistController extends Controller
             'dial_code' => $dialCode,
             'first_name' => $firstName,
             'last_name' => $lastName,
-            'country_id' => $country,
+            'country_id' => $user->country_id,
             'limit_patient' => $limitPatient,
-            'clinic_id' => $clinic,
+            'clinic_id' => $user->clinic_id,
             'language_id' => $language,
-            'profession_id' => $profession
+            'profession_id' => $profession,
+            'province_id' => $user->province_id,
+            'region_id' => $user->region_id
         ]);
 
         if (!$therapist) {
@@ -404,6 +432,42 @@ class TherapistController extends Controller
      *             type="integer"
      *         )
      *     ),
+     *     @OA\Parameter(
+     *         name="country",
+     *         in="query",
+     *         description="Country id",
+     *         required=true,
+     *         @OA\Schema(
+     *             type="integer"
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="region_id",
+     *         in="query",
+     *         description="Region id",
+     *         required=true,
+     *         @OA\Schema(
+     *             type="integer"
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="province_id",
+     *         in="query",
+     *         description="Province id",
+     *         required=true,
+     *         @OA\Schema(
+     *             type="integer"
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="clinic",
+     *         in="query",
+     *         description="clinic_id",
+     *         required=true,
+     *         @OA\Schema(
+     *             type="integer"
+     *         )
+     *     ),
      *     @OA\Response(
      *         response="200",
      *         description="successful operation"
@@ -427,6 +491,11 @@ class TherapistController extends Controller
     {
         try {
             $user = User::findOrFail($id);
+            $request->validate([
+                'first_name' => 'required|string|max:255',
+                'last_name' => 'required|string|max:255',
+                'limit_patient' => 'required|integer',
+            ]);
             $data = $request->all();
             $dataUpdate = [
                 'first_name' => $data['first_name'],
@@ -508,7 +577,7 @@ class TherapistController extends Controller
         try {
             $enabled = $request->boolean('enabled');
             $token = KeycloakHelper::getKeycloakAccessToken();
-            $userUrl = KEYCLOAK_USERS . '?email=' . $user->email;
+            $userUrl = KeycloakHelper::getUserUrl() . '?email=' . $user->email;
             $user->update(['enabled' => $enabled]);
 
             // Create rocketchat room.
@@ -526,7 +595,7 @@ class TherapistController extends Controller
 
             $response = Http::withToken($token)->get($userUrl);
             $keyCloakUsers = $response->json();
-            $url = KEYCLOAK_USERS . '/' . $keyCloakUsers[0]['id'];
+            $url = KeycloakHelper::getUserUrl() . '/' . $keyCloakUsers[0]['id'];
 
             $userUpdated = Http::withToken($token)
                 ->put($url, ['enabled' => $enabled]);
@@ -611,7 +680,7 @@ class TherapistController extends Controller
 
             $token = KeycloakHelper::getKeycloakAccessToken();
 
-            $userUrl = KEYCLOAK_USERS . '?email=' . $user->email;
+            $userUrl = KeycloakHelper::getUserUrl() . '?email=' . $user->email;
             $response = Http::withToken($token)->get($userUrl);
 
             if ($response->successful()) {
@@ -643,7 +712,7 @@ class TherapistController extends Controller
             foreach ($users as $user) {
                 $token = KeycloakHelper::getKeycloakAccessToken();
 
-                $userUrl = KEYCLOAK_USERS . '?email=' . $user->email;
+                $userUrl = KeycloakHelper::getUserUrl() . '?email=' . $user->email;
                 $response = Http::withToken($token)->get($userUrl);
 
                 if ($response->successful()) {
@@ -671,7 +740,7 @@ class TherapistController extends Controller
 
         if ($token) {
             try {
-                $keycloakUsersResponse = Http::withToken($token)->get(KEYCLOAK_USERS, ['email' => $therapist->email, 'exact' => 'true']);
+                $keycloakUsersResponse = Http::withToken($token)->get(KeycloakHelper::getUserUrl(), ['email' => $therapist->email, 'exact' => 'true']);
                 $userExists = null;
                 if ($keycloakUsersResponse->successful()) {
                     $userExists = $keycloakUsersResponse->json();
@@ -693,7 +762,7 @@ class TherapistController extends Controller
 
                     $updateResponse = Http::withToken($token)
                         ->withHeaders(['Content-Type' => 'application/json'])
-                        ->put(KEYCLOAK_USERS . '/' . $userKeycloakUuid, $data);
+                        ->put(KeycloakHelper::getUserUrl() . '/' . $userKeycloakUuid, $data);
 
                     if ($updateResponse->successful()) {
                         return $userKeycloakUuid;
@@ -701,7 +770,7 @@ class TherapistController extends Controller
                 } else {
                     $response = Http::withToken($token)->withHeaders([
                         'Content-Type' => 'application/json'
-                    ])->post(KEYCLOAK_USERS, $data);
+                    ])->post(KeycloakHelper::getUserUrl(), $data);
 
 
                     if ($response->successful()) {
@@ -784,7 +853,7 @@ class TherapistController extends Controller
     {
         $token = KeycloakHelper::getKeycloakAccessToken();
 
-        $url = KEYCLOAK_USER_URL . '/' . $userId . KEYCLOAK_EXECUTE_EMAIL;
+        $url = KeycloakHelper::getUserUrl() . '/' . $userId . KeycloakHelper::getExecuteEmailUrl();
         $response = Http::withToken($token)->put($url, ['UPDATE_PASSWORD']);
 
         return $response;
@@ -801,7 +870,7 @@ class TherapistController extends Controller
 
         $response = Http::withToken($token)->withHeaders([
             'Content-Type' => 'application/json'
-        ])->get(KEYCLOAK_USERS, [
+        ])->get(KeycloakHelper::getUserUrl(), [
             'username' => $user->email,
         ]);
 
@@ -975,17 +1044,17 @@ class TherapistController extends Controller
 
         if ($token) {
             try {
-                $userUrl = KEYCLOAK_USERS . '?email=' . $email;
+                $userUrl = KeycloakHelper::getUserUrl() . '?email=' . $email;
 
                 $response = Http::withToken($token)->get($userUrl);
                 $keyCloakUsers = $response->json();
-                $url = KEYCLOAK_USERS . '/' . $keyCloakUsers[0]['id'];
-
-                $response = Http::withToken($token)->put($url, [
-                    'attributes' => [
-                        'locale' => [$languageCode]
-                    ]
-                ]);
+                if (empty($keyCloakUsers)) {
+                    throw new \Exception("User not found in Keycloak");
+                }
+                $user = $keyCloakUsers[0];
+                $url = KeycloakHelper::getUserUrl() . '/' . $user['id'];
+                $user['attributes']['locale'] = [$languageCode];
+                $response = Http::withToken($token)->put($url, $user);
 
                 return $response->successful();
             } catch (\Exception $e) {
