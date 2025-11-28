@@ -36,6 +36,7 @@ class ProfileResource extends JsonResource
             'chat_password' => $password,
             'chat_rooms' => $this->chat_rooms ?: [],
             'show_guidance' => $this->show_guidance,
+            'type' => $this->type,
         ];
     }
 }

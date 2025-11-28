@@ -114,6 +114,9 @@ class SetupKeycloakPermissions extends Command
                 'view_notification',
                 'download_file',
                 'view_dashboard',
+                'manage_exercise',
+                'manage_education_material',
+                'manage_questionnaire',
             ],
         ];
 

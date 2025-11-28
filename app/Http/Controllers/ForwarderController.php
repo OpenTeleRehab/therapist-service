@@ -35,6 +35,7 @@ class ForwarderController extends Controller
             return Http::withToken($access_token)->withHeaders([
                 'int-country-id' => $user->country_id,
                 'int-region-id' => $user?->region_id,
+                'int-user-type' => $user?->type,
             ])->get(env('ADMIN_SERVICE_URL') . $endpoint, $params);
         }
 
