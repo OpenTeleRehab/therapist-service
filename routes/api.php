@@ -139,6 +139,12 @@ Route::group(['middleware' => ['auth:api', 'verify.data.access']], function () {
 
         // Assistive Technologies
         Route::get('assistive-technologies/list/get-all', [ForwarderController::class, 'index'])->middleware('role:view_assistive_technology');
+
+        // Regions
+        Route::get('regions', [ForwarderController::class, 'index'])->middleware('role:view_region_list');
+
+        // Province
+        Route::get('provinces', [ForwarderController::class, 'index'])->middleware('role:view_province_list');
     });
 
     // Patient Service

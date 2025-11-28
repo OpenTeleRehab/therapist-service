@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Forwarder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 
 class ForwarderController extends Controller
@@ -20,7 +21,7 @@ class ForwarderController extends Controller
         $country = $request->header('country');
         $endpoint = str_replace('api/', '/', $request->path());
         $params = $request->all();
-        $user = auth()->user();
+        $user = Auth::user();
 
         if ($service_name !== null && str_contains($service_name, Forwarder::GADMIN_SERVICE)) {
             $access_token = Forwarder::getAccessToken(Forwarder::GADMIN_SERVICE);
@@ -30,7 +31,11 @@ class ForwarderController extends Controller
         if ($service_name !== null && str_contains($service_name, Forwarder::ADMIN_SERVICE)) {
             $access_token = Forwarder::getAccessToken(Forwarder::ADMIN_SERVICE);
             $params['country_id'] ??= $user->country_id;
-            return Http::withToken($access_token)->get(env('ADMIN_SERVICE_URL') . $endpoint, $params);
+
+            return Http::withToken($access_token)->withHeaders([
+                'int-country-id' => $user->country_id,
+                'int-region-id' => $user?->region_id,
+            ])->get(env('ADMIN_SERVICE_URL') . $endpoint, $params);
         }
 
         if ($service_name !== null && str_contains($service_name, Forwarder::PATIENT_SERVICE)) {
@@ -56,6 +61,7 @@ class ForwarderController extends Controller
      */
     public function store(Request $request)
     {
+        $user = Auth::user();
         $service_name = $request->route()->getName();
         $country = $request->header('country');
         $endpoint = str_replace('api/', '/', $request->path());
@@ -119,7 +125,10 @@ class ForwarderController extends Controller
         if ($service_name !== null && str_contains($service_name, Forwarder::PATIENT_SERVICE)) {
             $access_token = Forwarder::getAccessToken(Forwarder::PATIENT_SERVICE, $country);
             return Http::withToken($access_token)->withHeaders([
-                'country' => $country,
+                'ountry' => $country,
+                'int-country-id' => $user->country_id,
+                'int-region-id' => $user?->region_id,
+                'int-province-id' => $user?->province_id,
             ])->post(env('PATIENT_SERVICE_URL') . $endpoint, $request->all());
         }
     }
