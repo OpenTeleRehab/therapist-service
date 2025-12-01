@@ -125,7 +125,7 @@ class ForwarderController extends Controller
         if ($service_name !== null && str_contains($service_name, Forwarder::PATIENT_SERVICE)) {
             $access_token = Forwarder::getAccessToken(Forwarder::PATIENT_SERVICE, $country);
             return Http::withToken($access_token)->withHeaders([
-                'ountry' => $country,
+                'country' => $country,
                 'int-country-id' => $user->country_id,
                 'int-region-id' => $user?->region_id,
                 'int-province-id' => $user?->province_id,
