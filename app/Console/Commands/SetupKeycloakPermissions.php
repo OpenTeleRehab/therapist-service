@@ -48,6 +48,8 @@ class SetupKeycloakPermissions extends Command
             'export',
             'download_file',
             'view_dashboard',
+            'view_region_list',
+            'view_province_list',
         ];
         $groupRoles = [
             'therapist' => [
@@ -85,6 +87,8 @@ class SetupKeycloakPermissions extends Command
                 'export',
                 'download_file',
                 'view_dashboard',
+                'view_region_list',
+                'view_province_list',
             ],
             'phc_worker' => [
                 'view_patient',
