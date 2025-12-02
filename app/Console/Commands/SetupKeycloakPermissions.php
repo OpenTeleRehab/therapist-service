@@ -117,6 +117,7 @@ class SetupKeycloakPermissions extends Command
                 'manage_exercise',
                 'manage_education_material',
                 'manage_questionnaire',
+                'manage_category',
             ],
         ];
 
