@@ -414,6 +414,7 @@ class PhcWorkerController extends Controller
             $dataUpdate = [
                 'first_name' => $request->get('first_name'),
                 'last_name' => $request->get('last_name'),
+                'limit_patient' => $request->get('limit_patient'),
                 'phone' => $request->get('phone'),
                 'dial_code' => $request->get('dial_code'),
                 'profession_id' => $request->get('profession_id'),
