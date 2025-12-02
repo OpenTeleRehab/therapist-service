@@ -22,6 +22,8 @@ class TherapistListResource extends JsonResource
             'country_id' => $this->country_id,
             'profession_id' => $this->profession_id,
             'limit_patient' => $this->limit_patient,
+            'region_id' => $this->region_id,
+            'province_id' => $this->province_id,
         ];
 
         if ($request->get('user_type') === User::ADMIN_GROUP_CLINIC_ADMIN) {

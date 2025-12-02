@@ -177,45 +177,9 @@ class PhcWorkerController extends Controller
      *         )
      *     ),
      *     @OA\Parameter(
-     *         name="country_id",
-     *         in="query",
-     *         description="Country id",
-     *         required=true,
-     *         @OA\Schema(
-     *             type="string"
-     *         )
-     *     ),
-     *     @OA\Parameter(
-     *         name="region_id",
-     *         in="query",
-     *         description="Region id",
-     *         required=true,
-     *         @OA\Schema(
-     *             type="string"
-     *         )
-     *     ),
-     *     @OA\Parameter(
-     *         name="province_id",
-     *         in="query",
-     *         description="Province id",
-     *         required=true,
-     *         @OA\Schema(
-     *             type="string"
-     *         )
-     *     ),
-     *     @OA\Parameter(
      *         name="limit_patient",
      *         in="query",
      *         description="Limit patient",
-     *         required=true,
-     *         @OA\Schema(
-     *             type="integer"
-     *         )
-     *     ),
-     *     @OA\Parameter(
-     *         name="phc_service",
-     *         in="query",
-     *         description="phc_service_id",
      *         required=true,
      *         @OA\Schema(
      *             type="integer"
@@ -263,11 +227,10 @@ class PhcWorkerController extends Controller
             'email' => 'required|email|unique:users,email',
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
-            'country_id' => 'required|integer',
-            'region_id' => 'required|integer',
-            'province_id' => 'required|integer',
             'limit_patient' => 'required|integer',
-            'phc_service_id' => 'required|integer'
+        ],
+        [
+            'email.unique' => 'error_message.email_exists',
         ]);
 
         $email = $request->get('email');
@@ -278,10 +241,8 @@ class PhcWorkerController extends Controller
         $limitPatient = $request->get('limit_patient');
         $languageId = $request->get('language_id');
         $professionId = $request->get('profession_id');
-        $regionId = $request->get('region_id');
-        $provinceId = $request->get('province_id');
         $languageCode = $request->get('language_code');
-
+        $user = Auth::user();
         DB::beginTransaction();
         $phcWorker = User::create([
             'first_name' => $firstName,
@@ -289,11 +250,11 @@ class PhcWorkerController extends Controller
             'email' => $email,
             'phone' => $phone,
             'dial_code' => $dialCode,
-            'country_id' => $request->get('country_id'),
-            'region_id' => $regionId,
-            'province_id' => $provinceId,
+            'country_id' => $user->country_id,
+            'region_id' => $user->region_id,
+            'province_id' => $user->province_id,
             'limit_patient' => $limitPatient,
-            'phc_service_id' => $request->get('phc_service_id'),
+            'phc_service_id' => $user->phc_service_id,
             'type' => User::TYPE_PHC_WORKER,
             'profession_id' => $professionId,
             'language_id' => $languageId,
@@ -448,11 +409,7 @@ class PhcWorkerController extends Controller
             $request->validate([
                 'first_name' => 'required|string|max:255',
                 'last_name' => 'required|string|max:255',
-                'country_id' => 'required|integer',
-                'region_id' => 'required|integer',
-                'province_id' => 'required|integer',
                 'limit_patient' => 'required|integer',
-                'phc_service_id' => 'required|integer'
             ]);
             $dataUpdate = [
                 'first_name' => $request->get('first_name'),
