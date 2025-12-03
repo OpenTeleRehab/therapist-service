@@ -1029,4 +1029,21 @@ class PhcWorkerController extends Controller
             'data' => $phcWorkerTotal
         ];
     }
+
+    /**
+     * Get all PHC workers for internal.
+     *
+     * This method retrieves all users with type `GROUP_PHC_WORKER`
+     * and returns their `id`, `first_name`, and `last_name`.
+     *
+     * @return \Illuminate\Http\JsonResponse JSON response containing PHC workers.
+     */
+    public function getAll()
+    {
+        $phcWorkers = User::where('type', User::GROUP_PHC_WORKER)
+            ->select('id', 'first_name', 'last_name')
+            ->get();
+
+        return response()->json(['data' => $phcWorkers], 200);
+    }
 }

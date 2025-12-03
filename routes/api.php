@@ -28,6 +28,7 @@ use App\Http\Controllers\PhcWorkerController;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
+
 Route::group(['middleware' => ['auth:api', 'verify.data.access']], function () {
     // Patient
     Route::get('patient/by-phone-number', [TherapistController::class, 'getPatientByPhoneNumber'])->middleware('role:view_patient');
@@ -66,6 +67,7 @@ Route::group(['middleware' => ['auth:api', 'verify.data.access']], function () {
     Route::get('phc-workers/list/by-phc-service', [PhcWorkerController::class, 'getByPhcServiceId'])->middleware('role:view_phc_service_phc_worker');
     Route::get('phc-workers/list-for-chatroom', [PhcWorkerController::class, 'listForChatroom'])->middleware('role:view_phc_service_phc_worker');
     Route::post('phc-workers/delete-chat-room/by-id', [PhcWorkerController::class, 'deleteChatRoomById'])->middleware('role:delete_chat_room');
+    Route::get('phc-workers/all', [PhcWorkerController::class, 'getAll'])->middleware('role:access_all');
 
     // Dashboard
     Route::get('chart/get-data-for-global-admin', [ChartController::class, 'getDataForGlobalAdmin']); // deprecated
@@ -186,6 +188,11 @@ Route::group(['middleware' => ['auth:api', 'verify.data.access']], function () {
         Route::get('export', [ExportController::class, 'export'])->middleware('role:export');
 
         Route::get('download-file', [ForwarderController::class, 'index'])->middleware('role:download_file');
+
+        // Referrals
+        Route::apiResource('patient-referrals', ForwarderController::class)->middleware('role:manage_patient_referral');
+
+        Route::apiResource('patient-referral-assignments', ForwarderController::class)->middleware('role:manage_patient_referral_assignment');
     });
 
     // Superset

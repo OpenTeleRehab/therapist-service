@@ -57,6 +57,8 @@ class SetupKeycloakPermissions extends Command
             'setup_educational_material',
             'setup_questionnaire',
             'view_health_condition',
+            'manage_patient_referral',
+            'manage_patient_referral_assignment',
         ];
         $groupRoles = [
             'therapist' => [
@@ -99,6 +101,7 @@ class SetupKeycloakPermissions extends Command
                 'setup_exercise',
                 'setup_educational_material',
                 'setup_questionnaire',
+                'manage_patient_referral_assignment',
             ],
             'phc_worker' => [
                 'view_patient',
@@ -134,6 +137,7 @@ class SetupKeycloakPermissions extends Command
                 'view_phc_service_list',
                 'view_phc_service_phc_worker',
                 'view_health_condition',
+                'manage_patient_referral',
             ],
         ];
 
