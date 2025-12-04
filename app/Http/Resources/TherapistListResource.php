@@ -35,6 +35,7 @@ class TherapistListResource extends JsonResource
                 'email' => $this->email,
                 'enabled' => $this->enabled,
                 'language_id' => $this->language_id,
+                'last_login' => $this->last_login,
             ]);
         }
 
