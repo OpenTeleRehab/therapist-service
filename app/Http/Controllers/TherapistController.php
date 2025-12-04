@@ -9,6 +9,7 @@ use App\Http\Resources\PatientTherapistResource;
 use App\Http\Resources\TherapistChatroomResource;
 use App\Http\Resources\TherapistListResource;
 use App\Http\Resources\TherapistOptionResource;
+use App\Http\Resources\UserOptionResource;
 use App\Models\Forwarder;
 use App\Models\Transfer;
 use App\Models\TreatmentPlan;
@@ -1016,7 +1017,7 @@ class TherapistController extends Controller
     public function deleteChatRoomById(Request $request)
     {
         $chatRoomId = $request->get('chat_room_id');
-        $therapistId = $request->get('therapist_id');
+        $therapistId = $request->get('user_id');
 
         $therapist = User::where('id', $therapistId)->first();
         $chatRooms = $therapist['chat_rooms'];
@@ -1128,5 +1129,44 @@ class TherapistController extends Controller
         $users = User::whereIn('id', $ids)->get();
 
         return PatientTherapistResource::collection($users);
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/api/therapist/option/list",
+     *     tags={"User"},
+     *     summary="Lists all users for option list",
+     *     operationId="userOptionList",
+     *     @OA\Response(
+     *         response="200",
+     *         description="successful operation"
+     *     ),
+     *     @OA\Response(response=400, description="Bad request"),
+     *     @OA\Response(response=404, description="Resource Not Found"),
+     *     @OA\Response(response=401, description="Authentication is required"),
+     *     security={
+     *         {
+     *             "oauth2_security": {}
+     *         }
+     *     },
+     * )
+     *
+     * @param \Illuminate\Http\Request $request
+     *
+     * @return array
+     */
+    public function getUserOptionList(Request $request)
+    {
+        $auth = Auth::user();
+        $query = User::query();
+        if ($auth->clinic_id) {
+            $query->where('clinic_id', $auth->clinic_id);
+        }
+        if ($auth->phc_service_id) {
+            $query->where('phc_service_id', $auth->phc_service_id);
+        }
+        $users = $query->where('enabled', 1)->get();
+
+        return ['success' => true, 'data' => UserOptionResource::collection($users)];
     }
 }

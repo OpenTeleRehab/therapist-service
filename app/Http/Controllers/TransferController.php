@@ -66,6 +66,7 @@ class TransferController extends Controller
         ], [
             'patient_id' => $request->get('patient_id'),
             'clinic_id' => $request->get('clinic_id'),
+            'phc_service_id' => $request->get('phc_service_id'),
             'from_therapist_id' => $request->get('from_therapist_id'),
             'to_therapist_id' => $request->get('to_therapist_id'),
             'therapist_type' => $request->get('therapist_type'),
