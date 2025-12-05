@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Forwarder;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
@@ -41,9 +42,10 @@ class ForwarderController extends Controller
 
         if ($service_name !== null && str_contains($service_name, Forwarder::PATIENT_SERVICE)) {
             $access_token = Forwarder::getAccessToken(Forwarder::PATIENT_SERVICE, $country);
-            $params['therapist_id'] ??= $user->id;
             $response = Http::withToken($access_token)->withHeaders([
-                'country' => $country
+                'country' => $country,
+                'int-user-type' => $user?->type,
+                'int-therapist-user-id' => $user?->id,
             ])->get(env('PATIENT_SERVICE_URL') . $endpoint, $params);
             return response($response->body(), $response->status())
                 ->withHeaders([
@@ -130,6 +132,10 @@ class ForwarderController extends Controller
                 'int-country-id' => $user->country_id,
                 'int-region-id' => $user?->region_id,
                 'int-province-id' => $user?->province_id,
+                'int-clinic-id' => $user?->clinic_id,
+                'int-phc-service-id' => $user?->phc_service_id,
+                'int-user-type' => $user?->type,
+                'int-therapist-user-id' => $user?->id,
             ])->post(env('PATIENT_SERVICE_URL') . $endpoint, $request->all());
         }
     }

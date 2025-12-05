@@ -903,7 +903,7 @@ class PhcWorkerController extends Controller
     public function deleteChatRoomById(Request $request)
     {
         $chatRoomId = $request->get('chat_room_id');
-        $phcWorkerId = $request->get('phc_worker_id');
+        $phcWorkerId = $request->get('user_id');
 
         $phcWorker = User::where('id', $phcWorkerId)->first();
         $chatRooms = $phcWorker['chat_rooms'];

@@ -3,7 +3,6 @@
 namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
-use App\Models\User;
 use App\Helpers\CryptHelper;
 
 class ProfileResource extends JsonResource
@@ -20,7 +19,10 @@ class ProfileResource extends JsonResource
         return [
             'id' => $this->id,
             'identity' => $this->identity,
+            'region_id' => $this->region_id,
+            'province_id' => $this->province_id,
             'clinic_id' => $this->clinic_id,
+            'phc_service_id' => $this->phc_service_id,
             'country_id' => $this->country_id,
             'profession_id' => $this->profession_id,
             'limit_patient' => $this->limit_patient,

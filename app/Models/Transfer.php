@@ -28,6 +28,7 @@ class Transfer extends Model
         'from_therapist_id',
         'to_therapist_id',
         'clinic_id',
+        'phc_service_id',
         'therapist_type',
         'status'
     ];

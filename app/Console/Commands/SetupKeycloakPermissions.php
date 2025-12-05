@@ -50,6 +50,9 @@ class SetupKeycloakPermissions extends Command
             'view_dashboard',
             'view_region_list',
             'view_province_list',
+            'view_phc_service_list',
+            'view_phc_service_phc_worker',
+            'view_phc_service_list',
         ];
         $groupRoles = [
             'therapist' => [
@@ -110,6 +113,7 @@ class SetupKeycloakPermissions extends Command
                 'view_patient_activity',
                 'manage_patient_treatment_plan',
                 'manage_patient_assistive_technology',
+                'manage_transfer',
                 'export_treatment_plan',
                 'view_notification',
                 'download_file',
@@ -118,6 +122,10 @@ class SetupKeycloakPermissions extends Command
                 'manage_education_material',
                 'manage_questionnaire',
                 'manage_category',
+                'view_region_list',
+                'view_province_list',
+                'view_phc_service_list',
+                'view_phc_service_phc_worker',
             ],
         ];
 
