@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\DownloadTrackerController;
 use App\Http\Controllers\ExportController;
@@ -190,6 +191,10 @@ Route::group(['middleware' => ['auth:api', 'verify.data.access']], function () {
     // Superset
     Route::get('/superset-guest-token', [SupersetController::class, 'index'])->middleware('role:view_dashboard');
 });
+
+// Authentication
+Route::post('/auth/login', [AuthController::class, 'login']);
+Route::post('/auth/forgot-password', [AuthController::class, 'forgotPassword']);
 
 // Audit logs
 Route::post('/audit-logs', [TherapistAuditLogController::class, 'store']);
