@@ -55,6 +55,14 @@ class KeycloakHelper
     }
 
     /**
+     * @return string
+     */
+    public static function getTokenUrl(): string
+    {
+        return config('keycloak.token_url');
+    }
+
+    /**
      * @return mixed|null
      */
     public static function getKeycloakAccessToken()
@@ -162,7 +170,7 @@ class KeycloakHelper
      */
     public static function getLoginUser($username, $password)
     {
-        return Http::asForm()->post(KEYCLOAK_TOKEN_URL, [
+        return Http::asForm()->post(self::getTokenUrl(), [
             'grant_type' => 'password',
             'client_id' => env('KEYCLOAK_BACKEND_CLIENT'),
             'client_secret' => env('KEYCLOAK_BACKEND_SECRET'),

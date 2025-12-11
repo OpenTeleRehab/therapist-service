@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 return [
   'realm_public_key' => env('KEYCLOAK_REALM_PUBLIC_KEY', null),
@@ -14,6 +14,8 @@ return [
   'allowed_resources' => env('KEYCLOAK_ALLOWED_RESOURCES', null),
 
   'user_url' => env('KEYCLOAK_URL') . '/auth/admin/realms/' . env('KEYCLOAK_REAMLS_NAME') . '/users',
+
+  'token_url' => env('KEYCLOAK_URL') . '/auth/realms/' . env('KEYCLOAK_REAMLS_NAME') . '/protocol/openid-connect/token',
 
   'execute_email' => '/execute-actions-email?client_id=' . env('KEYCLOAK_BACKEND_CLIENT') . '&redirect_uri=' . env('REACT_APP_BASE_URL'),
 
