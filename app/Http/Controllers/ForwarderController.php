@@ -152,11 +152,12 @@ class ForwarderController extends Controller
      *
      * @return \GuzzleHttp\Promise\PromiseInterface|\Illuminate\Http\Client\Response|\Illuminate\Http\Response
      */
-    public function show(Request $request, $id)
+    public function show(Request $request)
     {
         $service_name = $request->route()->getName();
         $country = $request->header('country');
         $endpoint = str_replace('api/', '/', $request->path());
+        $user = Auth::user();
 
         if ($service_name !== null && str_contains($service_name, Forwarder::GADMIN_SERVICE)) {
             $access_token = Forwarder::getAccessToken(Forwarder::GADMIN_SERVICE);
@@ -172,6 +173,7 @@ class ForwarderController extends Controller
             $access_token = Forwarder::getAccessToken(Forwarder::PATIENT_SERVICE, $country);
             return Http::withToken($access_token)->withHeaders([
                 'country' => $country,
+                'int-therapist-user-id' => $user?->id,
             ])->get(env('PATIENT_SERVICE_URL') . $endpoint, $request->all());
         }
     }
