@@ -168,6 +168,7 @@ Route::group(['middleware' => ['auth:api', 'verify.data.access']], function () {
         Route::post('patient/delete-chat-room/by-id', [ForwarderController::class, 'store'])->middleware('role:manage_patient');
         Route::apiResource('patient', ForwarderController::class)->middleware('role:manage_patient');
         Route::get('patient/list-for-chatroom', [ForwarderController::class, 'index'])->middleware('role:view_patient');
+        Route::get('patient/{patientId}/referrals', [ForwarderController::class, 'show'])->middleware('role:manage_patient');
 
         Route::post('appointment/updateStatus/{id}', [ForwarderController::class, 'store'])->middleware('role:manage_appointment');
         Route::apiResource('appointment', ForwarderController::class)->middleware('role:manage_appointment');
@@ -193,6 +194,9 @@ Route::group(['middleware' => ['auth:api', 'verify.data.access']], function () {
         // Referrals
         Route::apiResource('patient-referrals', ForwarderController::class)->middleware('role:manage_patient_referral');
 
+        Route::get('patient-referral-assignments/count', [ForwarderController::class, 'show'])->middleware('role:manage_patient_referral_assignment');
+        Route::put('patient-referral-assignments/{id}/accept', [ForwarderController::class, 'update'])->middleware('role:manage_patient_referral_assignment');
+        Route::put('patient-referral-assignments/{id}/decline', [ForwarderController::class, 'update'])->middleware('role:manage_patient_referral_assignment');
         Route::apiResource('patient-referral-assignments', ForwarderController::class)->middleware('role:manage_patient_referral_assignment');
     });
 
