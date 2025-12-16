@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Helpers\KeycloakHelper;
 use App\Http\Requests\ForgotPasswordRequest;
 use App\Http\Requests\LoginRequest;
-use Illuminate\Support\Facades\Http;
 
 class AuthController extends Controller
 {
@@ -30,55 +29,24 @@ class AuthController extends Controller
         ]);
     }
 
+    /**
+     * @param ForgotPasswordRequest $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function forgotPassword(ForgotPasswordRequest $request)
     {
-        $tokenResponse = Http::asForm()->post(KeycloakHelper::getTokenUrl(), [
-            'grant_type' => 'client_credentials',
-            'client_id' => env('KEYCLOAK_BACKEND_CLIENT'),
-            'client_secret' => env('KEYCLOAK_BACKEND_SECRET'),
-        ]);
+        $response = KeycloakHelper::forgetUserPassword($request->get('email'));
 
-        if (!$tokenResponse->successful()) {
+        if ($response) {
             return response()->json([
-                'success' => false,
-                'message' => 'common.keycloak_auth_failed',
+                'success' => true,
+                'message' => 'common.check_email_description',
             ]);
         }
-
-        $adminToken = $tokenResponse->json()['access_token'];
-
-        $usersUrl = env('KEYCLOAK_URL') .
-            '/auth/admin/realms/' . env('KEYCLOAK_REAMLS_NAME') .
-            '/users?email=' . urlencode($request->get('email'));
-
-        $usersResponse = Http::withToken($adminToken)->get($usersUrl);
-
-        $users = $usersResponse->json();
-
-        if (empty($users)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'common.email_not_exist'
-            ]);
-        }
-
-        $userId = $users[0]['id'];
-
-        $executeUrl = env('KEYCLOAK_URL') .
-            '/auth/admin/realms/' . env('KEYCLOAK_REAMLS_NAME') .
-            '/users/' . $userId . '/execute-actions-email';
-
-        $response = Http::withToken($adminToken)->put(
-            $executeUrl,
-            ['UPDATE_PASSWORD']
-        );
 
         return response()->json([
-            'success' => $response->successful(),
-            'message' => $response->successful()
-                ? 'common.check_email_description'
-                : 'common.sent_email_error',
-            'keycloak_response' => $response->json()
+            'success' => false,
+            'message' => 'common.sent_email_error',
         ]);
     }
 }
