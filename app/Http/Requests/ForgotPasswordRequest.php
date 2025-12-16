@@ -25,14 +25,4 @@ class ForgotPasswordRequest extends FormRequest
             'email' => 'email|required|exists:users,email',
         ];
     }
-
-    protected function failedValidation(\Illuminate\Contracts\Validation\Validator $validator)
-    {
-        throw new \Illuminate\Http\Exceptions\HttpResponseException(
-            response()->json([
-                'success' => false,
-                'message' => $validator->errors()->first(),
-            ], 422)
-        );
-    }
 }

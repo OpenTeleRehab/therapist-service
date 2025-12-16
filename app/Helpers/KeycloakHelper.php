@@ -202,6 +202,36 @@ class KeycloakHelper
     }
 
     /**
+     * @param $email
+     * @return bool
+     * @throws \Illuminate\Http\Client\ConnectionException
+     */
+    public static function forgetUserPassword($email)
+    {
+        $token = self::getKeycloakAccessToken();
+        $userUrl = self::getUserUrl() . '?email=' . $email;
+
+        $userResponse = Http::withToken($token)->get($userUrl);
+
+        if ($userResponse->successful()) {
+            $user = $userResponse->json();
+
+            $executeUrl = self::getUserUrl() . '/' . $user[0]['id'] . '/execute-actions-email';
+
+            $executeResponse = Http::withToken($token)->put(
+                $executeUrl,
+                ['UPDATE_PASSWORD']
+            );
+
+            if ($executeResponse->successful()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * @param string $role
      *
      * @return bool
