@@ -138,6 +138,7 @@ class SetupKeycloakPermissions extends Command
                 'view_phc_service_phc_worker',
                 'view_health_condition',
                 'manage_patient_referral',
+                'view_clinic_therapist',
             ],
         ];
 
