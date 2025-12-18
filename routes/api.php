@@ -152,6 +152,7 @@ Route::group(['middleware' => ['auth:api', 'verify.data.access']], function () {
         Route::get('regions', [ForwarderController::class, 'index'])->middleware('role:view_region_list');
 
         // Province
+        Route::get('provinces-by-user-country', [ForwarderController::class, 'index'])->middleware('role:view_country_provinces');
         Route::get('provinces', [ForwarderController::class, 'index'])->middleware('role:view_province_list');
 
         // PHC Services

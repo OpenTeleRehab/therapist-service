@@ -59,6 +59,7 @@ class SetupKeycloakPermissions extends Command
             'view_health_condition',
             'manage_patient_referral',
             'manage_patient_referral_assignment',
+            'view_country_provinces',
         ];
         $groupRoles = [
             'therapist' => [
@@ -139,6 +140,7 @@ class SetupKeycloakPermissions extends Command
                 'view_health_condition',
                 'manage_patient_referral',
                 'view_clinic_therapist',
+                'view_country_provinces',
             ],
         ];
 
