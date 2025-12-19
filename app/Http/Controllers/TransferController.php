@@ -84,6 +84,7 @@ class TransferController extends Controller
      */
     public function accept(Request $request, Transfer $transfer)
     {
+        $user = Auth::user();
         $patientId = $request->get('patient_id');
         $toTherapist = $transfer->to_therapist;
         $fromTherapist = $transfer->from_therapist;
@@ -109,6 +110,7 @@ class TransferController extends Controller
             'new_chat_rooms' => $toTherapist->chat_rooms ?? [],
             'chat_rooms' => $fromTherapist->chat_rooms ?? [],
             'therapist_type' => $transfer['therapist_type'],
+            'auth_user_type' => $user->type,
         ]);
 
         if ($response->successful()) {

@@ -1169,4 +1169,16 @@ class TherapistController extends Controller
 
         return ['success' => true, 'data' => UserOptionResource::collection($users)];
     }
+
+    /**
+     * Get all therapists except backend user.
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getAll()
+    {
+        $therapists = User::where('type', User::TYPE_THERAPIST)->where('email', '!=', env('KEYCLOAK_BACKEND_USERNAME'))
+            ->select('id', 'first_name', 'last_name')
+            ->get();
+        return response()->json(['data' => TherapistOptionResource::collection($therapists)], 200);
+    }
 }
