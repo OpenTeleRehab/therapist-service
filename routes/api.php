@@ -156,6 +156,11 @@ Route::group(['middleware' => ['auth:api', 'verify.data.access']], function () {
         Route::get('provinces-by-user-country', [ForwarderController::class, 'index'])->middleware('role:view_country_provinces');
         Route::get('provinces', [ForwarderController::class, 'index'])->middleware('role:view_province_list');
 
+        //Screening Questionnaire
+        Route::get('screening-questionnaires-list', [ForwarderController::class, 'index'])->middleware('role:view_screening_questionnaire_list');
+        Route::get('screening-questionnaires-history-list', [ForwarderController::class, 'index'])->middleware('role:view_interview_screening_questionnaire_history');
+        Route::post('screening-questionnaires/{id}/submit', [ForwarderController::class, 'store'])->middleware('role:submit_interview_screening_questionnaire');
+
         // PHC Services
         Route::get('phc-services', [ForwarderController::class, 'index'])->middleware('role:view_phc_service_list');
     });
