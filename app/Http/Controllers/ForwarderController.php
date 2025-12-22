@@ -46,6 +46,7 @@ class ForwarderController extends Controller
                 'country' => $country,
                 'int-user-type' => $user?->type,
                 'int-therapist-user-id' => $user?->id,
+                'int-country-id' => $user->country_id,
             ])->get(env('PATIENT_SERVICE_URL') . $endpoint, $params);
             return response($response->body(), $response->status())
                 ->withHeaders([
