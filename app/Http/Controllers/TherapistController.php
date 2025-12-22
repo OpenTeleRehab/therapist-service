@@ -1172,11 +1172,15 @@ class TherapistController extends Controller
 
     /**
      * Get all therapists except backend user.
+     *
+     * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function getAll()
+    public function getAllByCountry(Request $request)
     {
-        $therapists = User::where('type', User::TYPE_THERAPIST)->where('email', '!=', env('KEYCLOAK_BACKEND_USERNAME'))
+        $therapists = User::where('type', User::TYPE_THERAPIST)
+            ->where('email', '!=', env('KEYCLOAK_BACKEND_USERNAME'))
+            ->where('country_id', $request->get('country_id'))
             ->select('id', 'first_name', 'last_name')
             ->get();
         return response()->json(['data' => TherapistOptionResource::collection($therapists)], 200);
