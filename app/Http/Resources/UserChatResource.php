@@ -4,7 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class PhcWorkerChatroomResource extends JsonResource
+class UserChatResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -20,7 +20,6 @@ class PhcWorkerChatroomResource extends JsonResource
             'first_name' => $this->first_name,
             'last_name' => $this->last_name,
             'chat_user_id' => $this->chat_user_id,
-            'chat_rooms' => $this->chat_rooms,
         ];
 
         return $responseData;
