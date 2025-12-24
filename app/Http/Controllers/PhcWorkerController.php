@@ -6,7 +6,6 @@ use App\Helpers\CryptHelper;
 use App\Helpers\KeycloakHelper;
 use App\Helpers\RocketChatHelper;
 use App\Http\Resources\PatientPhcWorkerResource;
-use App\Http\Resources\PhcWorkerChatroomResource;
 use App\Http\Resources\PhcWorkerListResource;
 use App\Http\Resources\PhcWorkerOptionResource;
 use App\Models\Forwarder;
@@ -476,7 +475,7 @@ class PhcWorkerController extends Controller
      *
      * @param Request $request
      * @param \App\Models\User $user
-     * @return array
+     * @return \Illuminate\Http\JsonResponse
      */
     public function updateStatus(Request $request, User $user)
     {
@@ -828,20 +827,6 @@ class PhcWorkerController extends Controller
         $users = User::where('phc_service_id', $phcServiceId)->where('enabled', 1)->get();
 
         return ['success' => true, 'data' => PhcWorkerOptionResource::collection($users)];
-    }
-
-
-    /**
-     * @param \Illuminate\Http\Request $request
-     *
-     * @return array
-     */
-    public function listForChatroom(Request $request)
-    {
-        $phcServiceId = $request->get('phc_service_id') ?? Auth::user()->phc_service_id;
-        $users = User::where('phc_service_id', $phcServiceId)->where('enabled', 1)->get();
-
-        return ['success' => true, 'data' => PhcWorkerChatroomResource::collection($users)];
     }
 
     /**

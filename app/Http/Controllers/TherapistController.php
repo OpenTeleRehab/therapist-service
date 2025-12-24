@@ -6,7 +6,6 @@ use App\Helpers\CryptHelper;
 use App\Helpers\KeycloakHelper;
 use App\Helpers\RocketChatHelper;
 use App\Http\Resources\PatientTherapistResource;
-use App\Http\Resources\TherapistChatroomResource;
 use App\Http\Resources\TherapistListResource;
 use App\Http\Resources\TherapistOptionResource;
 use App\Http\Resources\UserOptionResource;
@@ -948,14 +947,6 @@ class TherapistController extends Controller
         $users = User::where('clinic_id', $clinicId)->where('enabled', 1)->get();
 
         return ['success' => true, 'data' => TherapistOptionResource::collection($users)];
-    }
-
-    public function listForChatroom(Request $request)
-    {
-        $clinicId = $request->get('clinic_id') ?? Auth::user()->clinic_id;
-        $users = User::where('clinic_id', $clinicId)->where('enabled', 1)->get();
-
-        return ['success' => true, 'data' => TherapistChatroomResource::collection($users)];
     }
 
     /**

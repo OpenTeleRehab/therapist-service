@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\RocketChatHelper;
 use App\Http\Resources\TransferResource;
 use App\Models\Forwarder;
 use App\Models\Transfer;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
@@ -114,6 +116,46 @@ class TransferController extends Controller
         ]);
 
         if ($response->successful()) {
+            if ($user->type === User::TYPE_THERAPIST) {
+                $response = Http::withHeaders([
+                    'Authorization' => 'Bearer ' . Forwarder::getAccessToken(Forwarder::PATIENT_SERVICE, $request->header('country')),
+                    'country' => $request->header('country'),
+                ])->get(env('PATIENT_SERVICE_URL') . '/patient/phc-worker-ids/by-therapist-id/' . $toTherapist->id);
+
+                $phcWorkerIds = [];
+
+                if ($response->successful()) {
+                    $phcWorkerIds = (array) data_get($response->json(), 'data', []);
+                }
+
+                foreach ($phcWorkerIds as $phcWorkerId) {
+                    if (!$phcWorker = User::find($phcWorkerId)) {
+                        continue;
+                    }
+
+                    RocketChatHelper::createChatRoom($toTherapist->identity, $phcWorker->identity);
+                }
+            } else {
+                $response = Http::withHeaders([
+                    'Authorization' => 'Bearer ' . Forwarder::getAccessToken(Forwarder::PATIENT_SERVICE, $request->header('country')),
+                    'country' => $request->header('country'),
+                ])->get(env('PATIENT_SERVICE_URL') . '/patient/therapist-ids/by-phc-worker-id/' . $toTherapist->id);
+
+                $therapistIds = [];
+
+                if ($response->successful()) {
+                    $therapistIds = (array) data_get($response->json(), 'data', []);
+                }
+
+                foreach ($therapistIds as $therapistId) {
+                    if (!$therapist = User::find($therapistId)) {
+                        continue;
+                    }
+
+                    RocketChatHelper::createChatRoom($toTherapist->identity, $therapist->identity);
+                }
+            }
+
             $transfer->delete();
 
             return ['success' => true, 'message' => 'success_message.transfer_accepted'];

@@ -63,6 +63,8 @@ class SetupKeycloakPermissions extends Command
             'view_screening_questionnaire_list',
             'submit_interview_screening_questionnaire',
             'view_interview_screening_questionnaire_history',
+            'chat_with_therapist',
+            'chat_with_phc_worker',
         ];
         $groupRoles = [
             'therapist' => [
@@ -106,6 +108,8 @@ class SetupKeycloakPermissions extends Command
                 'setup_educational_material',
                 'setup_questionnaire',
                 'manage_patient_referral_assignment',
+                'chat_with_therapist',
+                'chat_with_phc_worker',
             ],
             'phc_worker' => [
                 'view_patient',
@@ -147,6 +151,8 @@ class SetupKeycloakPermissions extends Command
                 'view_screening_questionnaire_list',
                 'submit_interview_screening_questionnaire',
                 'view_interview_screening_questionnaire_history',
+                'chat_with_therapist',
+                'chat_with_phc_worker',
             ],
         ];
 

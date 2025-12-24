@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ActivityController;
+use App\Http\Controllers\ChatController;
 use App\Http\Controllers\DownloadTrackerController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\ProfileController;
@@ -50,10 +51,10 @@ Route::group(['middleware' => ['auth:api', 'verify.data.access']], function () {
     Route::post('therapist/new-patient-notification', [NotificationController::class, 'newPatientNotification'])->middleware('role:push_patient_notification');
     Route::post('therapist/updateStatus/{user}', [TherapistController::class, 'updateStatus'])->middleware('role:access_all');
     Route::post('therapist/resend-email/{user}', [TherapistController::class, 'resendEmailToUser'])->middleware('role:access_all');
+    // TODO: move into its own cleanup function
     Route::post('therapist/delete-chat-room/by-id', [TherapistController::class, 'deleteChatRoomById'])->middleware('role:delete_chat_room');
     Route::post('therapist/delete/by-id/{user}', [TherapistController::class, 'deleteByUserId'])->middleware('role:access_all');
     Route::post('therapist/delete/by-clinic', [TherapistController::class, 'deleteByClinicId'])->middleware('role:access_all');
-    Route::get('therapist/list-for-chatroom', [TherapistController::class, 'listForChatroom'])->middleware('role:view_clinic_therapist');
     Route::apiResource('therapist', TherapistController::class)->middleware('role:access_all');
     Route::get('therapist/option/list', [TherapistController::class, 'getUserOptionList'])->middleware('role:view_clinic_therapist,view_phc_service_phc_worker');
     Route::get('therapists-by-country', [TherapistController::class, 'getAllByCountry'])->middleware('role:access_all');
@@ -67,9 +68,14 @@ Route::group(['middleware' => ['auth:api', 'verify.data.access']], function () {
     Route::post('phc-workers/updateStatus/{user}', [PhcWorkerController::class, 'updateStatus'])->middleware('role:access_all');
     Route::post('phc-workers/resend-email/{user}', [PhcWorkerController::class, 'resendEmailToUser'])->middleware('role:access_all');
     Route::get('phc-workers/list/by-phc-service', [PhcWorkerController::class, 'getByPhcServiceId'])->middleware('role:view_phc_service_phc_worker');
-    Route::get('phc-workers/list-for-chatroom', [PhcWorkerController::class, 'listForChatroom'])->middleware('role:view_phc_service_phc_worker');
+    // TODO: move into its own cleanup function
     Route::post('phc-workers/delete-chat-room/by-id', [PhcWorkerController::class, 'deleteChatRoomById'])->middleware('role:delete_chat_room');
     Route::get('phc-workers/all', [PhcWorkerController::class, 'getAll'])->middleware('role:access_all');
+
+    // Chat
+    Route::get('chat/therapists', [ChatController::class, 'getTherapists'])->middleware('role:chat_with_therapist');
+    Route::get('chat/phc-workers', [ChatController::class, 'getPhcWorkers'])->middleware('role:chat_with_phc_worker');
+    Route::post('chat/create-room-for-users', [ChatController::class, 'createRoomForUsers'])->middleware('role:access_all');
 
     // Dashboard
     Route::get('chart/get-data-for-global-admin', [ChartController::class, 'getDataForGlobalAdmin']); // deprecated
@@ -173,8 +179,8 @@ Route::group(['middleware' => ['auth:api', 'verify.data.access']], function () {
         Route::post('patient/activateDeactivateAccount/{id}', [ForwarderController::class, 'store'])->middleware('role:manage_patient');
         Route::post('patient/deleteAccount/{id}', [ForwarderController::class, 'store'])->middleware('role:manage_patient');
         Route::post('patient/delete-chat-room/by-id', [ForwarderController::class, 'store'])->middleware('role:manage_patient');
-        Route::apiResource('patient', ForwarderController::class)->middleware('role:manage_patient');
         Route::get('patient/list-for-chatroom', [ForwarderController::class, 'index'])->middleware('role:view_patient');
+        Route::apiResource('patient', ForwarderController::class)->middleware('role:manage_patient');
 
         Route::post('appointment/updateStatus/{id}', [ForwarderController::class, 'store'])->middleware('role:manage_appointment');
         Route::apiResource('appointment', ForwarderController::class)->middleware('role:manage_appointment');
