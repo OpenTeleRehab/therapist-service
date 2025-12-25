@@ -127,6 +127,7 @@ Route::group(['middleware' => ['auth:api', 'verify.data.access']], function () {
         Route::get('country', [ForwarderController::class, 'index'])->middleware('role:view_therapist_library');
         Route::get('country/list/defined-country', [ForwarderController::class, 'index'])->middleware('role:view_country');
         Route::get('clinic', [ForwarderController::class, 'index'])->middleware('role:view_country');
+        Route::get('clinics-by-user-country', [ForwarderController::class, 'index'])->middleware('role:view_country_provinces');
         Route::get('disease', [ForwarderController::class, 'index'])->middleware('role:view_disease');
         Route::get('profession', [ForwarderController::class, 'index'])->middleware('role:view_profession');
         Route::get('settings', [ForwarderController::class, 'index'])->middleware('role:view_setting');
