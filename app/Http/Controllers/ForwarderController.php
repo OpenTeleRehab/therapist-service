@@ -254,6 +254,7 @@ class ForwarderController extends Controller
             return Http::withToken($access_token)->withHeaders([
                 'country' => $country,
                 'int-therapist-user-id' => $user->id,
+                'int-clinic-id' => $user->clinic_id,
             ])->put(env('PATIENT_SERVICE_URL') . $endpoint, $request->all());
         }
     }
