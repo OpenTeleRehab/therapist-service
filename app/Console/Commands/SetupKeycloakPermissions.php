@@ -65,6 +65,7 @@ class SetupKeycloakPermissions extends Command
             'view_interview_screening_questionnaire_history',
             'chat_with_therapist',
             'chat_with_phc_worker',
+            'view_referral_therapist_list',
         ];
         $groupRoles = [
             'therapist' => [
@@ -153,6 +154,7 @@ class SetupKeycloakPermissions extends Command
                 'view_interview_screening_questionnaire_history',
                 'chat_with_therapist',
                 'chat_with_phc_worker',
+                'view_referral_therapist_list',
             ],
         ];
 
