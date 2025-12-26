@@ -23,7 +23,7 @@ class ChatController extends Controller
                 return ['success' => true, 'data' => []];
             }
 
-            $query->where('clinic_id', $user->clinic_id);
+            $query->where('clinic_id', $user->clinic_id)->whereNot('identity', $user->identity);
 
             return [
                 'success' => true,
@@ -66,7 +66,7 @@ class ChatController extends Controller
                 return ['success' => true, 'data' => []];
             }
 
-            $query->where('phc_service_id', $user->phc_service_id);
+            $query->where('phc_service_id', $user->phc_service_id)->whereNot('identity', $user->identity);
 
             return [
                 'success' => true,

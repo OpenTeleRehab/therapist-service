@@ -20,6 +20,7 @@ class UserChatResource extends JsonResource
             'first_name' => $this->first_name,
             'last_name' => $this->last_name,
             'chat_user_id' => $this->chat_user_id,
+            'profession_id' => $this->profession_id,
         ];
 
         return $responseData;
