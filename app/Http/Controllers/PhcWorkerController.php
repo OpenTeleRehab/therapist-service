@@ -8,6 +8,7 @@ use App\Helpers\RocketChatHelper;
 use App\Http\Resources\PatientPhcWorkerResource;
 use App\Http\Resources\PhcWorkerListResource;
 use App\Http\Resources\PhcWorkerOptionResource;
+use App\Http\Resources\TherapistOptionResource;
 use App\Models\Forwarder;
 use App\Models\TreatmentPlan;
 use App\Models\User;
@@ -1030,5 +1031,34 @@ class PhcWorkerController extends Controller
             ->get();
 
         return response()->json(['data' => $phcWorkers], 200);
+    }
+
+    /**
+     * Get therapists who have referral with PHC worker patient.
+     * 
+     * @param \Illuminate\Http\Request $request
+     *
+     * @return array
+     */
+    public function getReferralTherapists(Request $request)
+    {
+        $user = Auth::user();
+        $query = User::where('type', User::TYPE_THERAPIST)->where('enabled', true);
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer ' . Forwarder::getAccessToken(Forwarder::PATIENT_SERVICE, $request->header('country')),
+            'country' => $request->header('country'),
+        ])->get(env('PATIENT_SERVICE_URL') . '/patient/therapist-ids/by-phc-worker-id/' . $user->id);
+
+        if (!$response->successful()) {
+            return ['success' => true, 'data' => []];
+        }
+
+        $therapistUserIds = data_get($response->json(), 'data', []);
+        $query->whereIn('id', $therapistUserIds);
+
+        return [
+            'success' => true,
+            'data' => TherapistOptionResource::collection($query->get()),
+        ];
     }
 }

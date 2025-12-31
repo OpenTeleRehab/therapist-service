@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuditLogController as TherapistAuditLogController;
 use App\Http\Controllers\MfaSettingController;
 use App\Http\Controllers\PhcWorkerController;
+use App\Http\Controllers\AppointmentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -68,6 +69,7 @@ Route::group(['middleware' => ['auth:api', 'verify.data.access']], function () {
     Route::post('phc-workers/updateStatus/{user}', [PhcWorkerController::class, 'updateStatus'])->middleware('role:access_all');
     Route::post('phc-workers/resend-email/{user}', [PhcWorkerController::class, 'resendEmailToUser'])->middleware('role:access_all');
     Route::get('phc-workers/list/by-phc-service', [PhcWorkerController::class, 'getByPhcServiceId'])->middleware('role:view_phc_service_phc_worker');
+    Route::get('phc-workers/get-referral-therapists', [PhcWorkerController::class, 'getReferralTherapists'])->middleware('role:view_referral_therapist_list');
     // TODO: move into its own cleanup function
     Route::post('phc-workers/delete-chat-room/by-id', [PhcWorkerController::class, 'deleteChatRoomById'])->middleware('role:delete_chat_room');
     Route::get('phc-workers/all', [PhcWorkerController::class, 'getAll'])->middleware('role:access_all');
@@ -112,6 +114,16 @@ Route::group(['middleware' => ['auth:api', 'verify.data.access']], function () {
     // Mfa Settings
     Route::get('mfa-settings/{jobId}', [MfaSettingController::class, 'jobStatus'])->middleware('role:access_all');
     Route::post('mfa-settings', [MfaSettingController::class, 'store'])->middleware('role:access_all');
+
+    // Appointment
+    Route::post('appointments/{appointment}/accept', [AppointmentController::class, 'accept'])->middleware('role:manage_appointment');
+    Route::post('appointments/{appointment}/decline', [AppointmentController::class, 'declined'])->middleware('role:manage_appointment');
+    Route::get('appointments', [AppointmentController::class, 'index'])->middleware('role:manage_appointment');
+    Route::post('appointments', [AppointmentController::class, 'store'])->middleware('role:manage_appointment');
+    Route::put('appointments/{appointment}', [AppointmentController::class, 'update'])->middleware('role:manage_appointment');
+    Route::delete('appointments/{appointment}', [AppointmentController::class, 'destroy'])->middleware('role:manage_appointment');
+    Route::get('appointments/count/overlap', [AppointmentController::class, 'countOverlapAppointment'])->middleware('role:access_all');
+    Route::put('appointments/bulk/mark-as-read', [AppointmentController::class, 'updateAsRead'])->middleware('role:manage_appointment');
 
     // Global Resource
     Route::name('global_admin.')->group(function () {

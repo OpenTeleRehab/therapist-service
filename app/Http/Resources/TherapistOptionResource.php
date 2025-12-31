@@ -19,6 +19,7 @@ class TherapistOptionResource extends JsonResource
             'identity' => $this->identity,
             'first_name' => $this->first_name,
             'last_name' => $this->last_name,
+            'profession_id' => $this->profession_id,
         ];
 
         return $responseData;
