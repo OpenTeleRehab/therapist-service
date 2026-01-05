@@ -9,6 +9,7 @@ use App\Http\Resources\PatientTherapistResource;
 use App\Http\Resources\TherapistListResource;
 use App\Http\Resources\TherapistOptionResource;
 use App\Http\Resources\UserOptionResource;
+use App\Http\Resources\PhcWorkerOptionResource;
 use App\Models\Forwarder;
 use App\Models\Transfer;
 use App\Models\TreatmentPlan;
@@ -1175,5 +1176,34 @@ class TherapistController extends Controller
             ->select('id', 'first_name', 'last_name')
             ->get();
         return response()->json(['data' => TherapistOptionResource::collection($therapists)], 200);
+    }
+
+    /**
+     * Get PHC workers with accepted referrals.
+     *
+     * @param \Illuminate\Http\Request $request
+     *
+     * @return array
+     */
+    public function getPhcWorkersWithAcceptedReferrals(Request $request)
+    {
+        $user = Auth::user();
+        $query = User::where('type', User::TYPE_PHC_WORKER)->where('enabled', true);
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer ' . Forwarder::getAccessToken(Forwarder::PATIENT_SERVICE, $request->header('country')),
+            'country' => $request->header('country'),
+        ])->get(env('PATIENT_SERVICE_URL') . '/patient/phc-worker-ids/by-therapist-id/' . $user->id);
+
+        if (!$response->successful()) {
+            return ['success' => true, 'data' => []];
+        }
+
+        $phcWorkerUserIds = data_get($response->json(), 'data', []);
+        $query->whereIn('id', $phcWorkerUserIds);
+
+        return [
+            'success' => true,
+            'data' => PhcWorkerOptionResource::collection($query->get()),
+        ];
     }
 }
