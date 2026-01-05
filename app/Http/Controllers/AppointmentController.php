@@ -59,6 +59,7 @@ class AppointmentController extends Controller
      */
     public function index(Request $request)
     {
+        $date = date_create_from_format(config('settings.date_format'), $request->get('date'));
         $now = $request->get('now');
         $authUser = Auth::user();
         $userId = $authUser->id;
@@ -87,6 +88,27 @@ class AppointmentController extends Controller
             ->where('unread', true)
             ->get();
 
+        $calendarData = Appointment::where('requester_status', '!=', Appointment::STATUS_CANCELLED)
+            ->where(function ($query) use ($userId) {
+                $query->where('requester_id', $userId)
+                ->orWhere('recipient_id', $userId);
+            })
+            ->whereYear('start_date', $date->format('Y'))
+            ->whereMonth('start_date', $date->format('m'))
+            ->get();
+
+        // Count the number of pending appointment requests and the number of unread appointment.
+        $upComingAppointments = Appointment::where(function ($query) use ($now, $userId) {
+            $query->where('recipient_id', $userId)
+                ->where('end_date', '>=', $now)
+                ->where('recipient_status', Appointment::STATUS_INVITED)
+                ->where('requester_status', '!=', Appointment::STATUS_CANCELLED);
+        })->orWhere(function ($query) use ($userId) {
+            $query->where('requester_id', $userId)
+                ->whereIn('recipient_status', [Appointment::STATUS_REJECTED, Appointment::STATUS_ACCEPTED])
+                ->where('unread', true);
+        })->count();
+
         if ($request->get('selected_from_date')) {
             $selectedFromDate = date_create_from_format('Y-m-d H:i:s', $request->get('selected_from_date'));
             $selectedToDate = date_create_from_format('Y-m-d H:i:s', $request->get('selected_to_date'));
@@ -105,6 +127,8 @@ class AppointmentController extends Controller
             'approves' => AppointmentResource::collection($appointments->orderBy('start_date')->get()),
             'newAppointments' => AppointmentResource::collection($newAppointments->orderBy('start_date')->get()),
             'unreadAppointments' => AppointmentResource::collection($unreadAppointments),
+            'calendarData' => $calendarData,
+            'upcomingAppointments' => $upComingAppointments
         ];
         return ['success' => true, 'data' => $data];
     }
@@ -164,6 +188,11 @@ class AppointmentController extends Controller
      */
     public function store(Request $request)
     {
+        $request->validate([
+            'recipient_id' => 'required|integer|exists:users,id',
+            'from' => 'required|string',
+            'to' => 'required|string',
+        ]);
         $startDate = date_create_from_format('Y-m-d H:i:s', $request->get('from'));
         $endDate = date_create_from_format('Y-m-d H:i:s', $request->get('to'));
         $requesterId = Auth::user()->id;
@@ -244,6 +273,11 @@ class AppointmentController extends Controller
      */
     public function update(Request $request, Appointment $appointment)
     {
+        $request->validate([
+            'from' => 'required|string',
+            'to' => 'required|string',
+        ]);
+
         $startDate = date_create_from_format('Y-m-d H:i:s', $request->get('from'));
         $endDate = date_create_from_format('Y-m-d H:i:s', $request->get('to'));
 
@@ -280,9 +314,29 @@ class AppointmentController extends Controller
     private function validateOverlap($startDate, $endDate, $requesterId, $recipientId, $country, $appointmentId = null)
     {
         $overlap = Appointment::where(function ($query) use ($requesterId, $recipientId) {
-            $query->where('requester_id', $requesterId)
-                ->orWhere('recipient_id', $recipientId);
-        })->where('start_date', '<', $endDate)->where('end_date', '>', $startDate);
+            // Case 1: requesterId as requester
+            $query->where(function ($q) use ($requesterId) {
+                $q->where('requester_id', $requesterId)
+                ->where('requester_status', '!=', Appointment::STATUS_CANCELLED);
+            })
+            // Case 2: requesterId as recipient
+            ->orWhere(function ($q) use ($requesterId) {
+                $q->where('recipient_id', $requesterId)
+                ->where('recipient_status', '!=', Appointment::STATUS_REJECTED);
+            })
+            // Case 3: recipientId as requester
+            ->orWhere(function ($q) use ($recipientId) {
+                $q->where('requester_id', $recipientId)
+                ->where('requester_status', '!=', Appointment::STATUS_CANCELLED);
+            })
+            // Case 4: recipientId as recipient
+            ->orWhere(function ($q) use ($recipientId) {
+                $q->where('recipient_id', $recipientId)
+                ->where('recipient_status', '!=', Appointment::STATUS_REJECTED);
+            });
+        })
+        ->where('start_date', '<', $endDate)
+        ->where('end_date', '>', $startDate);
 
         if ($appointmentId) {
             $overlap->where('id', '!=', $appointmentId);
@@ -409,8 +463,18 @@ class AppointmentController extends Controller
         $endDate = date_create_from_format('Y-m-d H:i:s', $request->get('end_date'));
 
         $overlap = Appointment::where(function ($query) use ($therapistId) {
-            $query->where('requester_id', $therapistId)->orWhere('recipient_id', $therapistId);
-        })->where('start_date', '<', $endDate)->where('end_date', '>', $startDate);
+            $query->orWhere(function ($q) use ($therapistId) {
+                $q->where('requester_id', $therapistId)
+                ->where('requester_status', '!=', Appointment::STATUS_CANCELLED);
+            });
+
+            $query->orWhere(function ($q) use ($therapistId) {
+                $q->where('recipient_id', $therapistId)
+                    ->where('recipient_status', '!=', Appointment::STATUS_REJECTED);
+                });
+            })
+            ->where('start_date', '<', $endDate)
+            ->where('end_date', '>', $startDate);
 
         return ['success' => true, 'data' => $overlap->count()];
     }

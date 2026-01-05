@@ -52,6 +52,7 @@ Route::group(['middleware' => ['auth:api', 'verify.data.access']], function () {
     Route::post('therapist/new-patient-notification', [NotificationController::class, 'newPatientNotification'])->middleware('role:push_patient_notification');
     Route::post('therapist/updateStatus/{user}', [TherapistController::class, 'updateStatus'])->middleware('role:access_all');
     Route::post('therapist/resend-email/{user}', [TherapistController::class, 'resendEmailToUser'])->middleware('role:access_all');
+    Route::get('therapist/phc-workers/with-accepted-referrals', [TherapistController::class, 'getPhcWorkersWithAcceptedReferrals'])->middleware('role:view_accepted_referral_phc_worker_list');
     // TODO: move into its own cleanup function
     Route::post('therapist/delete-chat-room/by-id', [TherapistController::class, 'deleteChatRoomById'])->middleware('role:delete_chat_room');
     Route::post('therapist/delete/by-id/{user}', [TherapistController::class, 'deleteByUserId'])->middleware('role:access_all');
