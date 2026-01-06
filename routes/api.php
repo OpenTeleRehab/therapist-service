@@ -194,6 +194,7 @@ Route::group(['middleware' => ['auth:api', 'verify.data.access']], function () {
         Route::post('patient/deleteAccount/{id}', [ForwarderController::class, 'store'])->middleware('role:manage_patient');
         Route::post('patient/delete-chat-room/by-id', [ForwarderController::class, 'store'])->middleware('role:manage_patient');
         Route::get('patient/list-for-chatroom', [ForwarderController::class, 'index'])->middleware('role:view_patient');
+        Route::get('patient/list-for-phc-worker', [ForwarderController::class, 'index'])->middleware('role:view_patient');
         Route::apiResource('patient', ForwarderController::class)->middleware('role:manage_patient');
 
         Route::post('appointment/updateStatus/{id}', [ForwarderController::class, 'store'])->middleware('role:manage_appointment');
