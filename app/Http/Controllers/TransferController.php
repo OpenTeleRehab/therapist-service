@@ -40,9 +40,9 @@ class TransferController extends Controller
         $therapist_type = $request->input('therapist_type');
 
         $transfers = Transfer::where(function ($query) use ($userId) {
-                $query->where('from_therapist_id', $userId)
-                    ->orWhere('to_therapist_id', $userId);
-            })
+            $query->where('from_therapist_id', $userId)
+                ->orWhere('to_therapist_id', $userId);
+        })
             ->where('status', $status)
             ->when($therapist_type, function ($query, $therapist_type) {
                 $query->where('therapist_type', $therapist_type);
@@ -87,7 +87,7 @@ class TransferController extends Controller
     public function accept(Request $request, Transfer $transfer)
     {
         $user = Auth::user();
-        $patientId = $request->get('patient_id');
+        $patientId = $transfer->patient_id;
         $toTherapist = $transfer->to_therapist;
         $fromTherapist = $transfer->from_therapist;
 
@@ -98,10 +98,8 @@ class TransferController extends Controller
             ], Response::HTTP_FORBIDDEN);
         }
 
-        if ($patientId != $transfer->patient_id) {
-            return response()->json([
-                'error' => 'Invalid patient ID for this transfer.',
-            ], Response::HTTP_BAD_REQUEST);
+        if (!in_array($user->type, [User::TYPE_THERAPIST, User::TYPE_PHC_WORKER])) {
+            return ['success' => false, 'message' => 'success_message.transfer_fail'];
         }
 
         $response = Http::withHeaders([
@@ -116,7 +114,30 @@ class TransferController extends Controller
         ]);
 
         if ($response->successful()) {
-            if ($user->type === User::TYPE_THERAPIST) {
+            if ($transfer['therapist_type'] === 'supplementary') {
+                $response = Http::withHeaders([
+                    'Authorization' => 'Bearer ' . Forwarder::getAccessToken(Forwarder::PATIENT_SERVICE, $request->header('country')),
+                    'country' => $request->header('country'),
+                ])->get(env('PATIENT_SERVICE_URL') . '/patient/id/' . $patientId);
+
+                if (!$response->successful()) {
+                    abort(422, 'patient.not_found');
+                }
+
+                $patientData = $response->json();
+
+                $otherUserId = $user->type === User::TYPE_THERAPIST
+                    ? $patientData['phc_worker_id']
+                    : $patientData['therapist_id'];
+
+                $otherUser = User::findOrFail($otherUserId);
+
+                RocketChatHelper::createChatRoom(
+                    $toTherapist->identity,
+                    $otherUser->identity,
+                );
+            } else if ($user->type === User::TYPE_THERAPIST) {
+
                 $response = Http::withHeaders([
                     'Authorization' => 'Bearer ' . Forwarder::getAccessToken(Forwarder::PATIENT_SERVICE, $request->header('country')),
                     'country' => $request->header('country'),
@@ -135,7 +156,7 @@ class TransferController extends Controller
 
                     RocketChatHelper::createChatRoom($toTherapist->identity, $phcWorker->identity);
                 }
-            } else {
+            } else if ($user->type === User::TYPE_PHC_WORKER) {
                 $response = Http::withHeaders([
                     'Authorization' => 'Bearer ' . Forwarder::getAccessToken(Forwarder::PATIENT_SERVICE, $request->header('country')),
                     'country' => $request->header('country'),
@@ -161,7 +182,7 @@ class TransferController extends Controller
             return ['success' => true, 'message' => 'success_message.transfer_accepted'];
         }
 
-        return ['success' => true, 'message' => 'success_message.transfer_fail'];
+        return ['success' => false, 'message' => 'success_message.transfer_fail'];
     }
 
     /**
