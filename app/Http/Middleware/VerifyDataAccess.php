@@ -6,6 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use App\Models\Forwarder;
+use App\Models\User;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
 
@@ -60,7 +61,7 @@ class VerifyDataAccess
         }
 
         // Verify if the auth user belongs to their assigned clinic
-        if ($user && isset($clinicId) && (int)$user->clinic_id !== (int)$clinicId) {
+        if ($user && $user->type === User::GROUP_THERAPIST && isset($clinicId) && (int)$user->clinic_id !== (int)$clinicId) {
             return $deny();
         }
 
