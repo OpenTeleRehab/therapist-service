@@ -1035,7 +1035,7 @@ class PhcWorkerController extends Controller
 
     /**
      * Get therapists who have referral with PHC worker patient.
-     * 
+     *
      * @param \Illuminate\Http\Request $request
      *
      * @return array
