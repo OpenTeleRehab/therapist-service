@@ -368,6 +368,51 @@ class KeycloakHelper
         return $assignResponse->successful();
     }
 
+    /**
+     * Remove all realm roles from a Keycloak group.
+     *
+     * @param string $groupName
+     * @return void
+     * @throws \Exception
+     */
+    public static function removeAllRealmRolesFromGroup(string $groupName)
+    {
+        $token = self::getKeycloakAccessToken();
+        $groups = self::getUserGroups($token);
+
+        $groupId = $groups[$groupName] ?? null;
+        if (!$groupId) {
+            throw new \Exception("Group '{$groupName}' not found.");
+        }
+
+        // Get assigned roles
+        $rolesResponse = Http::withToken($token)
+            ->get(self::getGroupsUrl() . "/{$groupId}/role-mappings/realm");
+
+        if ($rolesResponse->failed()) {
+            throw new \Exception(
+                "Failed to fetch roles for group '{$groupName}' ({$rolesResponse->status()})"
+            );
+        }
+
+        $roles = $rolesResponse->json();
+
+        if (empty($roles)) {
+            return;
+        }
+
+        // Remove all roles
+        $deleteRolesResponse = Http::withToken($token)
+            ->withBody(json_encode($roles), 'application/json')
+            ->delete(self::getGroupsUrl() . "/{$groupId}/role-mappings/realm");
+
+        if ($deleteRolesResponse->failed()) {
+            throw new \Exception(
+                "Failed to remove roles from group '{$groupName}' ({$deleteRolesResponse->status()})"
+            );
+        }
+    }
+
         /**
      * @param string $token
      *
