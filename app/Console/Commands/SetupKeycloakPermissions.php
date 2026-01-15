@@ -12,10 +12,8 @@ class SetupKeycloakPermissions extends Command
 
     public function handle()
     {
-        $groups = ['therapist', 'phc_worker'];
         $roles = [
             'view_patient',
-            'view_transfered_patient',
             'view_clinic_therapist',
             'view_country_therapist',
             'get_call_token',
@@ -72,7 +70,6 @@ class SetupKeycloakPermissions extends Command
         $groupRoles = [
             'therapist' => [
                 'view_patient',
-                'view_transfered_patient',
                 'view_clinic_therapist',
                 'view_country_therapist',
                 'get_call_token',
@@ -86,7 +83,6 @@ class SetupKeycloakPermissions extends Command
                 'manage_category',
                 'view_therapist_library',
                 'view_country',
-                'view_disease',
                 'view_profession',
                 'view_setting',
                 'view_phc_workers',
@@ -102,19 +98,15 @@ class SetupKeycloakPermissions extends Command
                 'manage_patient_assistive_technology',
                 'export_treatment_plan',
                 'view_notification',
-                'manage_download_tracker',
-                'export',
                 'download_file',
                 'view_dashboard',
                 'view_region_list',
                 'view_province_list',
-                'setup_exercise',
-                'setup_educational_material',
-                'setup_questionnaire',
                 'manage_patient_referral_assignment',
                 'chat_with_therapist',
                 'chat_with_phc_worker',
                 'view_accepted_referral_phc_worker_list',
+                'view_health_condition',
             ],
             'phc_worker' => [
                 'view_patient',
@@ -126,7 +118,6 @@ class SetupKeycloakPermissions extends Command
                 'manage_message',
                 'manage_own_profile',
                 'view_country',
-                'view_disease',
                 'view_profession',
                 'view_setting',
                 'view_guidance_page',
@@ -151,7 +142,6 @@ class SetupKeycloakPermissions extends Command
                 'view_phc_service_phc_worker',
                 'view_health_condition',
                 'manage_patient_referral',
-                'view_clinic_therapist',
                 'view_country_provinces',
                 'view_screening_questionnaire_list',
                 'submit_interview_screening_questionnaire',
@@ -161,17 +151,6 @@ class SetupKeycloakPermissions extends Command
                 'view_referral_therapist_list',
             ],
         ];
-
-        $this->line("Creating groups...");
-
-        foreach ($groups as $groupName) {
-            $created = KeycloakHelper::createGroup($groupName);
-            if ($created) {
-                $this->info(" - Group '{$groupName}': Created");
-            } else {
-                $this->warn(" - Group '{$groupName}': Already exists or failed");
-            }
-        }
 
         $this->line("Creating roles...");
 
@@ -184,9 +163,25 @@ class SetupKeycloakPermissions extends Command
             }
         }
 
-        $this->line("Assigning roles to groups...");
+        $this->line("Creating groups and assigning roles to groups...");
 
         foreach ($groupRoles as $group => $roles) {
+            $created = KeycloakHelper::createGroup($group);
+            if ($created) {
+                $this->info(" - Group '{$group}': Created");
+            } else {
+                $this->warn(" - Group '{$group}': Already exists or failed");
+                // Remove all existing roles from group first
+                try {
+                    $this->info(" - Group '{$group}': Removing existing roles...");
+                    KeycloakHelper::removeAllRealmRolesFromGroup($group);
+                    $this->info(" - Group '{$group}': Existing roles removed");
+                } catch (\Throwable $e) {
+                    $this->error(" - Group '{$group}': {$e->getMessage()}");
+                    continue;
+                }
+            }
+
             foreach ($roles as $role) {
                 try {
                     $success = KeycloakHelper::assignRealmRoleToGroup($group, $role);
