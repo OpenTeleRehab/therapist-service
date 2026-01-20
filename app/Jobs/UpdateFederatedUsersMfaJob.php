@@ -42,7 +42,24 @@ class UpdateFederatedUsersMfaJob implements ShouldQueue
         try {
             $federatedDomains = array_map(fn($d) => strtolower(trim($d)), explode(',', env('FEDERATED_DOMAINS', '')));
 
-            $internalUsers = User::query()
+            $query = User::query();
+
+            $role = $this->mfaSetting['role'];
+            $regionIds = $this->mfaSetting['region_ids'] ?? [];
+            $clinicIds = $this->mfaSetting['clinic_ids'] ?? [];
+            $phcServiceIds = $this->mfaSetting['phc_service_ids'] ?? [];
+
+            if ($role === User::GROUP_THERAPIST && !empty($clinicIds)) {
+                $query->whereIn('clinic_id', $clinicIds);
+            } else if ($role === User::GROUP_PHC_WORKER && !empty($phcServiceIds)) {
+                $query->whereIn('phc_service_id', $phcServiceIds);
+            }
+
+            if (!empty($regionIds)) {
+                $query->whereIn('region_id', $regionIds);
+            }
+
+            $internalUsers = $query->where('type', $this->mfaSetting['role'])
                 ->where(function ($query) use ($federatedDomains) {
                     foreach ($federatedDomains as $domain) {
                         $query->whereRaw('LOWER(email) NOT LIKE ?', ['%' . strtolower($domain)]);
