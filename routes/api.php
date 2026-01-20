@@ -20,6 +20,7 @@ use App\Http\Controllers\AuditLogController as TherapistAuditLogController;
 use App\Http\Controllers\MfaSettingController;
 use App\Http\Controllers\PhcWorkerController;
 use App\Http\Controllers\AppointmentController;
+use App\Http\Controllers\DataCleanUpController;
 
 /*
 |--------------------------------------------------------------------------
@@ -60,6 +61,10 @@ Route::group(['middleware' => ['auth:api', 'verify.data.access']], function () {
     Route::apiResource('therapist', TherapistController::class)->middleware('role:access_all');
     Route::get('therapist/option/list', [TherapistController::class, 'getUserOptionList'])->middleware('role:view_clinic_therapist,view_phc_service_phc_worker');
     Route::get('therapists-by-country', [TherapistController::class, 'getAllByCountry'])->middleware('role:access_all');
+
+    // Data clean up across service
+    Route::get('data-clean-up/users/count', [DataCleanUpController::class, 'countUsersByEntity'])->middleware('role:access_all');
+    Route::post('data-clean-up/users/delete', [DataCleanUpController::class, 'deleteUsersByEntity'])->middleware('role:access_all');
 
     // PHC Worker
     Route::get('phc-workers', [PhcWorkerController::class, 'index'])->middleware('role:access_all');
