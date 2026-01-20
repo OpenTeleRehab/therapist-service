@@ -21,6 +21,8 @@ use Twilio\Jwt\AccessToken;
 use Twilio\Jwt\Grants\VideoGrant;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use App\Models\Transfer;
+use App\Models\Appointment;
 
 class PhcWorkerController extends Controller
 {
@@ -122,12 +124,16 @@ class PhcWorkerController extends Controller
                             $endDate->format('Y-m-d');
                             $query->whereDate('last_login', '>=', $startDate)
                                 ->whereDate('last_login', '<=', $endDate);
-                        } elseif ($filterObj->columnName === 'phc_country' && $filterObj->value !== '') {
+                        } elseif ($filterObj->columnName === 'country' && $filterObj->value !== '') {
                             $query->where('country_id', $filterObj->value);
                         } elseif ($filterObj->columnName === 'id') {
                             $query->where('identity', 'like', '%' . $filterObj->value . '%');
                         } elseif ($filterObj->columnName === 'profession') {
                             $query->where('profession_id', $filterObj->value);
+                        } elseif ($filterObj->columnName === 'region') {
+                            $query->where('region_id', $filterObj->value);
+                        } elseif ($filterObj->columnName === 'phc_service') {
+                            $query->where('phc_service_id', $filterObj->value);
                         } elseif ($filterObj->columnName === 'limit_patient') {
                             $query->where('limit_patient', $filterObj->value);
                         } else {
@@ -552,10 +558,30 @@ class PhcWorkerController extends Controller
      *
      * @return array
      */
-    public function deleteByUserId(User $user)
+    public function deleteByUserId(User $user, Request $request)
     {
         try {
-            //TODO: Remove patients of that phc worker.
+            $countryCode = $request->get('country_code');
+            $hardDelete = $request->boolean('hard_delete');
+
+            // Remove all active requests of patient transfer to other phc workers
+            Transfer::where('from_therapist_id', $user->id)->delete();
+
+            // Decline all active requests of patient transfer from other phc workers
+            Transfer::where('to_therapist_id', $user->id)->update(['status' => Transfer::STATUS_DECLINED]);
+
+            // Remove user appointments.
+            Appointment::where('requester_id', $user->id)->orWhere('recipient_id', $user->id)->delete();
+
+            // Remove patients of phc worker.
+            Http::withHeaders([
+                'Authorization' => 'Bearer ' . Forwarder::getAccessToken(Forwarder::PATIENT_SERVICE, $countryCode),
+                'country' => $countryCode,
+            ])->post(env('PATIENT_SERVICE_URL') . '/patient/delete/by-phc-worker', [
+                'phc_worker_id' => $user->id,
+                'hard_delete' => $hardDelete,
+            ]);
+
             // Remove own created treatment preset.
             TreatmentPlan::where('created_by', $user->id)->delete();
 

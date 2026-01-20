@@ -20,6 +20,7 @@ class PhcWorkerOptionResource extends JsonResource
             'first_name' => $this->first_name,
             'last_name' => $this->last_name,
             'profession_id' => $this->profession_id,
+            'chat_rooms' => $this->chat_rooms,
         ];
 
         return $responseData;

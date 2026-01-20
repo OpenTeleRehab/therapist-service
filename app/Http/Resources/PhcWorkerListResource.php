@@ -24,6 +24,7 @@ class PhcWorkerListResource extends JsonResource
             'limit_patient' => $this->limit_patient,
             'province_id' => $this->province_id,
             'region_id' => $this->region_id,
+            'chat_rooms' => $this->chat_rooms,
         ];
 
         if ($request->get('user_type') === User::ADMIN_GROUP_PHC_SERVICE_ADMIN ) {
