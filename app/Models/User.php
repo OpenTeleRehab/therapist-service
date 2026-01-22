@@ -54,9 +54,29 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'first_name', 'last_name', 'email', 'country_id', 'clinic_id', 'limit_patient', 'language_id', 'profession_id',
-        'identity', 'enabled', 'chat_user_id', 'chat_password', 'chat_rooms', 'last_login', 'show_guidance',
-        'phone', 'dial_code', 'region_id', 'province_id', 'type', 'phc_service_id',
+        'first_name',
+        'last_name',
+        'email',
+        'country_id',
+        'clinic_id',
+        'limit_patient',
+        'language_id',
+        'profession_id',
+        'identity',
+        'enabled',
+        'chat_user_id',
+        'chat_password',
+        'chat_rooms',
+        'last_login',
+        'show_guidance',
+        'notify_email',
+        'notify_in_app',
+        'phone',
+        'dial_code',
+        'region_id',
+        'province_id',
+        'type',
+        'phc_service_id',
     ];
 
     /**

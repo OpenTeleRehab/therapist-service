@@ -216,7 +216,9 @@ class ProfileController extends Controller
                 'last_name' => $data['last_name'],
                 'language_id' => $data['language_id'],
                 'profession_id' => $data['profession_id'],
-                'show_guidance' => $data['show_guidance']
+                'show_guidance' => $data['show_guidance'],
+                'notify_email' => $data['notify_email'],
+                'notify_in_app' => $data['notify_in_app'],
             ];
             $user->update($dataUpdate);
 
