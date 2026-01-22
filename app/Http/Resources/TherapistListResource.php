@@ -26,7 +26,7 @@ class TherapistListResource extends JsonResource
             'province_id' => $this->province_id,
         ];
 
-        if (in_array($request->get('user_type'), [User::ADMIN_GROUP_CLINIC_ADMIN, User::TYPE_PHC_WORKER])) {
+        if (in_array($request->get('user_type'), [User::ADMIN_GROUP_CLINIC_ADMIN, User::TYPE_PHC_WORKER, User::TYPE_THERAPIST])) {
             $resource = array_merge($resource, [
                 'first_name' => $this->first_name,
                 'last_name' => $this->last_name,
