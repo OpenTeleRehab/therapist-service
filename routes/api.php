@@ -110,6 +110,11 @@ Route::group(['middleware' => ['auth:api', 'verify.data.access']], function () {
     Route::put('user/add-new-chatroom', [ProfileController::class, 'addNewChatRoom'])->middleware('role:manage_own_profile');
     Route::put('user/update-last-access', [ProfileController::class, 'updateLastAccess'])->middleware('role:manage_own_profile');
 
+    // Notification
+    Route::post('notifications/patient-referral', [NotificationController::class, 'patientReferral']);
+    Route::post('notifications/patient-referral-assignment', [NotificationController::class, 'patientReferralAssignment']);
+    Route::post('notifications/patient-counter-referral', [NotificationController::class, 'patientCounterReferral']);
+
     // Transfer
     Route::get('transfer/accept/{transfer}', [TransferController::class, 'accept'])->middleware('role:manage_transfer');
     Route::get('transfer/decline/{transfer}', [TransferController::class, 'decline'])->middleware('role:manage_transfer');
