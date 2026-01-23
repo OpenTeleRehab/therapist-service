@@ -65,6 +65,7 @@ Route::group(['middleware' => ['auth:api', 'verify.data.access']], function () {
     // Data clean up across service
     Route::get('data-clean-up/users/count', [DataCleanUpController::class, 'countUsersByEntity'])->middleware('role:access_all');
     Route::post('data-clean-up/users/delete', [DataCleanUpController::class, 'deleteUsersByEntity'])->middleware('role:access_all');
+    Route::post('data-clean-up/users/update', [DataCleanUpController::class, 'updateUsersByEntity'])->middleware('role:access_all');
 
     // PHC Worker
     Route::get('phc-workers', [PhcWorkerController::class, 'index'])->middleware('role:access_all');
