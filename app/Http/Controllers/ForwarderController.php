@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\CountryHelper;
 use App\Models\Forwarder;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
@@ -19,7 +19,6 @@ class ForwarderController extends Controller
     public function index(Request $request)
     {
         $service_name = $request->route()->getName();
-        $country = $request->header('country');
         $endpoint = str_replace('api/', '/', $request->path());
         $params = $request->all();
         $user = Auth::user();
@@ -41,9 +40,10 @@ class ForwarderController extends Controller
         }
 
         if ($service_name !== null && str_contains($service_name, Forwarder::PATIENT_SERVICE)) {
-            $access_token = Forwarder::getAccessToken(Forwarder::PATIENT_SERVICE, $country);
+            $countryIsoCode = CountryHelper::getIsoCodeById($user->country_id);
+            $access_token = Forwarder::getAccessToken(Forwarder::PATIENT_SERVICE, $countryIsoCode);
             $response = Http::withToken($access_token)->withHeaders([
-                'country' => $country,
+                'country' => $countryIsoCode,
                 'int-user-type' => $user?->type,
                 'int-therapist-user-id' => $user?->id,
                 'int-country-id' => $user->country_id,
@@ -67,7 +67,6 @@ class ForwarderController extends Controller
     {
         $user = Auth::user();
         $service_name = $request->route()->getName();
-        $country = $request->header('country');
         $endpoint = str_replace('api/', '/', $request->path());
 
         if ($service_name !== null && str_contains($service_name, Forwarder::GADMIN_SERVICE)) {
@@ -127,10 +126,11 @@ class ForwarderController extends Controller
         }
 
         if ($service_name !== null && str_contains($service_name, Forwarder::PATIENT_SERVICE)) {
-            $access_token = Forwarder::getAccessToken(Forwarder::PATIENT_SERVICE, $country);
+            $countryIsoCode = CountryHelper::getIsoCodeById($user->country_id);
+            $access_token = Forwarder::getAccessToken(Forwarder::PATIENT_SERVICE, $countryIsoCode);
             $response = Http::withToken($access_token)
                 ->withHeaders([
-                    'country' => $country,
+                    'country' => $countryIsoCode,
                     'int-country-id' => $user->country_id,
                     'int-region-id' => $user?->region_id,
                     'int-province-id' => $user?->province_id,
@@ -156,7 +156,6 @@ class ForwarderController extends Controller
     public function show(Request $request)
     {
         $service_name = $request->route()->getName();
-        $country = $request->header('country');
         $endpoint = str_replace('api/', '/', $request->path());
         $user = Auth::user();
 
@@ -171,9 +170,10 @@ class ForwarderController extends Controller
         }
 
         if ($service_name !== null && str_contains($service_name, Forwarder::PATIENT_SERVICE)) {
-            $access_token = Forwarder::getAccessToken(Forwarder::PATIENT_SERVICE, $country);
+            $countryIsoCode = CountryHelper::getIsoCodeById($user->country_id);
+            $access_token = Forwarder::getAccessToken(Forwarder::PATIENT_SERVICE, $countryIsoCode);
             return Http::withToken($access_token)->withHeaders([
-                'country' => $country,
+                'country' => $countryIsoCode,
                 'int-therapist-user-id' => $user?->id,
             ])->get(env('PATIENT_SERVICE_URL') . $endpoint, $request->all());
         }
@@ -190,7 +190,6 @@ class ForwarderController extends Controller
     public function update(Request $request, $id)
     {
         $service_name = $request->route()->getName();
-        $country = $request->header('country');
         $endpoint = str_replace('api/', '/', $request->path());
         $user = Auth::user();
 
@@ -250,9 +249,10 @@ class ForwarderController extends Controller
         }
 
         if ($service_name !== null && str_contains($service_name, Forwarder::PATIENT_SERVICE)) {
-            $access_token = Forwarder::getAccessToken(Forwarder::PATIENT_SERVICE, $country);
+            $countryIsoCode = CountryHelper::getIsoCodeById($user->country_id);
+            $access_token = Forwarder::getAccessToken(Forwarder::PATIENT_SERVICE, $countryIsoCode);
             return Http::withToken($access_token)->withHeaders([
-                'country' => $country,
+                'country' => $countryIsoCode,
                 'int-therapist-user-id' => $user->id,
                 'int-clinic-id' => $user->clinic_id,
             ])->put(env('PATIENT_SERVICE_URL') . $endpoint, $request->all());
@@ -270,7 +270,6 @@ class ForwarderController extends Controller
     public function destroy(Request $request, $id)
     {
         $service_name = $request->route()->getName();
-        $country = $request->header('country');
         $endpoint = str_replace('api/', '/', $request->path());
         $user = Auth::user();
 
@@ -285,9 +284,10 @@ class ForwarderController extends Controller
         }
 
         if ($service_name !== null && str_contains($service_name, Forwarder::PATIENT_SERVICE)) {
-            $access_token = Forwarder::getAccessToken(Forwarder::PATIENT_SERVICE, $country);
+            $countryIsoCode = CountryHelper::getIsoCodeById($user->country_id);
+            $access_token = Forwarder::getAccessToken(Forwarder::PATIENT_SERVICE, $countryIsoCode);
             return Http::withToken($access_token)->withHeaders([
-                'country' => $country,
+                'country' => $countryIsoCode,
                 'int-therapist-user-id' => $user->id,
             ])->delete(env('PATIENT_SERVICE_URL') . $endpoint);
         }
