@@ -78,8 +78,8 @@ class UpdateFederatedUsersMfaJob implements ShouldQueue
 
                 $payload = [
                     'mfaEnforcement' => $this->mfaSetting['mfa_enforcement'] ?? null,
-                    'trustedDeviceMaxAge' => $this->mfaSetting['mfa_expiration_duration'] ?? null,
-                    'skipMfaMaxAge' => $this->mfaSetting['skip_mfa_setup_duration'] ?? null,
+                    'trustedDeviceMaxAge' => $this->mfaSetting['mfa_expiration_duration_in_seconds'] ?? null,
+                    'skipMfaMaxAge' => $this->mfaSetting['skip_mfa_setup_duration_in_seconds'] ?? null,
                 ];
 
                 if (isset($existingAttributes['skipMfaUntil'])) {
@@ -87,7 +87,7 @@ class UpdateFederatedUsersMfaJob implements ShouldQueue
 
                     $now = Carbon::now();
 
-                    $futureDate = $now->copy()->addSeconds($this->mfaSetting['skip_mfa_setup_duration']);
+                    $futureDate = $now->copy()->addSeconds($this->mfaSetting['skip_mfa_setup_duration_in_seconds']);
 
                     $isoString = $futureDate->format('Y-m-d\TH:i:s.u\Z');
 
