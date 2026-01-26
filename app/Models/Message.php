@@ -21,11 +21,13 @@ class Message extends Model
     ];
 
     /**
-     * The attributes that should be mutated to dates.
+     * The attributes that should be cast.
      *
      * @var array
      */
-    protected $dates = ['sent_at'];
+    protected $casts = [
+        'sent_at' => 'datetime',
+    ];
 
     /**
      * Bootstrap the model and its traits.
