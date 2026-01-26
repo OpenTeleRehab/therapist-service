@@ -7,6 +7,8 @@ use App\Models\Message;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Twilio\Exceptions\TwilioException;
 use Twilio\Rest\Client;
 
 class MessageController extends Controller
@@ -59,13 +61,14 @@ class MessageController extends Controller
         $messages = Message::where('patient_id', $data['patient_id'])
             ->where('therapist_id', Auth::id())
             ->get();
-        return  ['success' => true, 'data' => MessageResource::collection($messages)];
+        return ['success' => true, 'data' => MessageResource::collection($messages)];
     }
 
     /**
      * @return int
      */
-    public function getTherapistMessage() {
+    public function getTherapistMessage()
+    {
         $monday = strtotime('monday this week');
         $sunday = strtotime('sunday this week');
         $startDate = date('Y-m-d', $monday);
@@ -76,7 +79,7 @@ class MessageController extends Controller
             ->whereDate('sent_at', '<=', $endDate)
             ->count();
 
-        return  ['success' => true, 'data' => $messages];
+        return ['success' => true, 'data' => $messages];
     }
 
     /**
@@ -133,17 +136,23 @@ class MessageController extends Controller
     public function store(Request $request)
     {
         Message::where('draft', true)
-        ->where('patient_id', $request->get('patient_id'))
-        ->where('therapist_id', Auth::id())
-        ->delete();
+            ->where('patient_id', $request->get('patient_id'))
+            ->where('therapist_id', Auth::id())
+            ->delete();
 
         if (!empty($request->get('message'))) {
             $sent = null;
             if ($request->get('draft') === null) {
-                $twilio = new Client(env('SMS_SID'), env('SMS_TOKEN'));
-                $message = $twilio->messages->create("+" . $request->get('phone'),
-                    ["body" => $request->get('message'), "from" => env('SMS_PHONE_NUMBER')]);
-                $sent = $message->errorMessage ? null : Carbon::now();
+                try {
+                    $twilio = new Client(env('SMS_SID'), env('SMS_TOKEN'));
+                    $message = $twilio->messages->create('+' . $request->get('phone'),
+                        ['body' => $request->get('message'), 'from' => env('SMS_PHONE_NUMBER')]
+                    );
+                    $sent = $message->errorMessage ? null : Carbon::now();
+                } catch (TwilioException $e) {
+                    Log::error('Twilio: ' . $e->getMessage());
+                    return ['success' => false, 'message' => 'SMS service error.'];
+                }
             }
 
             Message::create([
