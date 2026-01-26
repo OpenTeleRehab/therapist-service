@@ -36,6 +36,10 @@ class ForwarderController extends Controller
                 'int-country-id' => $user->country_id,
                 'int-region-id' => $user?->region_id,
                 'int-user-type' => $user?->type,
+                'int-therapist-user-id' => $user?->id,
+                'int-phc-service-id' => $user?->phc_service_id,
+                'int-clinic-id' => $user?->clinic_id,
+                'int-province-id' => $user?->province_id,
             ])->get(env('ADMIN_SERVICE_URL') . $endpoint, $params);
         }
 

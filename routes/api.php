@@ -142,8 +142,6 @@ Route::group(['middleware' => ['auth:api', 'verify.data.access']], function () {
     Route::name('global_admin.')->group(function () {
         Route::apiResource('category', ForwarderController::class)->middleware('role:manage_category');
         Route::apiResource('category-tree', ForwarderController::class)->middleware('role:manage_category');
-        Route::post('survey/skip', [ForwarderController::class, 'store'])->middleware('role:manage_survey');
-        Route::post('survey/submit', [ForwarderController::class, 'store'])->middleware('role:manage_survey');
     });
 
     // Admin Service
@@ -195,6 +193,11 @@ Route::group(['middleware' => ['auth:api', 'verify.data.access']], function () {
 
         // PHC Services
         Route::get('phc-services', [ForwarderController::class, 'index'])->middleware('role:view_phc_service_list');
+
+        // Surveys
+        Route::get('survey/list/publish-survey', [ForwarderController::class, 'index'])->middleware('role:manage_survey');
+        Route::post('survey/skip', [ForwarderController::class, 'store'])->middleware('role:manage_survey');
+        Route::post('survey/submit', [ForwarderController::class, 'store'])->middleware('role:manage_survey');
     });
 
     // Patient Service

@@ -66,6 +66,7 @@ class SetupKeycloakPermissions extends Command
             'view_referral_therapist_list',
             'view_accepted_referral_phc_worker_list',
             'view_phc_workers',
+            'manage_survey',
         ];
         $groupRoles = [
             'therapist' => [
@@ -107,6 +108,7 @@ class SetupKeycloakPermissions extends Command
                 'chat_with_phc_worker',
                 'view_accepted_referral_phc_worker_list',
                 'view_health_condition',
+                'manage_survey',
             ],
             'phc_worker' => [
                 'view_patient',
@@ -149,6 +151,7 @@ class SetupKeycloakPermissions extends Command
                 'chat_with_therapist',
                 'chat_with_phc_worker',
                 'view_referral_therapist_list',
+                'manage_survey',
             ],
         ];
 
