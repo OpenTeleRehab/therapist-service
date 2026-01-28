@@ -189,6 +189,7 @@ Route::group(['middleware' => ['auth:api', 'verify.data.access']], function () {
         //Screening Questionnaire
         Route::get('screening-questionnaires-list', [ForwarderController::class, 'index'])->middleware('role:view_screening_questionnaire_list');
         Route::get('screening-questionnaires-history-list', [ForwarderController::class, 'index'])->middleware('role:view_interview_screening_questionnaire_history');
+        Route::get('screening-questionnaires-history-by-patient-list',[ForwarderController::class,'index'])->middleware('role:view_interview_screening_questionnaire_history');
         Route::post('screening-questionnaires/{id}/submit', [ForwarderController::class, 'store'])->middleware('role:submit_interview_screening_questionnaire');
 
         // PHC Services
