@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Helpers\RocketChatHelper;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Log;
@@ -99,41 +100,6 @@ class User extends Authenticatable
     ];
 
     /**
-     * Get the options for activity logging.
-     *
-     * @return \Spatie\Activitylog\LogOptions
-     */
-    public function getActivitylogOptions(): LogOptions
-    {
-        return LogOptions::defaults()
-            ->logAll()
-            ->logOnlyDirty()
-            ->dontSubmitEmptyLogs()
-            ->logExcept(['id', 'chat_user_id', 'chat_password' , 'chat_rooms', 'created_at', 'updated_at', 'email_verified_at', 'remember_token', 'password']);
-    }
-
-    /**
-     * Modify the activity properties before it is saved.
-     *
-     * @param \Spatie\Activitylog\Models\Activity $activity
-     * @return void
-     */
-    public function tapActivity(ActivityLog $activity)
-    {
-        $request = request();
-        $activity->causer_id = $request['user_id'] ? $request['user_id'] : $this->id;
-        $activity->full_name = $request['user_name'] ? $request['user_name'] : $this->last_name . ' ' . $this->first_name;
-        $activity->group = $request['group'] ? $request['group'] : User::GROUP_THERAPIST;
-        $activity->clinic_id = $request->has('group')
-            ? ($request['group'] === self::ADMIN_GROUP_ORGANIZATION_ADMIN ? null : $request->input('clinic_id')) ?? $this->clinic_id
-            : $this->clinic_id;
-
-        $activity->country_id = $request->has('group')
-            ? ($request['group'] === self::ADMIN_GROUP_ORGANIZATION_ADMIN ? null : $request->input('country_id')) ?? $this->country_id
-            : $this->country_id;
-    }
-
-    /**
      * Bootstrap the model and its traits.
      *
      * @return void
@@ -170,12 +136,45 @@ class User extends Authenticatable
     }
 
     /**
-     * Get the user's full name.
+     * Get the options for activity logging.
      *
-     * @return string
+     * @return \Spatie\Activitylog\LogOptions
      */
-    public function getFullNameAttribute()
+    public function getActivitylogOptions(): LogOptions
     {
-        return "{$this->first_name} {$this->last_name}";
+        return LogOptions::defaults()
+            ->logAll()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->logExcept(['id', 'chat_user_id', 'chat_password' , 'chat_rooms', 'created_at', 'updated_at', 'email_verified_at', 'remember_token', 'password']);
+    }
+
+    /**
+     * Modify the activity properties before it is saved.
+     *
+     * @param \Spatie\Activitylog\Models\Activity $activity
+     * @return void
+     */
+    public function tapActivity(ActivityLog $activity)
+    {
+        $request = request();
+        $activity->causer_id = $request['user_id'] ? $request['user_id'] : $this->id;
+        $activity->full_name = $request['user_name'] ? $request['user_name'] : $this->last_name . ' ' . $this->first_name;
+        $activity->group = $request['group'] ? $request['group'] : User::GROUP_THERAPIST;
+        $activity->clinic_id = $request->has('group')
+            ? ($request['group'] === self::ADMIN_GROUP_ORGANIZATION_ADMIN ? null : $request->input('clinic_id')) ?? $this->clinic_id
+            : $this->clinic_id;
+
+        $activity->country_id = $request->has('group')
+            ? ($request['group'] === self::ADMIN_GROUP_ORGANIZATION_ADMIN ? null : $request->input('country_id')) ?? $this->country_id
+            : $this->country_id;
+    }
+
+    /**
+     * Get the devices for the user.
+     */
+    public function devices(): HasMany
+    {
+        return $this->hasMany(Device::class);
     }
 }

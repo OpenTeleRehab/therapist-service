@@ -2,22 +2,42 @@
 
 namespace App\Notifications;
 
+use App\Models\Forwarder;
+use App\Models\User;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Illuminate\Support\Facades\Http;
 
 class PatientReferralAssignment extends Notification
 {
     // use Queueable;
 
-    private string $status;
+    private string $subject;
+    private string $content;
 
     /**
      * Create a new notification instance.
      */
-    public function __construct(string $status)
+    public function __construct(User $user, object $therapist, string $prefix)
     {
-        $this->subject = 'OpenTeleRehab – Patient Referral Notification';
-        $this->status = $status;
+        $endpoint = env('ADMIN_SERVICE_URL') . '/email-templates/'. $prefix .'/get-by-prefix';
+        $accessToken = Forwarder::getAccessToken(Forwarder::ADMIN_SERVICE);
+
+        $emailTemplate = Http::withToken($accessToken)->get($endpoint, [
+            'lang' => $user->language_id,
+        ]);
+
+        if ($emailTemplate->successful()) {
+            $emailTemplate = $emailTemplate->json();
+            $emailTemplate = $emailTemplate['data'];
+
+            $this->subject = config('mail.from.name') . ' - ' . $emailTemplate['title'];
+            $this->content = $emailTemplate['content'];
+
+            // Replace email content.
+            $this->content = str_replace('#user_name#', $user->last_name . ' ' . $user->first_name, $this->content);
+            $this->content = str_replace('#therapist_name#', $therapist['last_name'] . ' ' . $therapist['first_name'], $this->content);
+        }
     }
 
     /**
@@ -37,9 +57,8 @@ class PatientReferralAssignment extends Notification
     {
         return (new MailMessage)
             ->subject($this->subject)
-            ->greeting("Dear $notifiable->first_name,")
-            ->lineIf($this->status === 'invited', 'Please be informed that a rehab service admin, [Rehab Service Admin Name], has assigned your patient referral request to a therapist. Kindly log in to the portal for more information.')
-            ->lineIf($this->status === 'accepted', 'Please be informed that a therapist, [Therapist Name], has accepted your patient referral request. Kindly log in to the portal for more information.')
-            ->lineIf($this->status === 'declined', 'Please be informed that a therapist, [Therapist Name], has declined your patient referral request. Kindly log in to the portal for more information.');
+            ->view('emails.patient-referral', [
+                'content' => $this->content,
+            ]);
     }
 }

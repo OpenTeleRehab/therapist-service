@@ -14,13 +14,8 @@ return new class extends Migration
     {
         Schema::table('users', function (Blueprint $table) {
             $table->boolean('notify_email')->default(1);
-            $table->boolean('notify_in_app')->default(0);
+            $table->boolean('notify_in_app')->default(1);
         });
-
-        /**
-         * Assign notifiable to users type clinic_admin and phc_service_admin
-         */
-        DB::table('users')->whereNotNull('phc_service_id')->update(['notify_in_app' =>  1]);
     }
 
     /**

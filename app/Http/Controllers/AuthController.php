@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Helpers\KeycloakHelper;
+use App\Http\Requests\CreateFirebaseTokenRequest;
 use App\Http\Requests\ForgotPasswordRequest;
 use App\Http\Requests\LoginRequest;
+use App\Models\Device;
+use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
@@ -47,6 +50,32 @@ class AuthController extends Controller
         return response()->json([
             'success' => false,
             'message' => 'common.sent_email_error',
+        ]);
+    }
+
+    /**
+     * @param CreateFirebaseTokenRequest $request
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function createFirebaseToken(CreateFirebaseTokenRequest $request)
+    {
+        $user = Auth::user();
+
+        $token = $request->get('firebase_token');
+
+        Device::where('fcm_token', $token)
+            ->whereNot('user_id', $user->id)
+            ->delete();
+
+        Device::updateOrCreate([
+            'user_id' => $user->id,
+            'fcm_token' => $request->get('firebase_token'),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'data' => ['firebase_token' => $request->get('firebase_token')],
         ]);
     }
 }
