@@ -58,7 +58,12 @@ class Appointment extends Model
 
         self::created(function ($appointment) {
             $recipient = User::find($appointment->recipient_id);
-            $recipient->notify(new AppointmentNotification($appointment, Appointment::STATUS_INVITED));
+
+            try {
+                $recipient->notify(new AppointmentNotification($appointment, Appointment::STATUS_INVITED));
+            } catch (\Exception $e) {
+                Log::error($e->getMessage());
+            }
         });
     }
 

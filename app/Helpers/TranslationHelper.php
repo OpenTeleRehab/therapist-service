@@ -12,7 +12,7 @@ class TranslationHelper
      *
      * @return array
      */
-    public static function getTranslations($language_id = '', $plaform = 'patient_app')
+    public static function getTranslations($language_id = '', $plaform = 'therapist_portal')
     {
         $translations = [];
         $requestTranslation = Http::get(env('ADMIN_SERVICE_URL') . '/translation/i18n/' . $plaform, [

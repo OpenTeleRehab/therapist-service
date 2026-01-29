@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use App\Models\Forwarder;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class AppointmentController extends Controller
 {
@@ -299,7 +300,11 @@ class AppointmentController extends Controller
         }
         $appointment->update($updateFile);
 
-        $appointment->recipient->notify(new AppointmentNotification($appointment, Appointment::STATUS_UPDATED));
+        try {
+            $appointment->recipient->notify(new AppointmentNotification($appointment, Appointment::STATUS_UPDATED));
+        } catch (\Exception $e) {
+            Log::error($e->getMessage());
+        }
 
         return ['success' => true, 'message' => 'success_message.appointment_update'];
     }
@@ -372,7 +377,11 @@ class AppointmentController extends Controller
             'unread' => true,
         ]);
 
-        $appointment->requester->notify(new AppointmentNotification($appointment, Appointment::STATUS_ACCEPTED));
+        try {
+            $appointment->requester->notify(new AppointmentNotification($appointment, Appointment::STATUS_ACCEPTED));
+        } catch (\Exception $e) {
+            Log::error($e->getMessage());
+        }
 
         return [
             'success' => true,
@@ -422,7 +431,11 @@ class AppointmentController extends Controller
         if ($appointment->requester_id === Auth::user()->id) {
             $appointment->update(['requester_status' => Appointment::STATUS_CANCELLED]);
 
-            $appointment->recipient->notify(new AppointmentNotification($appointment, Appointment::STATUS_CANCELLED));
+            try {
+                $appointment->recipient->notify(new AppointmentNotification($appointment, Appointment::STATUS_CANCELLED));
+            } catch (\Exception $e) {
+                Log::error($e->getMessage());
+            }
         }
 
         return ['success' => true, 'message' => 'success_message.appointment_cancel'];
