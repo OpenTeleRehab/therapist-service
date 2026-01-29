@@ -2,19 +2,39 @@
 
 namespace App\Notifications;
 
+use App\Models\User;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Illuminate\Support\Facades\Http;
 
 class PatientCounterReferral extends Notification
 {
     // use Queueable;
 
+    private string $subject;
+    private string $content;
     /**
      * Create a new notification instance.
      */
-    public function __construct()
+    public function __construct(User $user)
     {
-        $this->subject = 'OpenTeleRehab – Counter-refer Notification';
+        $prefix = 'therapist-counter-refers-a-patient-for-healthcare-worker';
+        $endpoint = env('ADMIN_SERVICE_URL') . '/email-templates/'. $prefix .'/get-by-prefix';
+        $accessToken = Forwarder::getAccessToken(Forwarder::ADMIN_SERVICE);
+
+        $response = Http::withToken($accessToken)->get($endpoint, [
+            'lang' => $user->language_id,
+        ]);
+
+        if ($response->successful()) {
+            $response = $response->json();
+            $data = $response['data'];
+
+            $this->subject = config('mail.from.name') . ' - ' . $data['title'];
+            $this->content = $data['content'];
+            $this->content = str_replace('#user_name#', $user->first_name, $this->content);
+            $this->content = str_replace('#healthcare_worker_name#', '[Healthcare Worker Name]', $this->content);
+        }
     }
 
     /**
@@ -34,7 +54,8 @@ class PatientCounterReferral extends Notification
     {
         return (new MailMessage)
             ->subject($this->subject)
-            ->greeting("Dear $notifiable->first_name,")
-            ->line('Please be informed that a therapist, [Therapist Name], has counter-referred a patient to your PHC service. Kindly log in to the portal for more information.');
+            ->view('emails.patient-referral', [
+                'content' => $this->content,
+            ]);
     }
 }

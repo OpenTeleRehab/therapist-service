@@ -218,7 +218,6 @@ class ProfileController extends Controller
                 'profession_id' => $data['profession_id'],
                 'show_guidance' => $data['show_guidance'],
                 'notify_email' => $data['notify_email'],
-                'notify_in_app' => $data['notify_in_app'],
             ];
             $user->update($dataUpdate);
 
@@ -275,6 +274,22 @@ class ProfileController extends Controller
         } catch (\Exception $e) {
             return ['success' => false, 'message' => $e->getMessage()];
         }
+    }
+
+    /**
+     * @param User $user
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function turnOffGuidance(User $user)
+    {
+        $user->update([
+            'show_guidance' => 1,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'success_message.turn_off_showing_guidance',
+        ]);
     }
 
     /**

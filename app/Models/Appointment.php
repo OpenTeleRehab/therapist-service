@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Notifications\Appointment as AppointmentNotification;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Activitylog\Models\Activity as ActivityLog;
@@ -17,6 +18,7 @@ class Appointment extends Model
     const STATUS_ACCEPTED = 'accepted';
     const STATUS_REJECTED = 'rejected';
     const STATUS_CANCELLED = 'cancelled';
+    const STATUS_UPDATED = 'updated';
 
     /**
      * The attributes that are mass assignable.
@@ -44,6 +46,21 @@ class Appointment extends Model
         'start_date' => 'datetime:Y-m-d H:i:s',
         'end_date' => 'datetime:Y-m-d H:i:s',
     ];
+
+    /**
+     * Bootstrap the model and its traits.
+     *
+     * @return void
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        self::created(function ($appointment) {
+            $recipient = User::find($appointment->recipient_id);
+            $recipient->notify(new AppointmentNotification($appointment, Appointment::STATUS_INVITED));
+        });
+    }
 
     /**
      * Get the options for activity logging.

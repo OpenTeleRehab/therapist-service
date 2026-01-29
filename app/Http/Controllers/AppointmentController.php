@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\AppointmentResource;
 use App\Models\Appointment;
+use App\Notifications\Appointment as AppointmentNotification;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use App\Models\Forwarder;
@@ -299,6 +299,8 @@ class AppointmentController extends Controller
         }
         $appointment->update($updateFile);
 
+        $appointment->recipient->notify(new AppointmentNotification($appointment, Appointment::STATUS_UPDATED));
+
         return ['success' => true, 'message' => 'success_message.appointment_update'];
     }
 
@@ -370,6 +372,8 @@ class AppointmentController extends Controller
             'unread' => true,
         ]);
 
+        $appointment->requester->notify(new AppointmentNotification($appointment, Appointment::STATUS_ACCEPTED));
+
         return [
             'success' => true,
             'message' => 'success_message.appointment_update',
@@ -409,7 +413,7 @@ class AppointmentController extends Controller
      * @param \App\Models\Appointment $appointment
      *
      *  @param \Illuminate\Http\Request $request
-     * 
+     *
      * @return array
      * @throws \Exception
      */
@@ -417,6 +421,8 @@ class AppointmentController extends Controller
     {
         if ($appointment->requester_id === Auth::user()->id) {
             $appointment->update(['requester_status' => Appointment::STATUS_CANCELLED]);
+
+            $appointment->recipient->notify(new AppointmentNotification($appointment, Appointment::STATUS_CANCELLED));
         }
 
         return ['success' => true, 'message' => 'success_message.appointment_cancel'];
@@ -432,6 +438,8 @@ class AppointmentController extends Controller
             'recipient_status' => Appointment::STATUS_REJECTED,
             'unread' => true,
         ]);
+
+        $appointment->requester->notify(new AppointmentNotification($appointment, Appointment::STATUS_REJECTED));
 
         $message = 'success_message.appointment_update';
         return ['success' => true, 'message' => $message, 'data' => new AppointmentResource($appointment)];

@@ -39,7 +39,6 @@ class ProfileResource extends JsonResource
             'chat_rooms' => $this->chat_rooms ?: [],
             'show_guidance' => $this->show_guidance,
             'notify_email' => $this->notify_email,
-            'notify_in_app' => $this->notify_in_app,
             'type' => $this->type,
         ];
     }

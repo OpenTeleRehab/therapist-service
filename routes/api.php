@@ -105,16 +105,13 @@ Route::group(['middleware' => ['auth:api', 'verify.data.access']], function () {
     Route::apiResource('message', MessageController::class)->middleware('role:manage_message');
 
     // User
+    Route::post('auth/create-firebase-token', [AuthController::class, 'createFirebaseToken'])->middleware('role:manage_own_profile');
+    Route::post('user/{user}/turn-off-guidance', [ProfileController::class, 'turnOffGuidance'])->middleware('role:manage_own_profile');
     Route::get('user/profile', [ProfileController::class, 'getUserProfile'])->middleware('role:manage_own_profile');
     Route::put('user/update-password', [ProfileController::class, 'updatePassword'])->middleware('role:manage_own_profile');
     Route::put('user/update-information', [ProfileController::class, 'updateUserProfile'])->middleware('role:manage_own_profile');
     Route::put('user/add-new-chatroom', [ProfileController::class, 'addNewChatRoom'])->middleware('role:manage_own_profile');
     Route::put('user/update-last-access', [ProfileController::class, 'updateLastAccess'])->middleware('role:manage_own_profile');
-
-    // Notification
-    Route::post('notifications/patient-referral', [NotificationController::class, 'patientReferral']);
-    Route::post('notifications/patient-referral-assignment', [NotificationController::class, 'patientReferralAssignment']);
-    Route::post('notifications/patient-counter-referral', [NotificationController::class, 'patientCounterReferral']);
 
     // Transfer
     Route::get('transfer/accept/{transfer}', [TransferController::class, 'accept'])->middleware('role:manage_transfer');
