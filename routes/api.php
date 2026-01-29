@@ -221,8 +221,6 @@ Route::group(['middleware' => ['auth:api', 'verify.data.access']], function () {
 
         Route::get('treatment-plan/export/{id}', [ForwarderController::class, 'index'])->middleware('role:export_treatment_plan');
 
-        Route::get('push-notification', [ForwarderController::class, 'index'])->middleware('role:view_notification');
-
         Route::get('download-trackers', [DownloadTrackerController::class, 'index'])->middleware('role:manage_download_tracker');
         Route::put('download-trackers', [DownloadTrackerController::class, 'updateProgress'])->middleware('role:manage_download_tracker');
         Route::delete('download-trackers', [DownloadTrackerController::class, 'destroy'])->middleware('role:manage_download_tracker');
@@ -243,6 +241,9 @@ Route::group(['middleware' => ['auth:api', 'verify.data.access']], function () {
 
     // Superset
     Route::get('/superset-guest-token', [SupersetController::class, 'index'])->middleware('role:view_dashboard');
+
+    // Push notification
+    Route::get('push-notification', [NotificationController::class, 'pushNotification']);
 });
 
 // Authentication
