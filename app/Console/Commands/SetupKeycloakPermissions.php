@@ -109,6 +109,7 @@ class SetupKeycloakPermissions extends Command
                 'view_accepted_referral_phc_worker_list',
                 'view_health_condition',
                 'manage_survey',
+                'view_interview_screening_questionnaire_history',
             ],
             'phc_worker' => [
                 'view_patient',
