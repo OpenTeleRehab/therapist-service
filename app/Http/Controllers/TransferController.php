@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Helpers\RocketChatHelper;
+use App\Helpers\TranslationHelper;
 use App\Http\Resources\TransferResource;
 use App\Models\Forwarder;
 use App\Models\Transfer;
@@ -11,6 +12,8 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
+use App\Notifications\Transfer as TransferNotification;
+use Illuminate\Support\Facades\Log;
 
 class TransferController extends Controller
 {
@@ -61,7 +64,7 @@ class TransferController extends Controller
      */
     public function store(Request $request)
     {
-        Transfer::updateOrCreate([
+        $transfer = Transfer::updateOrCreate([
             'patient_id' => $request->get('patient_id'),
             'to_therapist_id' => $request->get('to_therapist_id'),
             'therapist_type' => $request->get('therapist_type'),
@@ -74,6 +77,18 @@ class TransferController extends Controller
             'therapist_type' => $request->get('therapist_type'),
             'status' => Transfer::STATUS_INVITED,
         ]);
+
+        $translations = TranslationHelper::getTranslations($transfer->from_therapist);
+        $sender = $transfer->from_therapist->last_name . ' ' . $transfer->from_therapist->first_name;
+
+        $title = $translations['transfer.invitation.title'];
+        $body = str_replace('${sender_name}', $sender, $translations['transfer.invitation.body']);
+
+        try {
+            $transfer->to_therapist->notify(new TransferNotification($title, $body));
+        } catch (\Exception $e) {
+            Log::error($e->getMessage());
+        }
 
         return ['success' => true, 'message' => 'success_message.transfer_invited'];
     }
@@ -162,6 +177,18 @@ class TransferController extends Controller
                     'country' => $request->header('country'),
                 ])->get(env('PATIENT_SERVICE_URL') . '/patient/therapist-ids/by-phc-worker-id/' . $toTherapist->id);
 
+                $translations = TranslationHelper::getTranslations($transfer->from_therapist);
+                $sender = $transfer->to_therapist->last_name . ' ' . $transfer->to_therapist->first_name;
+
+                $title = $translations['transfer.accepted.title'];
+                $body = str_replace('${sender_name}', $sender, $translations['transfer.accepted.body']);
+
+                try {
+                    $transfer->from_therapist->notify(new TransferNotification($title, $body));
+                } catch (\Exception $e) {
+                    Log::error($e->getMessage());
+                }
+
                 $therapistIds = [];
 
                 if ($response->successful()) {
@@ -194,6 +221,18 @@ class TransferController extends Controller
     public function decline(Transfer $transfer)
     {
         $transfer->update(['status' => Transfer::STATUS_DECLINED]);
+
+        $translations = TranslationHelper::getTranslations($transfer->from_therapist);
+        $sender = $transfer->to_therapist->last_name . ' ' . $transfer->to_therapist->first_name;
+
+        $title = $translations['transfer.declined.title'];
+        $body = str_replace('${sender_name}', $sender, $translations['transfer.declined.body']);
+
+        try {
+            $transfer->from_therapist->notify(new TransferNotification($title, $body));
+        } catch (\Exception $e) {
+            Log::error($e->getMessage());
+        }
 
         return ['success' => true, 'message' => 'success_message.transfer_rejected'];
     }
