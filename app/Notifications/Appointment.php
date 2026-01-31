@@ -4,7 +4,7 @@ namespace App\Notifications;
 
 use App\Broadcasting\FcmChannel;
 use App\Helpers\TranslationHelper;
-use Carbon\Carbon;
+use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\Log;
 use Kreait\Firebase\Contract\Messaging;
@@ -12,7 +12,7 @@ use Kreait\Firebase\Messaging\CloudMessage;
 
 class Appointment extends Notification
 {
-    // use Queueable;
+    use Queueable;
 
     private \App\Models\Appointment $appointment;
     private string $status;
@@ -52,11 +52,6 @@ class Appointment extends Notification
 
         $translations = TranslationHelper::getTranslations($notifiable->language_id);
 
-        $start_date = Carbon::parse($this->appointment->start_date)->format('d/m/Y h:i A');
-        $end_date = Carbon::parse($this->appointment->end_date)->format('d/m/Y h:i A');
-
-        $body = $start_date . ' | ' . $end_date;
-
         switch ($this->status) {
             case \App\Models\Appointment::STATUS_ACCEPTED:
                 $name = $this->appointment->recipient->first_name . ' ' . $this->appointment->recipient->last_name;
@@ -81,9 +76,11 @@ class Appointment extends Notification
 
         // Create the message.
         $message = CloudMessage::new()
-            ->withNotification([
+            ->withData([
                 'title' => $title,
-                'body' => $body,
+                'event_type' => 'appointment',
+                'start_date' => $this->appointment->start_date,
+                'end_date' => $this->appointment->end_date,
             ])
             ->withDefaultSounds();
 
