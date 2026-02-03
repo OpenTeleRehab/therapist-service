@@ -29,6 +29,7 @@ class AppointmentResource extends JsonResource
             'recipient_status' => $this->recipient_status,
             'note' => $this->note,
             'with_user_type' => $this->requester_id === Auth::user()->id ? $this->recipient->type : $this->requester->type,
+            'type' => $this->type,
         ];
     }
 }

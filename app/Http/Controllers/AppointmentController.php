@@ -193,6 +193,7 @@ class AppointmentController extends Controller
             'recipient_id' => 'required|integer|exists:users,id',
             'from' => 'required|string',
             'to' => 'required|string',
+            'type' => 'required|in:online,in_person',
         ]);
         $startDate = date_create_from_format('Y-m-d H:i:s', $request->get('from'));
         $endDate = date_create_from_format('Y-m-d H:i:s', $request->get('to'));
@@ -213,6 +214,7 @@ class AppointmentController extends Controller
             'start_date' => $startDate,
             'end_date' => $endDate,
             'note' => $request->get('note'),
+            'type' => $request->get('type'),
         ]);
 
         return ['success' => true, 'message' => 'success_message.appointment_add'];
@@ -277,6 +279,7 @@ class AppointmentController extends Controller
         $request->validate([
             'from' => 'required|string',
             'to' => 'required|string',
+            'type' => 'required|in:online,in_person',
         ]);
 
         $startDate = date_create_from_format('Y-m-d H:i:s', $request->get('from'));
@@ -292,6 +295,7 @@ class AppointmentController extends Controller
             'start_date' => $startDate,
             'end_date' => $endDate,
             'note' => $request->get('note'),
+            'type' => $request->get('type'),
         ];
 
         // Update recipient status if appointment data changed.

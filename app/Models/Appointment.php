@@ -35,6 +35,7 @@ class Appointment extends Model
         'end_date',
         'note',
         'unread',
+        'type',
     ];
 
     /**
