@@ -8,6 +8,8 @@ use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\Log;
 use Kreait\Firebase\Contract\Messaging;
+use Kreait\Firebase\Messaging\AndroidConfig;
+use Kreait\Firebase\Messaging\ApnsConfig;
 use Kreait\Firebase\Messaging\CloudMessage;
 
 class Appointment extends Notification
@@ -77,13 +79,30 @@ class Appointment extends Notification
         // Create the message.
         $message = CloudMessage::new()
             ->withData([
-                'title' => $title,
                 'event_type' => 'appointment',
+                'title' => $title,
                 'start_date' => $this->appointment->start_date,
                 'end_date' => $this->appointment->end_date,
             ])
-            ->withDefaultSounds();
+            ->withApnsConfig(
+                ApnsConfig::fromArray([
+                    'headers' => [
+                        'apns-priority' => '10',
+                    ],
+                    'payload' => [
+                        'aps' => [
+                            'badge' => 1,
+                        ],
+                    ],
+                ]),
+            )
+            ->withAndroidConfig(
+                AndroidConfig::fromArray([
+                    'priority' => 'high',
+                ]),
+            );
 
+        // Get device tokens
         $deviceTokens = $notifiable->devices->pluck('fcm_token')->toArray();
 
         // Send to multiple tokens.
