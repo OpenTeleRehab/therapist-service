@@ -1,6 +1,8 @@
 <?php
+
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Firebase\JWT\JWT as JWT;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
@@ -63,7 +65,12 @@ class SupersetController extends Controller
             'rls' => []
         ];
 
-        $guestTokenPayload['resources'][0]['id'] = env('SUPERSET_DASHBOARD_ID_FOR_THERAPIST');
+        if ($user->type === User::GROUP_PHC_WORKER) {
+            $guestTokenPayload['resources'][0]['id'] = env('SUPERSET_DASHBOARD_ID_FOR_PHC_WORKER');
+        } else {
+            $guestTokenPayload['resources'][0]['id'] = env('SUPERSET_DASHBOARD_ID_FOR_THERAPIST');
+        }
+
         $guestTokenPayload['rls'] = [
             ['clause' => "country_id = $user->country_id AND clinic_id = $user->clinic_id AND
             (therapist_id = $user->id OR contains(CAST(json_extract(secondary_therapist_ids, '$') AS array<integer>), $user->id))"]
@@ -75,9 +82,9 @@ class SupersetController extends Controller
             'Accept' => 'application/json',
             'Content-Type' => 'application/json',
         ])
-        ->withToken($accessToken)
-        ->withCookies($cookies, parse_url($supersetUrl, PHP_URL_HOST)) // Attach session cookies.
-        ->post("$supersetUrl/api/v1/security/guest_token", $guestTokenPayload);
+            ->withToken($accessToken)
+            ->withCookies($cookies, parse_url($supersetUrl, PHP_URL_HOST)) // Attach session cookies.
+            ->post("$supersetUrl/api/v1/security/guest_token", $guestTokenPayload);
 
         if (!$guestResponse->successful()) {
             return response()->json([
@@ -111,4 +118,3 @@ class SupersetController extends Controller
         ]);
     }
 }
-
