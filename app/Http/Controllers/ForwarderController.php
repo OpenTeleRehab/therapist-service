@@ -81,7 +81,15 @@ class ForwarderController extends Controller
 
         if ($service_name !== null && str_contains($service_name, Forwarder::ADMIN_SERVICE)) {
             $access_token = Forwarder::getAccessToken(Forwarder::ADMIN_SERVICE);
-            $response = Http::withToken($access_token);
+            $response = Http::withToken($access_token)->withHeaders([
+                'int-country-id' => $user->country_id,
+                'int-region-id' => $user?->region_id,
+                'int-province-id' => $user?->province_id,
+                'int-clinic-id' => $user?->clinic_id,
+                'int-phc-service-id' => $user?->phc_service_id,
+                'int-user-type' => $user?->type,
+                'int-therapist-user-id' => $user?->id
+            ]);
 
             $multipart = [];
 
@@ -205,7 +213,15 @@ class ForwarderController extends Controller
 
         if ($service_name !== null && str_contains($service_name, Forwarder::ADMIN_SERVICE)) {
             $access_token = Forwarder::getAccessToken(Forwarder::ADMIN_SERVICE);
-            $response = Http::withToken($access_token);
+            $response = Http::withToken($access_token)->withHeaders([
+                'int-country-id' => $user->country_id,
+                'int-region-id' => $user?->region_id,
+                'int-province-id' => $user?->province_id,
+                'int-clinic-id' => $user?->clinic_id,
+                'int-phc-service-id' => $user?->phc_service_id,
+                'int-user-type' => $user?->type,
+                'int-therapist-user-id' => $user?->id
+            ]);
             $multipart = [];
 
             // Handle regular form inputs (including arrays)
@@ -260,6 +276,11 @@ class ForwarderController extends Controller
                 'country' => $countryIsoCode,
                 'int-therapist-user-id' => $user->id,
                 'int-clinic-id' => $user->clinic_id,
+                'int-phc-service-id' => $user->phc_service_id,
+                'int-country-id' => $user->country_id,
+                'int-province-id' => $user->province_id,
+                'int-region-id' => $user->region_id,
+                'int-user-type' => $user->type,
             ])->put(env('PATIENT_SERVICE_URL') . $endpoint, $request->all());
         }
     }
@@ -285,7 +306,16 @@ class ForwarderController extends Controller
 
         if ($service_name !== null && str_contains($service_name, Forwarder::ADMIN_SERVICE)) {
             $access_token = Forwarder::getAccessToken(Forwarder::ADMIN_SERVICE);
-            return Http::withToken($access_token)->delete(env('ADMIN_SERVICE_URL') . $endpoint);
+            return Http::withToken($access_token)->withHeaders([
+                'int-country-id' => $user->country_id,
+                'int-region-id' => $user?->region_id,
+                'int-province-id' => $user?->province_id,
+                'int-clinic-id' => $user?->clinic_id,
+                'int-phc-service-id' => $user?->phc_service_id,
+                'int-user-type' => $user?->type,
+                'int-therapist-user-id' => $user?->id
+            ])
+            ->delete(env('ADMIN_SERVICE_URL') . $endpoint);
         }
 
         if ($service_name !== null && str_contains($service_name, Forwarder::PATIENT_SERVICE)) {
@@ -294,6 +324,12 @@ class ForwarderController extends Controller
             return Http::withToken($access_token)->withHeaders([
                 'country' => $countryIsoCode,
                 'int-therapist-user-id' => $user->id,
+                'int-clinic-id' => $user->clinic_id,
+                'int-phc-service-id' => $user->phc_service_id,
+                'int-country-id' => $user->country_id,
+                'int-province-id' => $user->province_id,
+                'int-region-id' => $user->region_id,
+                'int-user-type' => $user->type,
             ])->delete(env('PATIENT_SERVICE_URL') . $endpoint);
         }
     }

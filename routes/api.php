@@ -239,6 +239,9 @@ Route::group(['middleware' => ['auth:api', 'verify.data.access']], function () {
         Route::put('patient-referral-assignments/{id}/decline', [ForwarderController::class, 'update'])->middleware('role:manage_patient_referral_assignment');
         Route::put('patient-referral-assignments/{patientId}/counter-referral', [ForwarderController::class, 'update'])->middleware('role:manage_patient_referral_assignment');
         Route::apiResource('patient-referral-assignments', ForwarderController::class)->middleware('role:manage_patient_referral_assignment');
+
+        // Audit log
+        Route::get('therapist-audit-logs', [TherapistAuditLogController::class, 'index'])->middleware('role:access_all');
     });
 
     // Push notification
