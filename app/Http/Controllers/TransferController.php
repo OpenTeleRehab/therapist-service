@@ -78,7 +78,7 @@ class TransferController extends Controller
             'status' => Transfer::STATUS_INVITED,
         ]);
 
-        $translations = TranslationHelper::getTranslations($transfer->from_therapist);
+        $translations = TranslationHelper::getTranslations($transfer->from_therapist?->language_id);
         $sender = $transfer->from_therapist->last_name . ' ' . $transfer->from_therapist->first_name;
 
         $title = $translations['transfer.invitation.title'];
@@ -145,12 +145,14 @@ class TransferController extends Controller
                     ? $patientData['phc_worker_id']
                     : $patientData['therapist_id'];
 
-                $otherUser = User::findOrFail($otherUserId);
+                $otherUser = User::find($otherUserId);
 
-                RocketChatHelper::createChatRoom(
-                    $toTherapist->identity,
-                    $otherUser->identity,
-                );
+                if ($otherUser) {
+                    RocketChatHelper::createChatRoom(
+                        $toTherapist->identity,
+                        $otherUser->identity,
+                    );
+                }
             } else if ($user->type === User::TYPE_THERAPIST) {
 
                 $response = Http::withHeaders([
@@ -177,7 +179,7 @@ class TransferController extends Controller
                     'country' => $request->header('country'),
                 ])->get(env('PATIENT_SERVICE_URL') . '/patient/therapist-ids/by-phc-worker-id/' . $toTherapist->id);
 
-                $translations = TranslationHelper::getTranslations($transfer->from_therapist);
+                $translations = TranslationHelper::getTranslations($transfer->from_therapist?->language_id);
                 $sender = $transfer->to_therapist->last_name . ' ' . $transfer->to_therapist->first_name;
 
                 $title = $translations['transfer.accepted.title'];
@@ -222,7 +224,7 @@ class TransferController extends Controller
     {
         $transfer->update(['status' => Transfer::STATUS_DECLINED]);
 
-        $translations = TranslationHelper::getTranslations($transfer->from_therapist);
+        $translations = TranslationHelper::getTranslations($transfer->from_therapist?->language_id);
         $sender = $transfer->to_therapist->last_name . ' ' . $transfer->to_therapist->first_name;
 
         $title = $translations['transfer.declined.title'];

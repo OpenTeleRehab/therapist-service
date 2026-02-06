@@ -110,6 +110,9 @@ class KeycloakHelper
     public static function getAdminKeycloakAccessToken()
     {
         $access_token = Cache::get(self::ADMIN_ACCESS_TOKEN);
+        $adminClientId = env('ADMIN_KEYCLOAK_BACKEND_CLIENT');
+        $adminUsername = env('ADMIN_KEYCLOAK_BACKEND_USERNAME');
+        $adminPassword = env('ADMIN_KEYCLOAK_BACKEND_PASSWORD');
 
         if ($access_token) {
             $token_arr = explode('.', $access_token);
@@ -122,7 +125,7 @@ class KeycloakHelper
             }
         }
 
-        return self::generateKeycloakToken(ADMIN_KEYCLOAK_TOKEN_URL, env('ADMIN_KEYCLOAK_BACKEND_SECRET'), self::ADMIN_ACCESS_TOKEN);
+        return self::generateKeycloakToken(ADMIN_KEYCLOAK_TOKEN_URL, env('ADMIN_KEYCLOAK_BACKEND_SECRET'), self::ADMIN_ACCESS_TOKEN, $adminClientId, $adminUsername, $adminPassword);
     }
 
     /**
@@ -439,14 +442,14 @@ class KeycloakHelper
      *
      * @return void
      */
-    private static function generateKeycloakToken($url, $client_secret, $cache_key)
+    private static function generateKeycloakToken($url, $client_secret, $cache_key, $clientId = null, $username = null, $password = null)
     {
         $response = Http::asForm()->post($url, [
             'grant_type' => 'password',
-            'client_id' => env('KEYCLOAK_BACKEND_CLIENT'),
+            'client_id' => $clientId ?? env('KEYCLOAK_BACKEND_CLIENT'),
             'client_secret' => $client_secret,
-            'username' => env('KEYCLOAK_BACKEND_USERNAME'),
-            'password' => env('KEYCLOAK_BACKEND_PASSWORD')
+            'username' => $username ?? env('KEYCLOAK_BACKEND_USERNAME'),
+            'password' => $password ?? env('KEYCLOAK_BACKEND_PASSWORD')
         ]);
 
         if ($response->successful()) {
