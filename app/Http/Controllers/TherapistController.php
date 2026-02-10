@@ -623,13 +623,17 @@ class TherapistController extends Controller
 
         $user = Auth::user();
 
+        $identity = $user['identity'];
+        $countryId = $user['country_id'];
+        $name = $user['last_name'] . ' ' . $user['first_name'];
+
         // Create access token, which we will serialize and send to the client.
         $token = new AccessToken(
             $twilioAccountSid,
             $twilioApiKey,
             $twilioApiSecret,
             3600,
-            $user['identity'] . '_' . $user['country_id'],
+            "$identity###$countryId###$name",
         );
 
         // Create Video grant.
