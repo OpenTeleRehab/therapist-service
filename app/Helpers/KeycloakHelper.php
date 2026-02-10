@@ -89,6 +89,9 @@ class KeycloakHelper
     public static function getGAdminKeycloakAccessToken()
     {
         $access_token = Cache::get(self::GADMIN_ACCESS_TOKEN);
+        $gadminClientId = env('GADMIN_KEYCLOAK_BACKEND_CLIENT');
+        $gadminUsername = env('GADMIN_KEYCLOAK_BACKEND_USERNAME');
+        $gadminPassword = env('GADMIN_KEYCLOAK_BACKEND_PASSWORD');
 
         if ($access_token) {
             $token_arr = explode('.', $access_token);
@@ -101,7 +104,7 @@ class KeycloakHelper
             }
         }
 
-        return self::generateKeycloakToken(GADMIN_KEYCLOAK_TOKEN_URL, env('GADMIN_KEYCLOAK_BACKEND_SECRET'), self::GADMIN_ACCESS_TOKEN);
+        return self::generateKeycloakToken(GADMIN_KEYCLOAK_TOKEN_URL, env('GADMIN_KEYCLOAK_BACKEND_SECRET'), self::GADMIN_ACCESS_TOKEN, $gadminClientId, $gadminUsername, $gadminPassword);
     }
 
     /**
