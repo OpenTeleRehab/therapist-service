@@ -105,6 +105,11 @@ class Appointment extends Notification
         // Get device tokens
         $deviceTokens = $notifiable->devices->pluck('fcm_token')->toArray();
 
+        if (count($deviceTokens) === 0) {
+            Log::info('No device FCM tokens found for user', ['user_id' => $notifiable->id]);
+            return;
+        }
+
         // Send to multiple tokens.
         $report = $messaging->sendMulticast($message, $deviceTokens);
 
