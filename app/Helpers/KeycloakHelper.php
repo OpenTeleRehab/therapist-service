@@ -153,7 +153,7 @@ class KeycloakHelper
         }
 
         $response = Http::withHeaders(['country' => $host])->post(PATIENT_LOGIN_URL, [
-            'email' => env('KEYCLOAK_BACKEND_CLIENT'),
+            'email' => env('ADMIN_KEYCLOAK_BACKEND_CLIENT'),
             'pin' => env('PATIENT_BACKEND_PIN'),
         ]);
 

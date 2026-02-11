@@ -76,7 +76,8 @@ class AppointmentController extends Controller
             })
             ->orWhere(function ($q) use ($userId) {
                 $q->where('recipient_id', $userId)
-                ->where('recipient_status', '!=', Appointment::STATUS_INVITED);
+                ->where('recipient_status', '!=', Appointment::STATUS_INVITED)
+                ->where('requester_status', '!=', Appointment::STATUS_CANCELLED);
             });
         });
 
