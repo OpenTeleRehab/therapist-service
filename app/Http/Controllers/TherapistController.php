@@ -133,6 +133,8 @@ class TherapistController extends Controller
                             $query->where('country_id', $filterObj->value);
                         } elseif ($filterObj->columnName === 'therapist_clinic' && $filterObj->value !== '') {
                             $query->where('clinic_id', $filterObj->value);
+                        } elseif ($filterObj->columnName === 'region' && $filterObj->value !== '') {
+                            $query->where('region_id', $filterObj->value);
                         } elseif ($filterObj->columnName === 'id') {
                             $query->where('identity', 'like', '%' . $filterObj->value . '%');
                         } elseif ($filterObj->columnName === 'profession') {
