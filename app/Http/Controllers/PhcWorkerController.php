@@ -128,7 +128,7 @@ class PhcWorkerController extends Controller
                             $query->where('country_id', $filterObj->value);
                         } elseif ($filterObj->columnName === 'id') {
                             $query->where('identity', 'like', '%' . $filterObj->value . '%');
-                        } elseif ($filterObj->columnName === 'profession') {
+                        } elseif ($filterObj->columnName === 'phc_worker_profession') {
                             $query->where('profession_id', $filterObj->value);
                         } elseif ($filterObj->columnName === 'region') {
                             $query->where('region_id', $filterObj->value);

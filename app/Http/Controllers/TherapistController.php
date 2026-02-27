@@ -129,7 +129,7 @@ class TherapistController extends Controller
                             $endDate->format('Y-m-d');
                             $query->whereDate('last_login', '>=', $startDate)
                                 ->whereDate('last_login', '<=', $endDate);
-                        } elseif ($filterObj->columnName === 'therapist_country' && $filterObj->value !== '') {
+                        } elseif ($filterObj->columnName === 'country' && $filterObj->value !== '') {
                             $query->where('country_id', $filterObj->value);
                         } elseif ($filterObj->columnName === 'therapist_clinic' && $filterObj->value !== '') {
                             $query->where('clinic_id', $filterObj->value);
@@ -137,7 +137,7 @@ class TherapistController extends Controller
                             $query->where('region_id', $filterObj->value);
                         } elseif ($filterObj->columnName === 'id') {
                             $query->where('identity', 'like', '%' . $filterObj->value . '%');
-                        } elseif ($filterObj->columnName === 'profession') {
+                        } elseif ($filterObj->columnName === 'therapist_profession') {
                             $query->where('profession_id', $filterObj->value);
                         } elseif ($filterObj->columnName === 'limit_patient') {
                             $query->where('limit_patient', $filterObj->value);
