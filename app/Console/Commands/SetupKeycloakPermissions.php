@@ -51,9 +51,6 @@ class SetupKeycloakPermissions extends Command
             'view_phc_service_list',
             'view_phc_service_phc_worker',
             'view_phc_service_list',
-            'setup_exercise',
-            'setup_educational_material',
-            'setup_questionnaire',
             'view_health_condition',
             'manage_patient_referral',
             'manage_patient_referral_assignment',
@@ -67,6 +64,12 @@ class SetupKeycloakPermissions extends Command
             'view_accepted_referral_phc_worker_list',
             'view_phc_workers',
             'manage_survey',
+            'view_exercise',
+            'view_education_material',
+            'view_questionnaire',
+            'mark_favorite_exercise',
+            'mark_favorite_education_material',
+            'mark_favorite_questionnaire',
         ];
         $groupRoles = [
             'therapist' => [
@@ -135,9 +138,6 @@ class SetupKeycloakPermissions extends Command
                 'view_notification',
                 'download_file',
                 'view_dashboard',
-                'manage_exercise',
-                'manage_education_material',
-                'manage_questionnaire',
                 'manage_category',
                 'view_region_list',
                 'view_province_list',
@@ -153,6 +153,12 @@ class SetupKeycloakPermissions extends Command
                 'chat_with_phc_worker',
                 'view_referral_therapist_list',
                 'manage_survey',
+                'view_exercise',
+                'view_education_material',
+                'view_questionnaire',
+                'mark_favorite_exercise',
+                'mark_favorite_education_material',
+                'mark_favorite_questionnaire',
             ],
         ];
 

@@ -157,21 +157,21 @@ Route::group(['middleware' => ['auth:api', 'verify.data.access']], function () {
 
         // Exercises
         Route::post('exercise/suggest', [ForwarderController::class, 'store'])->middleware('role:manage_exercise');
-        Route::get('exercise/list/by-ids', [ForwarderController::class, 'index'])->middleware('role:anage_exercise');
-        Route::post('exercise/updateFavorite/by-therapist/{id}', [ForwarderController::class, 'store'])->middleware('role:manage_exercise');
-        Route::apiResource('exercise', ForwarderController::class)->middleware('role:manage_exercise');
+        Route::get('exercise/list/by-ids', [ForwarderController::class, 'index'])->middleware('role:manage_exercise');
+        Route::post('exercise/updateFavorite/by-therapist/{id}', [ForwarderController::class, 'store'])->middleware('role:manage_exercise,mark_favorite_exercise');
+        Route::apiResource('exercise', ForwarderController::class)->middleware('role:manage_exercise,view_exercise');
 
         // Education Materials
         Route::post('education-material/suggest', [ForwarderController::class, 'store'])->middleware('role:manage_education_material');
         Route::get('education-material/list/by-ids', [ForwarderController::class, 'index'])->middleware('role:manage_education_material');
-        Route::post('education-material/updateFavorite/by-therapist/{id}', [ForwarderController::class, 'store'])->middleware('role:manage_education_material');
-        Route::apiResource('education-material', ForwarderController::class)->middleware('role:manage_education_material');
+        Route::post('education-material/updateFavorite/by-therapist/{id}', [ForwarderController::class, 'store'])->middleware('role:manage_education_material,mark_favorite_education_material');
+        Route::apiResource('education-material', ForwarderController::class)->middleware('role:manage_education_material,view_education_material');
 
         // Questionnaires
         Route::post('questionnaire/suggest', [ForwarderController::class, 'store'])->middleware('role:manage_questionnaire');
         Route::get('questionnaire/list/by-ids', [ForwarderController::class, 'index'])->middleware('role:manage_questionnaire');
-        Route::post('questionnaire/updateFavorite/by-therapist/{id}', [ForwarderController::class, 'store'])->middleware('role:manage_questionnaire');
-        Route::apiResource('questionnaire', ForwarderController::class)->middleware('role:manage_questionnaire');
+        Route::post('questionnaire/updateFavorite/by-therapist/{id}', [ForwarderController::class, 'store'])->middleware('role:manage_questionnaire,mark_favorite_questionnaire');
+        Route::apiResource('questionnaire', ForwarderController::class)->middleware('role:manage_questionnaire,view_questionnaire');
 
         // Assistive Technologies
         Route::get('assistive-technologies/list/get-all', [ForwarderController::class, 'index'])->middleware('role:view_assistive_technology');
