@@ -66,7 +66,7 @@ class TransferController extends Controller
     {
         $transfer = Transfer::updateOrCreate([
             'patient_id' => $request->get('patient_id'),
-            'to_therapist_id' => $request->get('to_therapist_id'),
+            'from_therapist_id' => $request->get('from_therapist_id'),
             'therapist_type' => $request->get('therapist_type'),
         ], [
             'patient_id' => $request->get('patient_id'),
