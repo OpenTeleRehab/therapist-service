@@ -6,7 +6,6 @@ use App\Http\Controllers\ChatController;
 use App\Http\Controllers\DownloadTrackerController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\SupersetController;
 use App\Http\Controllers\TherapistController;
 use App\Http\Controllers\ForwarderController;
 use \App\Http\Controllers\TreatmentPlanController;
@@ -196,6 +195,9 @@ Route::group(['middleware' => ['auth:api', 'verify.data.access']], function () {
         Route::get('survey/list/publish-survey', [ForwarderController::class, 'index'])->middleware('role:manage_survey');
         Route::post('survey/skip', [ForwarderController::class, 'store'])->middleware('role:manage_survey');
         Route::post('survey/submit', [ForwarderController::class, 'store'])->middleware('role:manage_survey');
+
+        // Superset
+        Route::get('superset-guest-token', [ForwarderController::class, 'index'])->middleware('role:view_dashboard');
     });
 
     // Patient Service
@@ -238,9 +240,6 @@ Route::group(['middleware' => ['auth:api', 'verify.data.access']], function () {
         Route::put('patient-referral-assignments/{patientId}/counter-referral', [ForwarderController::class, 'update'])->middleware('role:manage_patient_referral_assignment');
         Route::apiResource('patient-referral-assignments', ForwarderController::class)->middleware('role:manage_patient_referral_assignment');
     });
-
-    // Superset
-    Route::get('/superset-guest-token', [SupersetController::class, 'index'])->middleware('role:view_dashboard');
 
     // Push notification
     Route::get('push-notification', [NotificationController::class, 'pushNotification']);
