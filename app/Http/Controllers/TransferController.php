@@ -153,6 +153,17 @@ class TransferController extends Controller
                         $otherUser->identity,
                     );
                 }
+                $translations = TranslationHelper::getTranslations($transfer->from_therapist?->language_id);
+                $sender = $transfer->to_therapist->last_name . ' ' . $transfer->to_therapist->first_name;
+
+                $title = $translations['transfer.accepted.title'] ?? '';
+                $body = str_replace('${sender_name}', $sender, $translations['transfer.accepted.body'] ?? '');
+
+                try {
+                    $transfer->from_therapist->notify(new TransferNotification($title, $body));
+                } catch (\Exception $e) {
+                    Log::error($e->getMessage());
+                }
             } else if ($user->type === User::TYPE_THERAPIST) {
 
                 $response = Http::withHeaders([
