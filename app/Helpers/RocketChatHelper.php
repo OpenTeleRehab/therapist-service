@@ -55,8 +55,7 @@ class RocketChatHelper
             'X-User-Id' => $userId,
         ])->asJson()->post(ROCKET_CHAT_LOGOUT_URL);
         if ($response->successful()) {
-            $result = $response->json();
-            return $result['status'] === 'success';
+            return true;
         }
 
         $response->throw();
