@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use App\Models\Transfer;
 use App\Models\Appointment;
+use App\Models\Device;
 
 class PhcWorkerController extends Controller
 {
@@ -572,6 +573,9 @@ class PhcWorkerController extends Controller
 
             // Remove user appointments.
             Appointment::where('requester_id', $user->id)->orWhere('recipient_id', $user->id)->delete();
+
+            // Remove user devices.
+            Device::where('user_id', $user->id)->delete();
 
             // Remove patients of phc worker.
             Http::withHeaders([
