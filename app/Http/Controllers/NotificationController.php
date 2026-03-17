@@ -23,7 +23,7 @@ class NotificationController extends Controller
         $rid = $request->get('rid');
         $title = $request->get('title');
         $body = $request->get('body');
-        $translatable = $request->get('translatable');
+        $translatable = $request->boolean('translatable');
 
         if (preg_match('/^PHC[0-9]/', $identity)) {
             $user = User::where('identity', $request->get('identity'))->firstOrFail();
