@@ -19,12 +19,12 @@ class Chat extends Notification
     private ?string $rid;
     private string $title;
     private string $body;
-    private ?bool $translatable;
+    private bool $translatable;
 
     /**
      * Create a new notification instance.
      */
-    public function __construct(?string $id, ?string $rid, string $title, string $body, ?bool $translatable = false)
+    public function __construct(?string $id, ?string $rid, string $title, string $body, bool $translatable)
     {
         $this->id = $id;
         $this->rid = $rid;
