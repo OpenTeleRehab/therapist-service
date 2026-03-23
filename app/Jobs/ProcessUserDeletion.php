@@ -2,11 +2,13 @@
 
 namespace App\Jobs;
 
+use App\Helpers\KeycloakHelper;
 use App\Models\User;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class ProcessUserDeletion implements ShouldQueue
@@ -40,8 +42,29 @@ class ProcessUserDeletion implements ShouldQueue
 
         $column = $entityColumnMap[$this->entityName];
 
-        $deletedRows = User::where($column, $this->entityId)->delete();
+        $users = User::where($column, $this->entityId)->get();
+        $deletedCount = 0;
 
-        Log::info('Successfully deleted ' . $deletedRows . ' therapists belonging to ' . $this->entityName . ' id ' . $this->entityId);
+        $users->each(function ($user) use (&$deletedCount) {
+            $token = KeycloakHelper::getKeycloakAccessToken();
+
+            $userUrl = KeycloakHelper::getUserUrl() . '?email=' . $user->email;
+            $response = Http::withToken($token)->get($userUrl);
+
+            if ($response->successful()) {
+                $keyCloakUsers = $response->json();
+                if (!empty($keyCloakUsers)) {
+                    KeycloakHelper::deleteUser($token, $keyCloakUsers[0]['id']);
+                } else {
+                    Log::warning("No user found in Keycloak for email: {$user->email}");
+                }
+
+                $user->delete();
+            }
+
+            $deletedCount++;
+        });
+
+        Log::info('Successfully deleted ' . $deletedCount . ' therapists belonging to ' . $this->entityName . ' id ' . $this->entityId);
     }
 }
