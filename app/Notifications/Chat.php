@@ -58,7 +58,7 @@ class Chat extends Notification
         $messaging = app(Messaging::class);
 
         // Create the message.
-        if (str_starts_with($this->body, 'jitsi_call') && (str_ends_with($this->body, '_started') || str_ends_with($this->body, '_missed'))) {
+        if (str_starts_with($this->body, 'jitsi_call') && (str_ends_with($this->body, '_started') || str_ends_with($this->body, '_missed') || str_ends_with($this->body, '_accepted'))) {
             $message = CloudMessage::new()
                 ->withData([
                     '_id' => $this->id,
