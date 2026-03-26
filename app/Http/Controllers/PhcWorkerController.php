@@ -564,7 +564,7 @@ class PhcWorkerController extends Controller
         try {
             $countryCode = $request->get('country_code');
             $hardDelete = $request->boolean('hard_delete');
-
+            $authUser = Auth::user();
             // Remove all active requests of patient transfer to other phc workers
             Transfer::where('from_therapist_id', $user->id)->delete();
 
@@ -584,6 +584,13 @@ class PhcWorkerController extends Controller
             ])->post(env('PATIENT_SERVICE_URL') . '/patient/delete/by-phc-worker', [
                 'phc_worker_id' => $user->id,
                 'hard_delete' => $hardDelete,
+                'user_id' => $authUser->admin_user_id,
+                'user_type' => $authUser->user_type,
+                'region_id' => $authUser->region_id,
+                'province_id' => $authUser->province_id,
+                'clinic_id' => $authUser->clinic_id,
+                'phc_service_id' => $authUser->phc_service_id,
+                'country_id' => $authUser->country_id,
             ]);
 
             // Remove own created treatment preset.

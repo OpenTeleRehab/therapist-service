@@ -47,6 +47,18 @@ class VerifyDataAccess
             if (!empty($request->header('int-phc-service-id'))) {
                 $user->phc_service_id = (int) $request->header('int-phc-service-id');
             }
+
+            if (!empty($request->header('int-user-type'))) {
+                $user->user_type = $request->header('int-user-type');
+            }
+
+            if (!empty($request->header('int-admin-user-id'))) {
+                $user->admin_user_id = (int) $request->header('int-admin-user-id');
+            }
+
+            if (!empty($request->header('int-region-ids'))) {
+                $user->region_ids = $request->header('int-region-ids');
+            }
         }
         $deny = fn() => response()->json(['message' => 'Access denied'], 403);
 

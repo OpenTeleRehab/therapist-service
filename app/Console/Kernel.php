@@ -25,6 +25,7 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         $schedule->command('hi:clean-up-download-trackers')->daily();
+        $schedule->command('hi:clean-up-old-audit-log')->dailyAt('0:00')->runInBackground();
     }
 
     /**

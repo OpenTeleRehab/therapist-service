@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 use Spatie\Activitylog\Models\Activity as ActivityLog;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
@@ -20,6 +21,7 @@ class User extends Authenticatable
     const ADMIN_GROUP_ORGANIZATION_ADMIN = 'organization_admin';
     const ADMIN_GROUP_GLOBAL_ADMIN = 'global_admin';
     const ADMIN_GROUP_COUNTRY_ADMIN = 'country_admin';
+    const ADMIN_GROUP_REGIONAL_ADMIN = 'regional_admin';
     const ADMIN_GROUP_CLINIC_ADMIN = 'clinic_admin';
     const ADMIN_GROUP_PHC_SERVICE_ADMIN = 'phc_service_admin';
     const GROUP_THERAPIST = 'therapist';
@@ -157,17 +159,16 @@ class User extends Authenticatable
      */
     public function tapActivity(ActivityLog $activity)
     {
-        $request = request();
-        $activity->causer_id = $request['user_id'] ? $request['user_id'] : $this->id;
-        $activity->full_name = $request['user_name'] ? $request['user_name'] : $this->last_name . ' ' . $this->first_name;
-        $activity->group = $request['group'] ? $request['group'] : User::GROUP_THERAPIST;
-        $activity->clinic_id = $request->has('group')
-            ? ($request['group'] === self::ADMIN_GROUP_ORGANIZATION_ADMIN ? null : $request->input('clinic_id')) ?? $this->clinic_id
-            : $this->clinic_id;
-
-        $activity->country_id = $request->has('group')
-            ? ($request['group'] === self::ADMIN_GROUP_ORGANIZATION_ADMIN ? null : $request->input('country_id')) ?? $this->country_id
-            : $this->country_id;
+        $authUser = Auth::user();
+        if ($authUser->admin_user_id) {
+            $activity->causer_id = $authUser->admin_user_id;
+            $activity->country_id = $authUser->country_id ?: null;
+            $activity->clinic_id = $authUser->clinic_id ?: null;
+            $activity->phc_service_id = $authUser->phc_service_id ?: null;
+            $activity->province_id = $authUser->province_id ?: null;
+            $activity->region_id = $authUser->region_id ?: null;
+            $activity->log_name = ExtendActivity::ADMIN_SERVICE;
+        }
     }
 
     /**

@@ -55,18 +55,12 @@ class Transfer extends Model
      */
     public function tapActivity(ActivityLog $activity)
     {
-        $request = request();
-        $user = null;
-        if ($request['from_therapist_id']) {
-            $user = User::find($request['from_therapist_id']);
+        $authUser = Auth::user();
+        if ($authUser->email === env('KEYCLOAK_BACKEND_CLIENT')) {
+            $activity->causer_id = $this->from_therapist_id;
         } else {
-            $user = Auth::user();
+            $activity->causer_id = $authUser->id;
         }
-        $activity->causer_id = $user?->id;
-        $activity->full_name = $user?->last_name . ' ' . $user?->first_name;
-        $activity->clinic_id = $user?->clinic_id;
-        $activity->country_id = $user?->country_id;
-        $activity->group = User::GROUP_THERAPIST;
     }
 
     public function from_therapist()

@@ -6,10 +6,8 @@ use App\Notifications\Appointment as AppointmentNotification;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
-use Spatie\Activitylog\Models\Activity as ActivityLog;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
-use Illuminate\Support\Facades\Auth;
 
 class Appointment extends Model
 {
@@ -81,22 +79,6 @@ class Appointment extends Model
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs()
             ->logExcept(['id', 'created_at', 'updated_at', 'recipient_id', 'requester_id']);
-    }
-
-    /**
-     * Modify the activity properties before it is saved.
-     *
-     * @param \Spatie\Activitylog\Models\Activity $activity
-     * @return void
-     */
-    public function tapActivity(ActivityLog $activity)
-    {
-        $authUser = Auth::user();
-        $activity->causer_id = $authUser->id;
-        $activity->full_name = $authUser->last_name . ' ' . $authUser->first_name;
-        $activity->group = $authUser->type;
-        $activity->clinic_id = $authUser->clinic_id ?? $authUser->phc_service_id;
-        $activity->country_id = $authUser->country_id ?? null;
     }
 
     /**
