@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Internal\MfaSettingController;
 use App\Http\Controllers\Internal\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -18,4 +19,7 @@ Route::group(['middleware' => ['auth:api', 'role:access_all', 'verify.data.acces
     Route::get('user/by-ids', [UserController::class, 'getByIds']);
     Route::get('user/by-name', [UserController::class, 'getByName']);
     Route::get('user/by-type', [UserController::class, 'getByType']);
+
+    // Mfa Settings
+    Route::post('mfa-settings', [MfaSettingController::class, 'store']);
 });
