@@ -10,6 +10,7 @@ use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Spatie\Activitylog\Facades\Activity;
 
 class ProcessUserDeletion implements ShouldQueue
 {
@@ -32,6 +33,9 @@ class ProcessUserDeletion implements ShouldQueue
      */
     public function handle(): void
     {
+        // Disable activity logging
+        Activity::disableLogging();
+
         $entityColumnMap = [
             'country' => 'country_id',
             'region' => 'region_id',
@@ -64,6 +68,9 @@ class ProcessUserDeletion implements ShouldQueue
 
             $deletedCount++;
         });
+
+        // Re-enable activity logging
+        Activity::enableLogging();
 
         Log::info('Successfully deleted ' . $deletedCount . ' therapists belonging to ' . $this->entityName . ' id ' . $this->entityId);
     }
