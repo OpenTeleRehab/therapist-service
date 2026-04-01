@@ -137,8 +137,9 @@ class ChartController extends Controller
     public function getDataForClinicAdmin(Request $request)
     {
         $clinicId = $request->get('clinic_id');
-        $therapistTotal = User::where('clinic_id', $clinicId)->where('enabled', '=', 1)->count();
-
+        $therapistTotal = User::where('clinic_id', $clinicId)
+            ->activeOrNeverLoginUser()
+            ->count();
         return [
             'therapistTotal' => $therapistTotal
         ];

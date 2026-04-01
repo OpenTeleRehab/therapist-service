@@ -489,6 +489,31 @@ class PhcWorkerController extends Controller
     {
         try {
             $enabled = $request->boolean('enabled');
+            // Only check limit when trying to enable user
+            if ($enabled && !$user->enabled) {
+                $phcService = Http::withHeaders([
+                    'Authorization' => 'Bearer ' . Forwarder::getAccessToken(Forwarder::ADMIN_SERVICE),
+                ])->get(env('ADMIN_SERVICE_URL') . "/phc-services/{$user->phc_service_id}/entities");
+
+                if ($phcService->failed()) {
+                    return response()->json([
+                        'message' => 'error_message.phc_service_not_found'
+                    ], 404);
+                }
+
+                $phcWorkerLimit = $phcService->json('data.phc_worker_limit');
+                $phcWorkerTotal = User::where('phc_service_id', $user->phc_service_id)
+                ->where('type', User::TYPE_PHC_WORKER)
+                ->activeOrNeverLoginUser()
+                ->count();
+
+                if ($phcWorkerTotal >= $phcWorkerLimit) {
+                    return response()->json([
+                        'message' => 'error_message.phc_worker_limit_reached'
+                    ], 422);
+                }
+            }
+
             $token = KeycloakHelper::getKeycloakAccessToken();
             $userUrl = KeycloakHelper::getUserUrl() . '?email=' . $user->email;
             $user->update(['enabled' => $enabled]);
@@ -1046,7 +1071,10 @@ class PhcWorkerController extends Controller
     public function countPhcWorkerByPhcService(Request $request)
     {
         $phcServiceId = $request->get('phc_service_id');
-        $phcWorkerTotal = User::where('phc_service_id', $phcServiceId)->where('enabled', 1)->where('type', User::TYPE_PHC_WORKER)->count();
+        $phcWorkerTotal = User::where('phc_service_id', $phcServiceId)
+            ->where('type', User::TYPE_PHC_WORKER)
+            ->activeOrNeverLoginUser()
+            ->count();
 
         return [
             'data' => $phcWorkerTotal

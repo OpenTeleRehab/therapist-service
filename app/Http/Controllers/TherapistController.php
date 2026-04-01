@@ -579,6 +579,32 @@ class TherapistController extends Controller
     {
         try {
             $enabled = $request->boolean('enabled');
+
+            if ($enabled && !$user->enabled) {
+                $clinicService = Http::withHeaders([
+                    'Authorization' => 'Bearer ' . Forwarder::getAccessToken(Forwarder::ADMIN_SERVICE),
+                ])->get(env('ADMIN_SERVICE_URL') . "/clinic/{$user->clinic_id}/entities");
+
+                if ($clinicService->failed()) {
+                    return response()->json([
+                        'message' => 'error_message.clinic_service_not_found'
+                    ], 404);
+                }
+
+                $therapistLimit = $clinicService->json('data.therapist_limit');
+                $therapistTotal = User::where('clinic_id', $user->clinic_id)
+                ->where('type', User::TYPE_THERAPIST)
+                ->activeOrNeverLoginUser()
+                ->count();
+
+                if ($therapistTotal >= $therapistLimit) {
+                    return response()->json([
+                        'message' => 'error_message.therapist_limit_reached'
+                    ], 422);
+                }
+            }
+
+
             $token = KeycloakHelper::getKeycloakAccessToken();
             $userUrl = KeycloakHelper::getUserUrl() . '?email=' . $user->email;
             $user->update(['enabled' => $enabled]);
