@@ -178,4 +178,21 @@ class User extends Authenticatable
     {
         return $this->hasMany(Device::class);
     }
+
+    /**
+     * Scope a query to only include active or pending users.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeActiveOrNeverLoginUser(Builder $query): Builder
+    {
+        return $query->where(function ($query) {
+            $query->where('enabled', 1)
+                ->orWhere(function ($q) {
+                    $q->where('enabled', 0)
+                        ->whereNull('last_login');
+                });
+        });
+    }
 }
