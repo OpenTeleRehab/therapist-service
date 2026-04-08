@@ -18,6 +18,7 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable, LogsActivity;
 
+    const ADMIN_GROUP_SUPER_ADMIN = 'super_admin';
     const ADMIN_GROUP_ORGANIZATION_ADMIN = 'organization_admin';
     const ADMIN_GROUP_GLOBAL_ADMIN = 'global_admin';
     const ADMIN_GROUP_COUNTRY_ADMIN = 'country_admin';
@@ -34,21 +35,13 @@ class User extends Authenticatable
     const MFA_RECOMMEND = 'recommend';
     const MFA_DISABLE = 'skip';
 
-    // Specific Keycloak keys
-    const MFA_KEY_ENFORCEMENT = 'mfaPolicy';
-    const MFA_MAX_AGE = 'trustedDeviceMaxAge';
-    const MFA_SKIP_MAX_AGE = 'skipMfaMaxAge';
-
-    const ROLE_LEVEL = [
-        'organization_admin' => 1,
-        'country_admin' => 2,
-        'clinic_admin' => 3,
-        'therapist' => 4,
-    ];
-    const ENFORCEMENT_LEVEL = [
-        'force' => 1,
-        'recommend' => 2,
-        'skip' => 3,
+    const roleHierarchy = [
+        self::ADMIN_GROUP_SUPER_ADMIN,
+        self::ADMIN_GROUP_ORGANIZATION_ADMIN,
+        self::ADMIN_GROUP_COUNTRY_ADMIN,
+        self::ADMIN_GROUP_REGIONAL_ADMIN,
+        self::ADMIN_GROUP_CLINIC_ADMIN,
+        self::ADMIN_GROUP_PHC_SERVICE_ADMIN,
     ];
 
     /**

@@ -16,7 +16,6 @@ use App\Http\Controllers\MessageController;
 use App\Http\Controllers\TransferController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuditLogController as TherapistAuditLogController;
-use App\Http\Controllers\MfaSettingController;
 use App\Http\Controllers\PhcWorkerController;
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\DataCleanUpController;
@@ -119,10 +118,6 @@ Route::group(['middleware' => ['auth:api', 'verify.data.access']], function () {
     Route::apiResource('transfer', TransferController::class)->middleware('role:manage_transfer');
     Route::delete('transfer/delete/by-patient', [TransferController::class, 'deleteByPatient'])->middleware('role:manage_transfer');
     Route::get('transfer/number/by-therapist', [TransferController::class, 'getNumberOfActiveTransfers'])->middleware('role:access_all');
-
-    // Mfa Settings
-    Route::get('mfa-settings/{jobId}', [MfaSettingController::class, 'jobStatus'])->middleware('role:access_all');
-    Route::post('mfa-settings', [MfaSettingController::class, 'store'])->middleware('role:access_all');
 
     // Appointment
     Route::post('appointments/{appointment}/accept', [AppointmentController::class, 'accept'])->middleware('role:manage_appointment');
