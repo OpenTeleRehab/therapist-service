@@ -41,7 +41,7 @@ class ApplyMfaSettings implements ShouldQueue
 
         $mfaSettingService->removeMfaForUsers($users);
 
-        $allMfaSettings = $mfaSettingService->getMfaSettings();
+        $allMfaSettings = $mfaSettingService->getMfaSettings($this->isDeleting ? $this->rowId : null);
 
         foreach ($users as $user) {
             $mfaSettings = $mfaSettingService->getMfaSettingsByUserType($allMfaSettings, $user->type);
