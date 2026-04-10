@@ -30,10 +30,16 @@ class MfaSettingService
     /**
      * Get MFA settings that need to use in therapist service.
      */
-    public function getMfaSettings()
+    public function getMfaSettings($mfaSettingId = null)
     {
+        $query = [];
+
+        if ($mfaSettingId) {
+            $query['exclude_id'] = $mfaSettingId;
+        }
+
         $response = Http::withToken(Forwarder::getAccessToken(Forwarder::ADMIN_SERVICE))
-            ->get(env('ADMIN_SERVICE_URL') . '/internal/mfa-settings/get-for-therapist-service')
+            ->get(env('ADMIN_SERVICE_URL') . '/internal/mfa-settings/get-for-therapist-service', $query)
             ->throw();
 
         return $response->json('data');
