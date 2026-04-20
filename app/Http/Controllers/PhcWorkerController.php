@@ -8,6 +8,7 @@ use App\Helpers\RocketChatHelper;
 use App\Http\Resources\PatientPhcWorkerResource;
 use App\Http\Resources\PhcWorkerListResource;
 use App\Http\Resources\PhcWorkerOptionResource;
+use App\Http\Resources\PhcWorkerResource;
 use App\Http\Resources\TherapistOptionResource;
 use App\Models\Forwarder;
 use App\Models\TreatmentPlan;
@@ -841,14 +842,17 @@ class PhcWorkerController extends Controller
     }
 
     /**
-     * @param \Illuminate\Http\Request $request
-     *
-     * @return array
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
      */
     public function getById(Request $request)
     {
         $user = User::find($request->get('id'));
-        return $user;
+
+        return response()->json([
+            'success' => true,
+            'data' => new PhcWorkerResource($user),
+        ]);
     }
 
     /**
