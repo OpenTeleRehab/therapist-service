@@ -79,6 +79,7 @@ Route::group(['middleware' => ['auth:api', 'verify.data.access']], function () {
     Route::post('phc-workers/delete-chat-room/by-id', [PhcWorkerController::class, 'deleteChatRoomById'])->middleware('role:delete_chat_room');
     Route::get('phc-workers/all', [PhcWorkerController::class, 'getAll'])->middleware('role:access_all');
     Route::get('phc-workers/by-ids', [PhcWorkerController::class, 'getByIds'])->middleware('role:view_phc_workers');
+    Route::get('phc-workers/by-id', [PhcWorkerController::class, 'getById'])->middleware('role:access_all');
 
     // Chat
     Route::get('chat/therapists', [ChatController::class, 'getTherapists'])->middleware('role:chat_with_therapist');
