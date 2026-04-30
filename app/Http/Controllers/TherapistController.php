@@ -10,6 +10,7 @@ use App\Http\Resources\TherapistListResource;
 use App\Http\Resources\TherapistOptionResource;
 use App\Http\Resources\UserOptionResource;
 use App\Http\Resources\PhcWorkerOptionResource;
+use App\Jobs\CreateAssociateChatRoom;
 use App\Models\Forwarder;
 use App\Models\Transfer;
 use App\Models\TreatmentPlan;
@@ -609,18 +610,17 @@ class TherapistController extends Controller
             $userUrl = KeycloakHelper::getUserUrl() . '?email=' . $user->email;
             $user->update(['enabled' => $enabled]);
 
-            // Create rocketchat room.
-            User::where('clinic_id', $user->clinic_id)
-                ->where('id', '!=', $user->id)
+            // Find associate therapist.
+            $therapistIdentities = User::where('clinic_id', $user->clinic_id)
+                ->whereNot('id', $user->id)
                 ->where('enabled', 1)
-                ->get()
-                ->map(function ($therapist) use ($user) {
-                    try {
-                        RocketChatHelper::createChatRoom($user->identity, $therapist->identity);
-                    } catch (\Exception $e) {
-                        return $e->getMessage();
-                    }
-                });
+                ->pluck('identity')
+                ->toArray();
+
+            // Crete associate chat room.
+            if (count($therapistIdentities) > 0) {
+                CreateAssociateChatRoom::dispatch($user->identity, $therapistIdentities);
+            }
 
             $response = Http::withToken($token)->get($userUrl);
             $keyCloakUsers = $response->json();
