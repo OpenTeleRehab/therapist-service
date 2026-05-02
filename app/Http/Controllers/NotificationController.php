@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Notifications\NewPatient;
+use App\Events\NewPatientNotification;
 use App\Models\Forwarder;
 use App\Models\User;
 use App\Notifications\Chat;
@@ -38,5 +40,24 @@ class NotificationController extends Controller
         if (preg_match('/^P[0-9]/', $identity)) {
             Http::withToken(Forwarder::getAccessToken(Forwarder::PATIENT_SERVICE))->get(env('PATIENT_SERVICE_URL') . '/push-notification', $request->all());
         }
+    }
+
+    /**
+     * @param \Illuminate\Http\Request $request
+     * @return array
+     */
+    public function newPatientNotification(Request $request)
+    {
+        foreach ($request->get('therapist_ids') as $therapistId) {
+            $therapist = User::find($therapistId);
+            $patientFirstName = $request->get('patient_first_name');
+            $patientLastName = $request->get('patient_last_name');
+            if ($therapist) {
+                $therapist->notify(new NewPatient($patientFirstName, $patientLastName));
+                event(new NewPatientNotification($therapistId, $patientFirstName, $patientLastName));
+            }
+        }
+
+        return ['success' => true];
     }
 }
