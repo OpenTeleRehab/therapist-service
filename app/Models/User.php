@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Helpers\RocketChatHelper;
+use App\Jobs\CreateAssociateChatRoom;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -116,6 +117,30 @@ class User extends Authenticatable
                     'active' => boolval($user->enabled),
                     'name' => $user->last_name . ' ' . $user->first_name
                 ]);
+
+                // Find associated users.
+                $associateIdentities = [];
+
+                if (isset($user->phc_service_id)) {
+                    $associateIdentities = User::where('phc_service_id', $user->phc_service_id)
+                        ->whereNot('id', $user->id)
+                        ->where('enabled', 1)
+                        ->pluck('identity')
+                        ->toArray();
+                }
+
+                if (isset($user->clinic_id)) {
+                    $associateIdentities = User::where('clinic_id', $user->clinic_id)
+                        ->whereNot('id', $user->id)
+                        ->where('enabled', 1)
+                        ->pluck('identity')
+                        ->toArray();
+                }
+
+                // Create associated chat room.
+                if (count($associateIdentities) > 0) {
+                    CreateAssociateChatRoom::dispatch($user->identity, $associateIdentities);
+                }
             } catch (\Exception $e) {
                 Log::error($e->getMessage());
             }

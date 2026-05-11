@@ -10,7 +10,6 @@ use App\Http\Resources\PhcWorkerListResource;
 use App\Http\Resources\PhcWorkerOptionResource;
 use App\Http\Resources\PhcWorkerResource;
 use App\Http\Resources\TherapistOptionResource;
-use App\Jobs\CreateAssociateChatRoom;
 use App\Models\Forwarder;
 use App\Models\TreatmentPlan;
 use App\Models\User;
@@ -521,18 +520,6 @@ class PhcWorkerController extends Controller
             $userUrl = KeycloakHelper::getUserUrl() . '?email=' . $user->email;
 
             $user->update(['enabled' => $enabled]);
-
-            // Find associate phc worker.
-            $phcWorkerIdentities = User::where('phc_service_id', $user->phc_service_id)
-                ->whereNot('id', $user->id)
-                ->where('enabled', 1)
-                ->pluck('identity')
-                ->toArray();
-
-            // Crete associate chat room.
-            if (count($phcWorkerIdentities) > 0) {
-                CreateAssociateChatRoom::dispatch($user->identity, $phcWorkerIdentities);
-            }
 
             $response = Http::withToken($token)->get($userUrl);
             $keyCloakUsers = $response->json();
