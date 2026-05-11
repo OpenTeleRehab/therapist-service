@@ -10,7 +10,6 @@ use App\Http\Resources\TherapistListResource;
 use App\Http\Resources\TherapistOptionResource;
 use App\Http\Resources\UserOptionResource;
 use App\Http\Resources\PhcWorkerOptionResource;
-use App\Jobs\CreateAssociateChatRoom;
 use App\Models\Forwarder;
 use App\Models\Transfer;
 use App\Models\TreatmentPlan;
@@ -609,18 +608,6 @@ class TherapistController extends Controller
             $token = KeycloakHelper::getKeycloakAccessToken();
             $userUrl = KeycloakHelper::getUserUrl() . '?email=' . $user->email;
             $user->update(['enabled' => $enabled]);
-
-            // Find associate therapist.
-            $therapistIdentities = User::where('clinic_id', $user->clinic_id)
-                ->whereNot('id', $user->id)
-                ->where('enabled', 1)
-                ->pluck('identity')
-                ->toArray();
-
-            // Crete associate chat room.
-            if (count($therapistIdentities) > 0) {
-                CreateAssociateChatRoom::dispatch($user->identity, $therapistIdentities);
-            }
 
             $response = Http::withToken($token)->get($userUrl);
             $keyCloakUsers = $response->json();
