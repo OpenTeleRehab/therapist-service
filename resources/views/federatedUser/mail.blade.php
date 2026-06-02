@@ -1,6 +1,8 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
+<head>
+    <title>{{ $subject ?? config('app.name') }}</title>
+</head>
 <body>
     <p>Dear {{ $name }},</p>
     <p>Welcome to OpenTeleRehab!</p>
