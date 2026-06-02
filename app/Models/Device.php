@@ -14,5 +14,6 @@ class Device extends Model
     protected $fillable = [
         'user_id',
         'fcm_token',
+        'device_id',
     ];
 }

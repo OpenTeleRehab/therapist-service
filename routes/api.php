@@ -105,6 +105,7 @@ Route::group(['middleware' => ['auth:api', 'verify.data.access']], function () {
 
     // User
     Route::post('auth/create-firebase-token', [AuthController::class, 'createFirebaseToken'])->middleware('role:manage_own_profile');
+    Route::delete('auth/delete-firebase-token', [AuthController::class, 'deleteFirebaseToken'])->middleware('role:access_all');
     Route::post('user/{user}/turn-off-guidance', [ProfileController::class, 'turnOffGuidance'])->middleware('role:manage_own_profile');
     Route::get('user/profile', [ProfileController::class, 'getUserProfile'])->middleware('role:manage_own_profile');
     Route::put('user/update-password', [ProfileController::class, 'updatePassword'])->middleware('role:manage_own_profile');
