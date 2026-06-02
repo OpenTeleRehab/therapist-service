@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Helpers\KeycloakHelper;
 use App\Http\Requests\CreateFirebaseTokenRequest;
+use App\Http\Requests\DeleteFirebaseTokenRequest;
 use App\Http\Requests\ForgotPasswordRequest;
 use App\Http\Requests\LoginRequest;
 use App\Models\Device;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
@@ -62,20 +64,48 @@ class AuthController extends Controller
     {
         $user = Auth::user();
 
-        $token = $request->get('firebase_token');
+        $fcmToken = $request->get('firebase_token');
+        $deviceId = $request->get('device_id');
 
-        Device::where('fcm_token', $token)
-            ->whereNot('user_id', $user->id)
-            ->delete();
-
+        // Create or update the device record with the new token and device ID.
         Device::updateOrCreate([
+            'device_id' => $deviceId,
+        ], [
             'user_id' => $user->id,
-            'fcm_token' => $request->get('firebase_token'),
+            'fcm_token' => $fcmToken,
         ]);
+
+        // Delete any other device records with the same token or device ID that do not belong to the current user.
+        Device::whereNot('user_id', $user->id)
+            ->where(function ($query) use ($fcmToken, $deviceId) {
+                $query->where('fcm_token', $fcmToken)
+                    ->orWhere('device_id', $deviceId);
+            })
+            ->delete();
 
         return response()->json([
             'success' => true,
-            'data' => ['firebase_token' => $request->get('firebase_token')],
+            'data' => ['firebase_token' => $fcmToken],
+        ]);
+    }
+
+    /**
+     * @param DeleteFirebaseTokenRequest $request
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function deleteFirebaseToken(Request $request)
+    {
+        $fcmToken = $request->get('firebase_token');
+        $deviceId = $request->get('device_id');
+
+        Device::where('fcm_token', $fcmToken)
+            ->orWhere('device_id', $deviceId)
+            ->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'common.delete_firebase_token_success',
         ]);
     }
 }
