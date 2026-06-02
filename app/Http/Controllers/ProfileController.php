@@ -33,17 +33,28 @@ class ProfileController extends Controller
      *     },
      * )
      *
+     * @param \Illuminate\Http\Request $request
+     * 
      * @return \App\Http\Resources\ProfileResource
      */
-    public function getUserProfile()
+    public function getUserProfile(Request $request)
     {
         $user = Auth::user();
+        $data = [];
         // Update enabled to true when first login.
         if (!$user->last_login) {
-            $user->update([
+            $data = [
                 'last_login' => now(),
                 'enabled' => true,
-            ]);
+            ];
+        }
+
+        if ($request->has('language_id')) {
+            $data['language_id'] = $request->language_id;
+        }
+
+        if (!empty($data)) {
+            $user->update($data);
         }
 
         return new ProfileResource($user);
