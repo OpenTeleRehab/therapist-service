@@ -64,17 +64,22 @@ class TransferController extends Controller
      */
     public function store(Request $request)
     {
-        $transfer = Transfer::updateOrCreate([
+        $therapistType = $request->get('therapist_type');
+        $uniqueFields = [
             'patient_id' => $request->get('patient_id'),
             'from_therapist_id' => $request->get('from_therapist_id'),
-            'therapist_type' => $request->get('therapist_type'),
-        ], [
+            'therapist_type' => $therapistType,
+        ];
+        if ($therapistType === Transfer::SUPPLEMENTARY_THERAPIST) {
+            $uniqueFields['to_therapist_id'] = $request->get('to_therapist_id');
+        }
+        $transfer = Transfer::updateOrCreate($uniqueFields, [
             'patient_id' => $request->get('patient_id'),
             'clinic_id' => $request->get('clinic_id'),
             'phc_service_id' => $request->get('phc_service_id'),
             'from_therapist_id' => $request->get('from_therapist_id'),
             'to_therapist_id' => $request->get('to_therapist_id'),
-            'therapist_type' => $request->get('therapist_type'),
+            'therapist_type' => $therapistType,
             'status' => Transfer::STATUS_INVITED,
         ]);
 
