@@ -92,6 +92,8 @@ class Appointment extends Notification
                     'payload' => [
                         'aps' => [
                             'badge' => 1,
+                            'content-available' => 1,
+                            'mutable-content' => 1,
                         ],
                     ],
                 ]),
