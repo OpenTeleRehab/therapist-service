@@ -8,8 +8,11 @@ use App\Http\Requests\DeleteFirebaseTokenRequest;
 use App\Http\Requests\ForgotPasswordRequest;
 use App\Http\Requests\LoginRequest;
 use App\Models\Device;
+use App\Models\Forwarder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
@@ -82,6 +85,28 @@ class AuthController extends Controller
                     ->orWhere('device_id', $deviceId);
             })
             ->delete();
+
+        // Delete the existing device tokens with the same FCM token or device ID in the patient service to prevent duplicates.
+        try {
+            Http::withHeaders([
+                'Authorization' => 'Bearer ' . Forwarder::getAccessToken(Forwarder::PATIENT_SERVICE),
+            ])
+            ->delete(env('PATIENT_SERVICE_URL') . '/auth/delete-firebase-token', [
+                'firebase_token' => $fcmToken,
+                'device_id' => $deviceId,
+            ]);
+
+            Http::withHeaders([
+                'Authorization' => 'Bearer ' . Forwarder::getAccessToken(Forwarder::PATIENT_SERVICE, strtoupper(config('settings.vn_country_iso'))),
+                'country' => strtoupper(config('settings.vn_country_iso')),
+            ])
+            ->delete(env('PATIENT_SERVICE_URL') . '/auth/delete-firebase-token', [
+                'firebase_token' => $fcmToken,
+                'device_id' => $deviceId,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error deleting existing device tokens', ['error' => $e->getMessage()]);
+        }
 
         return response()->json([
             'success' => true,
