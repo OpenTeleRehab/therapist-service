@@ -21,6 +21,8 @@ class PatientTherapistResource extends JsonResource
             'last_name' => $this->last_name,
             'chat_user_id' => $this->chat_user_id,
             'profession_id' => $this->profession_id,
+            'phone' => $this->phone,
+            'dial_code' => $this->dial_code,
         ];
     }
 }
