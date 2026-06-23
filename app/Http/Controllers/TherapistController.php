@@ -1233,4 +1233,22 @@ class TherapistController extends Controller
             'data' => PhcWorkerOptionResource::collection($query->get()),
         ];
     }
+
+    /**
+     * Get therapists by region ids.
+     *
+     * @param \Illuminate\Http\Request $request
+     *
+     * @return array
+     */
+    public function getByRegionIds(Request $request)
+    {
+        $regionIds = $request->get('region_ids');
+        $therapists = User::whereIn('region_id', $regionIds)
+            ->where('type', User::TYPE_THERAPIST)
+            ->where('enabled', true)
+            ->get();
+
+        return ['success' => true, 'data' => TherapistOptionResource::collection($therapists)];
+    }
 }

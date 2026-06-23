@@ -59,6 +59,7 @@ Route::group(['middleware' => ['auth:api', 'verify.data.access']], function () {
     Route::apiResource('therapist', TherapistController::class)->middleware('role:access_all');
     Route::get('therapist/option/list', [TherapistController::class, 'getUserOptionList'])->middleware('role:view_clinic_therapist,view_phc_service_phc_worker');
     Route::get('therapists-by-country', [TherapistController::class, 'getAllByCountry'])->middleware('role:access_all');
+    Route::get('therapist/list/by-region-ids', [TherapistController::class, 'getByRegionIds'])->middleware('role:access_all');
 
     // Data clean up across service
     Route::get('data-clean-up/users/count', [DataCleanUpController::class, 'countUsersByEntity'])->middleware('role:access_all');
