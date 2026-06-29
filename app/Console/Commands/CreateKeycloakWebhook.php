@@ -27,7 +27,7 @@ class CreateKeycloakWebhook extends Command
      *
      * @var string
      */
-    protected $help = 'php artisan hi:create-keycloak-webhook';
+    protected $help = 'php artisan hi:create-keycloak-webhook /audit-logs --eventTypes=access.LOGIN --eventTypes=access.LOGOUT';
 
     /**
      * Execute the console command.
