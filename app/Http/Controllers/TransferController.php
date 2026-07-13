@@ -42,10 +42,7 @@ class TransferController extends Controller
         $status = $request->input('status');
         $therapist_type = $request->input('therapist_type');
 
-        $transfers = Transfer::where(function ($query) use ($userId) {
-            $query->where('from_therapist_id', $userId)
-                ->orWhere('to_therapist_id', $userId);
-        })
+        $transfers = Transfer::where('from_therapist_id', $userId)
             ->where('status', $status)
             ->when($therapist_type, function ($query, $therapist_type) {
                 $query->where('therapist_type', $therapist_type);
