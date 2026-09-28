@@ -32,9 +32,10 @@ class AuthController extends Controller
             ]);
         }
 
+        // Keycloak outage is not a credential rejection: 503 so the app keeps its offline session
         return response()->json([
             'success' => false,
-        ]);
+        ], $response->serverError() ? 503 : 200);
     }
 
     /**
